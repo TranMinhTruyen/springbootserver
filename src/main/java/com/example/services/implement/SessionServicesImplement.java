@@ -18,8 +18,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import static com.example.common.utils.MessageError.DEVICE_INFO_INVALID;
-import static com.example.common.utils.MessageError.SESSION_NOT_FOUND;
+import static com.example.common.Enum.MessageError.DEVICE_INFO_INVALID;
+import static com.example.common.Enum.MessageError.SESSION_NOT_FOUND;
 
 /**
  * @author Tran Minh Truyen

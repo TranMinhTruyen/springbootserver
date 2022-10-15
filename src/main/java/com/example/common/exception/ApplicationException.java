@@ -1,6 +1,6 @@
 package com.example.common.exception;
 
-import com.example.common.utils.MessageError;
+import com.example.common.Enum.MessageError;
 import org.springframework.http.HttpStatus;
 
 public class ApplicationException extends Exception{

@@ -31,18 +31,20 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
-import static com.example.common.utils.MessageError.CONFIRM_KEY_INVALID;
-import static com.example.common.utils.MessageError.USER_IS_DISABLE;
-import static com.example.common.utils.MessageError.USER_IS_EXIST;
-import static com.example.common.utils.MessageError.USER_NOT_FOUND;
-import static com.example.common.utils.MessageError.USER_NOT_FOUND_GET_ALL;
-import static com.example.common.utils.MessageError.USER_NOT_MATCH;
+import static com.example.common.Enum.MessageError.CONFIRM_KEY_INVALID;
+import static com.example.common.Enum.MessageError.USER_IS_DISABLE;
+import static com.example.common.Enum.MessageError.USER_IS_EXIST;
+import static com.example.common.Enum.MessageError.USER_NOT_FOUND;
+import static com.example.common.Enum.MessageError.USER_NOT_FOUND_GET_ALL;
+import static com.example.common.Enum.MessageError.USER_NOT_MATCH;
 
 
 /**
@@ -275,8 +277,10 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
                 ConfirmKey newConfirmKey = new ConfirmKey();
                 newConfirmKey.setEmail(email);
                 newConfirmKey.setKey(confirmKey);
-                Date now = new Date();
-                Date expireTime = new Date(now.getTime() + 300000);
+                LocalDateTime now = LocalDateTime.now();
+                LocalDate expireDate = LocalDate.of(now.getYear(), now.getMonth(), now.getDayOfMonth());
+                LocalTime expireMinute = LocalTime.of(now.getHour(), now.getMinute() + 5, now.getSecond());
+                LocalDateTime expireTime = LocalDateTime.of(expireDate, expireMinute);
                 newConfirmKey.setExpire(expireTime);
                 newConfirmKey.setType(Constant.REGISTER_TYPE);
                 Optional<ConfirmKey> isKeyExists = confirmKeyRepository.findByEmailEqualsAndTypeEquals(email, Constant.REGISTER_TYPE);
@@ -311,8 +315,10 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
             ConfirmKey newConfirmKey = new ConfirmKey();
             newConfirmKey.setEmail(result.get().getEmail());
             newConfirmKey.setKey(confirmKey);
-            Date now = new Date();
-            Date expireTime = new Date(now.getTime() + 300000);
+            LocalDateTime now = LocalDateTime.now();
+            LocalDate expireDate = LocalDate.of(now.getYear(), now.getMonth(), now.getDayOfMonth());
+            LocalTime expireMinute = LocalTime.of(now.getHour(), now.getMinute() + 5, now.getSecond());
+            LocalDateTime expireTime = LocalDateTime.of(expireDate, expireMinute);
             newConfirmKey.setExpire(expireTime);
             newConfirmKey.setType(Constant.LOGIN_TYPE);
             Optional<ConfirmKey> isKeyExists = confirmKeyRepository.findByEmailEqualsAndTypeEquals(result.get().getEmail(), Constant.LOGIN_TYPE);
@@ -335,8 +341,8 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
     public boolean checkConfirmKey(String email, String key, String type) throws ApplicationException {
         Optional<ConfirmKey> isKeyExists = confirmKeyRepository.findByEmailEqualsAndTypeEquals(email, type);
         isKeyExists.orElseThrow(() -> new ApplicationException(CONFIRM_KEY_INVALID));
-        Date now = new Date();
-        if (isKeyExists.get().getKey().equals(key) && now.before(isKeyExists.get().getExpire())) {
+        LocalDateTime now = LocalDateTime.now();
+        if (isKeyExists.get().getKey().equals(key) && now.isBefore(isKeyExists.get().getExpire())) {
             confirmKeyRepository.deleteByEmailEqualsAndTypeEquals(email, type);
             return true;
         } else return false;
@@ -351,8 +357,8 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
         }
         Optional<ConfirmKey> isKeyExists = confirmKeyRepository.findByEmailEqualsAndTypeEquals(result.get().getEmail(), type);
         isKeyExists.orElseThrow(() -> new ApplicationException(CONFIRM_KEY_INVALID));
-        Date now = new Date();
-        if (isKeyExists.get().getKey().equals(key) && now.before(isKeyExists.get().getExpire())) {
+        LocalDateTime now = LocalDateTime.now();
+        if (isKeyExists.get().getKey().equals(key) && now.isBefore(isKeyExists.get().getExpire())) {
             confirmKeyRepository.deleteByEmailEqualsAndTypeEquals(result.get().getEmail(), type);
             return true;
         } else return false;

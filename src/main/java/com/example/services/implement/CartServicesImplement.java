@@ -21,10 +21,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static com.example.common.utils.MessageError.CART_CREATED_ERROR;
-import static com.example.common.utils.MessageError.CART_NOT_FOUND;
-import static com.example.common.utils.MessageError.PRODUCT_NOT_FOUND;
-import static com.example.common.utils.MessageError.USER_NOT_FOUND;
+import static com.example.common.Enum.MessageError.CART_CREATED_ERROR;
+import static com.example.common.Enum.MessageError.CART_NOT_FOUND;
+import static com.example.common.Enum.MessageError.PRODUCT_NOT_FOUND;
+import static com.example.common.Enum.MessageError.USER_NOT_FOUND;
 
 /**
  * @author Tran Minh Truyen

@@ -1,4 +1,4 @@
-package com.example.common.utils;
+package com.example.common.Enum;
 
 import org.springframework.http.HttpStatus;
 

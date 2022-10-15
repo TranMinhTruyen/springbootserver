@@ -4,6 +4,7 @@ import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Document(collection = "ConfirmKey")
@@ -16,7 +17,7 @@ public class ConfirmKey {
 	private String key;
 
 	@Field(value = "Expire")
-	private Date expire;
+	private LocalDateTime expire;
 
 	@Field(value = "Type")
 	private String type;
