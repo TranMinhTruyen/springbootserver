@@ -1,9 +1,16 @@
 package com.example.dao.common;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 
-public class BigDecimalField {
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public class BigDecimalField extends CommonField {
     private BigDecimal value;
-    private String type;
-    private String color;
 }

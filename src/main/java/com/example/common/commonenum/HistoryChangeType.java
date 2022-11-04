@@ -1,4 +1,4 @@
-package com.example.common.Enum;
+package com.example.common.commonenum;
 
 public enum HistoryChangeType {
     NEW(1),

@@ -19,6 +19,7 @@ import com.example.services.UserServices;
 import com.google.common.hash.Hashing;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
@@ -29,22 +30,32 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.util.FileCopyUtils;
+import org.springframework.util.ResourceUtils;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Date;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
-import static com.example.common.Enum.MessageError.CONFIRM_KEY_INVALID;
-import static com.example.common.Enum.MessageError.USER_IS_DISABLE;
-import static com.example.common.Enum.MessageError.USER_IS_EXIST;
-import static com.example.common.Enum.MessageError.USER_NOT_FOUND;
-import static com.example.common.Enum.MessageError.USER_NOT_FOUND_GET_ALL;
-import static com.example.common.Enum.MessageError.USER_NOT_MATCH;
+import static com.example.common.commonenum.MessageError.CONFIRM_KEY_INVALID;
+import static com.example.common.commonenum.MessageError.USER_IS_DISABLE;
+import static com.example.common.commonenum.MessageError.USER_IS_EXIST;
+import static com.example.common.commonenum.MessageError.USER_NOT_FOUND;
+import static com.example.common.commonenum.MessageError.USER_NOT_FOUND_GET_ALL;
+import static com.example.common.commonenum.MessageError.USER_NOT_MATCH;
 
 
 /**
@@ -79,8 +90,6 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
     public UserResponse createUser(UserRequest userRequest, String confirmKey) throws ApplicationException {
         if (!accountIsExists(userRequest.getAccount()) && !emailIsExists(userRequest.getEmail()) &&
                 checkConfirmKey(userRequest.getEmail(), confirmKey, Constant.REGISTER_TYPE)) {
-            SecurityContext securityContext = SecurityContextHolder.getContext();
-            CustomUserDetail customUserDetail = (CustomUserDetail) securityContext.getAuthentication().getPrincipal();
             List<User> last = new AutoIncrement(userRepository).getLastOfCollection();
             User newUser = new User();
             newUser.setAccount(userRequest.getAccount());
@@ -97,9 +106,18 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
             newUser.setPostCode(userRequest.getPostCode());
             newUser.setEmail(userRequest.getEmail());
             newUser.setRole(userRequest.getRole());
-            newUser.setImage(userRequest.getImage());
+            String fileName = Constant.IMAGE_FILE_PATH + userRequest.getAccount() + ".png";
+            try {
+                byte[] data = Base64.getDecoder().decode(userRequest.getImage());
+                FileOutputStream fos = new FileOutputStream(new File(fileName));
+                fos.write(data);
+                fos.close();
+            } catch (IOException exception) {
+                throw new ApplicationException(exception.getMessage(), exception.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+            newUser.setImage(fileName);
             newUser.setActive(true);
-            newUser.setCreatedBy(customUserDetail.getUser().getFirstName() + customUserDetail.getUser().getLastName());
+            newUser.setCreatedBy(userRequest.getFirstName() + userRequest.getLastName());
             newUser.setCreatedDate(LocalDateTime.now());
             User result = userRepository.save(newUser);
             return getUserAfterUpdateOrCreate(result);
@@ -176,8 +194,20 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
             update.setCitizenId(request.getCitizenID());
         if (request.getEmail() != null)
             update.setEmail(request.getEmail());
-        if (request.getImage() != null)
-            update.setImage(request.getImage());
+        if (request.getImage() != null) {
+            String fileName = Constant.IMAGE_FILE_PATH + update.getAccount() + ".png";
+            try {
+                Path path = Paths.get(update.getImage());
+                Files.deleteIfExists(path);
+                byte[] data = Base64.getDecoder().decode(request.getImage());
+                FileOutputStream fos = new FileOutputStream(new File(fileName));
+                fos.write(data);
+                fos.close();
+            } catch (IOException exception) {
+                throw new ApplicationException(exception.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+            update.setImage(fileName);
+        }
         update.setActive(request.isActive());
         User result = userRepository.save(update);
         return getUserAfterUpdateOrCreate(result);
@@ -244,7 +274,13 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
             userResponse.setAddress(user.get().getAddress());
             userResponse.setCitizenID(user.get().getCitizenId());
             userResponse.setEmail(user.get().getEmail());
-            userResponse.setImage(user.get().getImage());
+            try {
+                File file = ResourceUtils.getFile(user.get().getImage());
+                InputStream in = new FileInputStream(file);
+                userResponse.setImage(Base64.getEncoder().encodeToString(in.readAllBytes()));
+            } catch (IOException exception) {
+                userResponse.setImage(null);
+            }
             userResponse.setActive(user.get().isActive());
             return userResponse;
         } else
@@ -270,7 +306,7 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
     @Override
     public void sendEmailConfirmKey(String email) throws ApplicationException {
         try {
-            if (emailIsExists(email)) {
+            if (!emailIsExists(email)) {
                 String confirmKey;
                 Random random = new Random();
                 confirmKey = String.format("%06d", random.nextInt(999999));

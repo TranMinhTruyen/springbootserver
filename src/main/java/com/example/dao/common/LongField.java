@@ -1,7 +1,14 @@
 package com.example.dao.common;
 
-public class LongField {
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public class LongField extends CommonField {
     private Long value;
-    private String type;
-    private String color;
 }

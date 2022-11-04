@@ -21,10 +21,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static com.example.common.Enum.MessageError.CART_CREATED_ERROR;
-import static com.example.common.Enum.MessageError.CART_NOT_FOUND;
-import static com.example.common.Enum.MessageError.PRODUCT_NOT_FOUND;
-import static com.example.common.Enum.MessageError.USER_NOT_FOUND;
+import static com.example.common.commonenum.MessageError.CART_CREATED_ERROR;
+import static com.example.common.commonenum.MessageError.CART_NOT_FOUND;
+import static com.example.common.commonenum.MessageError.PRODUCT_NOT_FOUND;
+import static com.example.common.commonenum.MessageError.USER_NOT_FOUND;
 
 /**
  * @author Tran Minh Truyen
@@ -78,6 +78,8 @@ public class CartServicesImplement implements CartServices {
             Cart cart = cartRepository.save(newCart);
             return getCartAfterUpdateOrCreate(cart);
         } else throw new ApplicationException(CART_CREATED_ERROR);
+
+
     }
 
     public CartResponse getCartAfterUpdateOrCreate(Cart cart) {

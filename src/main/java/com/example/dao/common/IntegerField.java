@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class FloatField extends CommonField {
-    private Float value;
+public class IntegerField extends CommonField {
+    private Integer value;
 }
-
