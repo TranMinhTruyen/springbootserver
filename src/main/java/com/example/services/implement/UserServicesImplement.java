@@ -166,7 +166,7 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
                 Hashing.sha512().hashString(loginRequest.getPassword(), StandardCharsets.UTF_8).toString());
         result.orElseThrow(() -> new ApplicationException(USER_NOT_FOUND));
         if (!result.get().isActive()) {
-            throw new ApplicationException(USER_NOT_FOUND);
+            throw new ApplicationException(USER_IS_DISABLE);
         }
         String jwt = sessionServices.checkExists(result.get(), loginRequest);
         if (jwt == null && checkConfirmKey(result.get().getEmail(), confirmKey, Constant.LOGIN_TYPE) == true) {
