@@ -51,29 +51,31 @@ public class UserResource {
     @Autowired
     private SessionServices sessionServices;
 
-    @Operation(responses = {
-            @ApiResponse(responseCode = "200", content = { @Content(mediaType = "application/json", schema = @Schema(implementation = JwtResponse.class)) }),
-            @ApiResponse(responseCode = "400", description = "Bad request"),
-            @ApiResponse(responseCode = "403", description = "Forbidden")
-    })
-    @PostMapping(value = "login", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public BaseResponse login(@Valid @RequestBody LoginRequest loginRequest) throws Exception {
-        BaseResponse baseResponse = new BaseResponse();
-        JwtResponse jwtResponse = userServices.login(loginRequest);
-        baseResponse.setStatus(HttpStatus.OK.value());
-        baseResponse.setStatusname(HttpStatus.OK.name());
-        baseResponse.setMessage("Login valid");
-        baseResponse.setPayload(jwtResponse);
-        return baseResponse;
-    }
+//    @Operation(responses = {
+//            @ApiResponse(responseCode = "200", content = { @Content(mediaType = "application/json", schema = @Schema(implementation = JwtResponse.class)) }),
+//            @ApiResponse(responseCode = "400", description = "Bad request"),
+//            @ApiResponse(responseCode = "403", description = "Forbidden")
+//    })
+//    @PostMapping(value = "login", consumes = MediaType.APPLICATION_JSON_VALUE)
+//    public BaseResponse login(@Valid @RequestBody LoginRequest loginRequest) throws Exception {
+//        BaseResponse baseResponse = new BaseResponse();
+//        JwtResponse jwtResponse = userServices.login(loginRequest);
+//        baseResponse.setStatus(HttpStatus.OK.value());
+//        baseResponse.setStatusname(HttpStatus.OK.name());
+//        baseResponse.setMessage("Login valid");
+//        baseResponse.setPayload(jwtResponse);
+//        return baseResponse;
+//    }
 
     @Operation(responses = {
             @ApiResponse(responseCode = "200", content = { @Content(mediaType = "application/json", schema = @Schema(implementation = JwtResponse.class)) }),
             @ApiResponse(responseCode = "400", description = "Bad request"),
             @ApiResponse(responseCode = "403", description = "Forbidden")
     })
-    @PostMapping(value = "loginAnotherDevice", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public BaseResponse loginAnotherDevice(@Valid @RequestBody LoginRequest loginRequest, @RequestParam String confirmKey) throws Exception {
+    @PostMapping(value = "login", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public BaseResponse login(@Valid @RequestBody LoginRequest loginRequest,
+                                           @RequestParam(required = false) String confirmKey)
+            throws Exception {
         BaseResponse baseResponse = new BaseResponse();
         JwtResponse jwtResponse = userServices.loginAnotherDevice(loginRequest, confirmKey);
         baseResponse.setStatus(HttpStatus.OK.value());

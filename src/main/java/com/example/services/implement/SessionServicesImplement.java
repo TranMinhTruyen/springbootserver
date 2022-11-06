@@ -11,6 +11,7 @@ import com.example.dao.document.User;
 import com.example.dao.repository.mongo.SessionRepository;
 import com.example.services.SessionServices;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -44,22 +45,24 @@ public class SessionServicesImplement implements SessionServices {
     @Override
     public String checkExists(User user, LoginRequest loginRequest) throws ApplicationException {
         Optional<Session> session = sessionRepository.findById(user.getId());
-        session.orElseThrow(() -> new ApplicationException(SESSION_NOT_FOUND));
-        DeviceInfo deviceInfo = null;
-        for (DeviceInfo item : session.get().getDeviceInfoList()) {
-            if (item.getOS().equals(loginRequest.getDeviceInfo().getOS())
-                    && item.getDeviceName().equals(loginRequest.getDeviceInfo().getDeviceName())) {
-                deviceInfo = new DeviceInfo();
-                deviceInfo.setDeviceName(item.getDeviceName());
-                deviceInfo.setOS(item.getOS());
-                deviceInfo.setToken(item.getToken());
-                break;
+        if (session.isPresent()) {
+            DeviceInfo deviceInfo = null;
+            for (DeviceInfo item : session.get().getDeviceInfoList()) {
+                if (item.getOS().equals(loginRequest.getDeviceInfo().getOS())
+                        && item.getDeviceName().equals(loginRequest.getDeviceInfo().getDeviceName())) {
+                    deviceInfo = new DeviceInfo();
+                    deviceInfo.setDeviceName(item.getDeviceName());
+                    deviceInfo.setOS(item.getOS());
+                    deviceInfo.setToken(item.getToken());
+                    break;
+                }
             }
+            if (deviceInfo != null) {
+                return deviceInfo.getToken();
+            } else
+                return null;
         }
-        if (deviceInfo != null) {
-            return deviceInfo.getToken();
-        } else
-            throw new ApplicationException(DEVICE_INFO_INVALID);
+        return null;
     }
 
     @Override
