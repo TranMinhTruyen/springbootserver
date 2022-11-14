@@ -134,7 +134,7 @@ public class UserResource {
             bearerToken = bearerToken.substring(7);
         } else throw new ApplicationException("Access denied", HttpStatus.UNAUTHORIZED);
         BaseResponse baseResponse = new BaseResponse();
-        sessionServices.checkSessionAndLogoutDevice(customUserDetail, deviceInfoRequest, bearerToken);
+        sessionServices.logoutDevice(customUserDetail, deviceInfoRequest, bearerToken);
         baseResponse.setStatus(HttpStatus.OK.value());
         baseResponse.setStatusname(HttpStatus.OK.name());
         baseResponse.setMessage("Logout successfully");

@@ -20,18 +20,14 @@ import com.google.common.hash.Hashing;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.util.FileCopyUtils;
 import org.springframework.util.ResourceUtils;
 
 import java.io.File;
@@ -52,7 +48,6 @@ import java.util.Optional;
 import java.util.Random;
 
 import static com.example.common.commonenum.MessageError.CONFIRM_KEY_INVALID;
-import static com.example.common.commonenum.MessageError.SESSION_NOT_FOUND;
 import static com.example.common.commonenum.MessageError.USER_IS_DISABLE;
 import static com.example.common.commonenum.MessageError.USER_IS_EXIST;
 import static com.example.common.commonenum.MessageError.USER_NOT_FOUND;
@@ -156,7 +151,7 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
         if (!result.get().isActive()) {
             throw new ApplicationException(USER_IS_DISABLE);
         }
-        String jwt = sessionServices.checkExists(result.get(), loginRequest);
+        String jwt = sessionServices.getJWTFromSession(result.get(), loginRequest);
         return new JwtResponse(jwt);
     }
 
@@ -168,13 +163,14 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
         if (!result.get().isActive()) {
             throw new ApplicationException(USER_IS_DISABLE);
         }
-        String jwt = sessionServices.checkExists(result.get(), loginRequest);
-        if (jwt == null && checkConfirmKey(result.get().getEmail(), confirmKey, Constant.LOGIN_TYPE) == true) {
-            jwt = sessionServices.checkSessionAndLoginAnotherDevice(result.get(), loginRequest);
-            return new JwtResponse(jwt);
-        }
-        if (jwt == null && checkConfirmKey(result.get().getEmail(), confirmKey, Constant.LOGIN_TYPE) == false) {
-            throw new ApplicationException(SESSION_NOT_FOUND);
+        String jwt = null;
+
+        //  if have account but not found session and have confirm key (case create new session)
+        if (checkConfirmKey(result.get().getEmail(), confirmKey, Constant.LOGIN_TYPE) == true) {
+            jwt = sessionServices.createJWTAndSession(result.get(), loginRequest);
+        } else {
+            sessionServices.checkSessionAndDeviceInfo(result.get(), loginRequest);
+            jwt = sessionServices.getJWTFromSession(result.get(), loginRequest);
         }
         return new JwtResponse(jwt);
     }
