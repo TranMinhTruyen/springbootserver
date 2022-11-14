@@ -38,11 +38,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.example.common.utils.MessageError.BRAND_NOT_FOUND;
-import static com.example.common.utils.MessageError.CATEGORY_NOT_FOUND;
-import static com.example.common.utils.MessageError.PRODUCT_IMAGE_NOT_FOUND;
-import static com.example.common.utils.MessageError.PRODUCT_IS_EXIST;
-import static com.example.common.utils.MessageError.PRODUCT_NOT_FOUND;
+import static com.example.common.commonenum.MessageError.BRAND_NOT_FOUND;
+import static com.example.common.commonenum.MessageError.CATEGORY_NOT_FOUND;
+import static com.example.common.commonenum.MessageError.PRODUCT_IMAGE_NOT_FOUND;
+import static com.example.common.commonenum.MessageError.PRODUCT_IS_EXIST;
+import static com.example.common.commonenum.MessageError.PRODUCT_NOT_FOUND;
 
 /**
  * @author Tran Minh Truyen

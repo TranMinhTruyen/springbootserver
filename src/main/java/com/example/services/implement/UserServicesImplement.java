@@ -18,31 +18,41 @@ import com.example.services.SessionServices;
 import com.example.services.UserServices;
 import com.google.common.hash.Hashing;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ResourceUtils;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
+import java.time.LocalTime;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
-import static com.example.common.utils.MessageError.CONFIRM_KEY_INVALID;
-import static com.example.common.utils.MessageError.USER_IS_DISABLE;
-import static com.example.common.utils.MessageError.USER_IS_EXIST;
-import static com.example.common.utils.MessageError.USER_NOT_FOUND;
-import static com.example.common.utils.MessageError.USER_NOT_FOUND_GET_ALL;
-import static com.example.common.utils.MessageError.USER_NOT_MATCH;
+import static com.example.common.commonenum.MessageError.CONFIRM_KEY_INVALID;
+import static com.example.common.commonenum.MessageError.USER_IS_DISABLE;
+import static com.example.common.commonenum.MessageError.USER_IS_EXIST;
+import static com.example.common.commonenum.MessageError.USER_NOT_FOUND;
+import static com.example.common.commonenum.MessageError.USER_NOT_FOUND_GET_ALL;
+import static com.example.common.commonenum.MessageError.USER_NOT_MATCH;
 
 
 /**
@@ -77,8 +87,6 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
     public UserResponse createUser(UserRequest userRequest, String confirmKey) throws ApplicationException {
         if (!accountIsExists(userRequest.getAccount()) && !emailIsExists(userRequest.getEmail()) &&
                 checkConfirmKey(userRequest.getEmail(), confirmKey, Constant.REGISTER_TYPE)) {
-            SecurityContext securityContext = SecurityContextHolder.getContext();
-            CustomUserDetail customUserDetail = (CustomUserDetail) securityContext.getAuthentication().getPrincipal();
             List<User> last = new AutoIncrement(userRepository).getLastOfCollection();
             User newUser = new User();
             newUser.setAccount(userRequest.getAccount());
@@ -95,9 +103,18 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
             newUser.setPostCode(userRequest.getPostCode());
             newUser.setEmail(userRequest.getEmail());
             newUser.setRole(userRequest.getRole());
-            newUser.setImage(userRequest.getImage());
+            String fileName = Constant.IMAGE_FILE_PATH + userRequest.getAccount() + ".png";
+            try {
+                byte[] data = Base64.getDecoder().decode(userRequest.getImage());
+                FileOutputStream fos = new FileOutputStream(new File(fileName));
+                fos.write(data);
+                fos.close();
+            } catch (IOException exception) {
+                throw new ApplicationException(exception.getMessage(), exception.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+            newUser.setImage(fileName);
             newUser.setActive(true);
-            newUser.setCreatedBy(customUserDetail.getUser().getFirstName() + customUserDetail.getUser().getLastName());
+            newUser.setCreatedBy(userRequest.getFirstName() + userRequest.getLastName());
             newUser.setCreatedDate(LocalDateTime.now());
             User result = userRepository.save(newUser);
             return getUserAfterUpdateOrCreate(result);
@@ -123,14 +140,18 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
     }
 
     @Override
+    @Deprecated
     public JwtResponse login(LoginRequest loginRequest) throws ApplicationException {
         Optional<User> result = userRepository.findUsersByAccountEqualsAndPasswordEquals(loginRequest.getAccount(),
                 Hashing.sha512().hashString(loginRequest.getPassword(), StandardCharsets.UTF_8).toString());
         result.orElseThrow(() -> new ApplicationException(USER_NOT_FOUND));
         if (!result.get().isActive()) {
+            throw new ApplicationException(USER_NOT_FOUND);
+        }
+        if (!result.get().isActive()) {
             throw new ApplicationException(USER_IS_DISABLE);
         }
-        String jwt = sessionServices.checkExists(result.get(), loginRequest);
+        String jwt = sessionServices.getJWTFromSession(result.get(), loginRequest);
         return new JwtResponse(jwt);
     }
 
@@ -142,11 +163,16 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
         if (!result.get().isActive()) {
             throw new ApplicationException(USER_IS_DISABLE);
         }
-        if (checkConfirmKey(loginRequest, confirmKey, Constant.LOGIN_TYPE)) {
-            String jwt = sessionServices.checkSessionAndLoginAnotherDevice(result.get(), loginRequest);
-            return new JwtResponse(jwt);
+        String jwt = null;
+
+        //  if have account but not found session and have confirm key (case create new session)
+        if (checkConfirmKey(result.get().getEmail(), confirmKey, Constant.LOGIN_TYPE) == true) {
+            jwt = sessionServices.createJWTAndSession(result.get(), loginRequest);
+        } else {
+            sessionServices.checkSessionAndDeviceInfo(result.get(), loginRequest);
+            jwt = sessionServices.getJWTFromSession(result.get(), loginRequest);
         }
-        return null;
+        return new JwtResponse(jwt);
     }
 
     @Override
@@ -174,8 +200,20 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
             update.setCitizenId(request.getCitizenID());
         if (request.getEmail() != null)
             update.setEmail(request.getEmail());
-        if (request.getImage() != null)
-            update.setImage(request.getImage());
+        if (request.getImage() != null) {
+            String fileName = Constant.IMAGE_FILE_PATH + update.getAccount() + ".png";
+            try {
+                Path path = Paths.get(update.getImage());
+                Files.deleteIfExists(path);
+                byte[] data = Base64.getDecoder().decode(request.getImage());
+                FileOutputStream fos = new FileOutputStream(new File(fileName));
+                fos.write(data);
+                fos.close();
+            } catch (IOException exception) {
+                throw new ApplicationException(exception.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+            update.setImage(fileName);
+        }
         update.setActive(request.isActive());
         User result = userRepository.save(update);
         return getUserAfterUpdateOrCreate(result);
@@ -242,7 +280,13 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
             userResponse.setAddress(user.get().getAddress());
             userResponse.setCitizenID(user.get().getCitizenId());
             userResponse.setEmail(user.get().getEmail());
-            userResponse.setImage(user.get().getImage());
+            try {
+                File file = ResourceUtils.getFile(user.get().getImage());
+                InputStream in = new FileInputStream(file);
+                userResponse.setImage(Base64.getEncoder().encodeToString(in.readAllBytes()));
+            } catch (IOException exception) {
+                userResponse.setImage(null);
+            }
             userResponse.setActive(user.get().isActive());
             return userResponse;
         } else
@@ -268,15 +312,17 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
     @Override
     public void sendEmailConfirmKey(String email) throws ApplicationException {
         try {
-            if (emailIsExists(email)) {
+            if (!emailIsExists(email)) {
                 String confirmKey;
                 Random random = new Random();
                 confirmKey = String.format("%06d", random.nextInt(999999));
                 ConfirmKey newConfirmKey = new ConfirmKey();
                 newConfirmKey.setEmail(email);
                 newConfirmKey.setKey(confirmKey);
-                Date now = new Date();
-                Date expireTime = new Date(now.getTime() + 300000);
+                LocalDateTime now = LocalDateTime.now();
+                LocalDate expireDate = LocalDate.of(now.getYear(), now.getMonth(), now.getDayOfMonth());
+                LocalTime expireMinute = LocalTime.of(now.getHour(), now.getMinute() + 5, now.getSecond());
+                LocalDateTime expireTime = LocalDateTime.of(expireDate, expireMinute);
                 newConfirmKey.setExpire(expireTime);
                 newConfirmKey.setType(Constant.REGISTER_TYPE);
                 Optional<ConfirmKey> isKeyExists = confirmKeyRepository.findByEmailEqualsAndTypeEquals(email, Constant.REGISTER_TYPE);
@@ -286,8 +332,8 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
                 confirmKeyRepository.save(newConfirmKey);
                 SimpleMailMessage mailMessage = new SimpleMailMessage();
                 mailMessage.setTo(email);
-                mailMessage.setSubject("GG-App Confirm Key");
-                mailMessage.setText("This is your confirm key: " + confirmKey + "\n" + "Key will expired in 5 minutes");
+                mailMessage.setSubject("GG-App Register Confirm Key");
+                mailMessage.setText("This is your register confirm key: " + confirmKey + "\n" + "Key will expired in 5 minutes");
                 emailSender.send(mailMessage);
             }
         } catch (MailException e) {
@@ -311,8 +357,10 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
             ConfirmKey newConfirmKey = new ConfirmKey();
             newConfirmKey.setEmail(result.get().getEmail());
             newConfirmKey.setKey(confirmKey);
-            Date now = new Date();
-            Date expireTime = new Date(now.getTime() + 300000);
+            LocalDateTime now = LocalDateTime.now();
+            LocalDate expireDate = LocalDate.of(now.getYear(), now.getMonth(), now.getDayOfMonth());
+            LocalTime expireMinute = LocalTime.of(now.getHour(), now.getMinute() + 5, now.getSecond());
+            LocalDateTime expireTime = LocalDateTime.of(expireDate, expireMinute);
             newConfirmKey.setExpire(expireTime);
             newConfirmKey.setType(Constant.LOGIN_TYPE);
             Optional<ConfirmKey> isKeyExists = confirmKeyRepository.findByEmailEqualsAndTypeEquals(result.get().getEmail(), Constant.LOGIN_TYPE);
@@ -323,8 +371,8 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
 
             SimpleMailMessage mailMessage = new SimpleMailMessage();
             mailMessage.setTo(result.get().getEmail());
-            mailMessage.setSubject("GG-App Confirm Key");
-            mailMessage.setText("This is your confirm key: " + confirmKey + "\n" + "Key will expired in 5 minutes");
+            mailMessage.setSubject("GG-App Login Confirm Key");
+            mailMessage.setText("This is your login confirm key: " + confirmKey + "\n" + "Key will expired in 5 minutes");
             emailSender.send(mailMessage);
         } catch (MailException e) {
             confirmKeyRepository.deleteByEmailEqualsAndTypeEquals(result.get().getEmail(), Constant.LOGIN_TYPE);
@@ -332,28 +380,15 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
         }
     }
 
-    public boolean checkConfirmKey(String email, String key, String type) throws ApplicationException {
+    private boolean checkConfirmKey(String email, String key, String type) throws ApplicationException {
+        if (StringUtils.isEmpty(email) || StringUtils.isEmpty(key)) {
+            return false;
+        }
         Optional<ConfirmKey> isKeyExists = confirmKeyRepository.findByEmailEqualsAndTypeEquals(email, type);
         isKeyExists.orElseThrow(() -> new ApplicationException(CONFIRM_KEY_INVALID));
-        Date now = new Date();
-        if (isKeyExists.get().getKey().equals(key) && now.before(isKeyExists.get().getExpire())) {
+        LocalDateTime now = LocalDateTime.now();
+        if (isKeyExists.get().getKey().equals(key) && now.isBefore(isKeyExists.get().getExpire())) {
             confirmKeyRepository.deleteByEmailEqualsAndTypeEquals(email, type);
-            return true;
-        } else return false;
-    }
-
-    public boolean checkConfirmKey(LoginRequest loginRequest, String key, String type) throws ApplicationException {
-        Optional<User> result = userRepository.findUsersByAccountEqualsAndPasswordEquals(loginRequest.getAccount(),
-                Hashing.sha512().hashString(loginRequest.getPassword(), StandardCharsets.UTF_8).toString());
-        result.orElseThrow(() -> new ApplicationException(USER_NOT_FOUND));
-        if (!result.get().isActive()) {
-            throw new ApplicationException(USER_NOT_FOUND);
-        }
-        Optional<ConfirmKey> isKeyExists = confirmKeyRepository.findByEmailEqualsAndTypeEquals(result.get().getEmail(), type);
-        isKeyExists.orElseThrow(() -> new ApplicationException(CONFIRM_KEY_INVALID));
-        Date now = new Date();
-        if (isKeyExists.get().getKey().equals(key) && now.before(isKeyExists.get().getExpire())) {
-            confirmKeyRepository.deleteByEmailEqualsAndTypeEquals(result.get().getEmail(), type);
             return true;
         } else return false;
     }

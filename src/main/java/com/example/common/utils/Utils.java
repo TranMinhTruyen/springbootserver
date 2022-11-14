@@ -26,8 +26,8 @@ public class Utils {
     public List<String> getMethodNameOfClass(Class<?> clazz) {
         List<String> methodName = new ArrayList<>();
         Field[] fields = clazz.getDeclaredFields();
-        for (int i = 0; i < fields.length; i++) {
-            methodName.add(fields[i].getName());
+        for (Field field : fields) {
+            methodName.add(field.getName());
         }
         return methodName;
     }

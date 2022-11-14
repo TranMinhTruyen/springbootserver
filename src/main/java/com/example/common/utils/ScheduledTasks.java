@@ -42,10 +42,10 @@ public class ScheduledTasks {
 	@Scheduled(fixedDelay = 300000)
 	private void clearConfirmKey() {
 		LOGGER.info("Start clear confirmkey");
-		Date now = new Date();
+		LocalDateTime now = LocalDateTime.now();
 		List<ConfirmKey> getAllConfirmKey = confirmKeyRepository.findAll();
 		for (ConfirmKey key: getAllConfirmKey) {
-			if (key.getExpire().before(now)){
+			if (key.getExpire().isBefore(now)){
 				confirmKeyRepository.deleteByEmailEquals(key.getEmail());
 				LOGGER.info("Confirmkey is deleted: {}", key.getKey());
 			}

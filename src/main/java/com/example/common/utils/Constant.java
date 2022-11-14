@@ -3,6 +3,7 @@ package com.example.common.utils;
 public class Constant {
     public static final String LOGIN_TYPE = "LOGIN_TYPE";
     public static final String REGISTER_TYPE = "REGISTER_TYPE";
+    public static final String IMAGE_FILE_PATH = "D:/";
 
     //JWT
     public static final long EXPIRATIONTIME = 86400000;

@@ -10,7 +10,9 @@ import com.example.dao.document.Session;
 import com.example.dao.document.User;
 import com.example.dao.repository.mongo.SessionRepository;
 import com.example.services.SessionServices;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -18,8 +20,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import static com.example.common.utils.MessageError.DEVICE_INFO_INVALID;
-import static com.example.common.utils.MessageError.SESSION_NOT_FOUND;
+import static com.example.common.commonenum.MessageError.DEVICE_INFO_INVALID;
+import static com.example.common.commonenum.MessageError.SESSION_NOT_FOUND;
 
 /**
  * @author Tran Minh Truyen
@@ -42,24 +44,44 @@ public class SessionServicesImplement implements SessionServices {
 
 
     @Override
-    public String checkExists(User user, LoginRequest loginRequest) throws ApplicationException {
+    public String getJWTFromSession(User user, LoginRequest loginRequest) {
         Optional<Session> session = sessionRepository.findById(user.getId());
-        session.orElseThrow(() -> new ApplicationException(SESSION_NOT_FOUND));
-        DeviceInfo deviceInfo = null;
-        for (DeviceInfo item : session.get().getDeviceInfoList()) {
-            if (item.getOS().equals(loginRequest.getDeviceInfo().getOS())
-                    && item.getDeviceName().equals(loginRequest.getDeviceInfo().getDeviceName())) {
-                deviceInfo = new DeviceInfo();
-                deviceInfo.setDeviceName(item.getDeviceName());
-                deviceInfo.setOS(item.getOS());
-                deviceInfo.setToken(item.getToken());
-                break;
+        if (session.isPresent()) {
+            String jwt = null;
+            for (DeviceInfo item : session.get().getDeviceInfoList()) {
+                if (item.getOS().equals(loginRequest.getDeviceInfo().getOS())
+                        && item.getDeviceName().equals(loginRequest.getDeviceInfo().getDeviceName())) {
+                    jwt = item.getToken();
+                    break;
+                }
+            }
+            if (!StringUtils.isEmpty(jwt)) {
+                return jwt;
+            } else
+                return null;
+        }
+        return null;
+    }
+
+    @Override
+    public void checkSessionAndDeviceInfo(User user, LoginRequest loginRequest) throws ApplicationException {
+        Optional<Session> session = sessionRepository.findById(user.getId());
+        if (session.isPresent()) {
+            boolean jwt = false;
+            for (DeviceInfo item : session.get().getDeviceInfoList()) {
+                if (item.getOS().equals(loginRequest.getDeviceInfo().getOS())
+                        && item.getDeviceName().equals(loginRequest.getDeviceInfo().getDeviceName())) {
+                    jwt = true;
+                    break;
+                }
+            }
+            if (!jwt) {
+                throw new ApplicationException(DEVICE_INFO_INVALID);
             }
         }
-        if (deviceInfo != null) {
-            return deviceInfo.getToken();
-        } else
-            throw new ApplicationException(DEVICE_INFO_INVALID);
+        else {
+            throw new ApplicationException(SESSION_NOT_FOUND);
+        }
     }
 
     @Override
@@ -73,30 +95,28 @@ public class SessionServicesImplement implements SessionServices {
     }
 
     @Override
-    public void checkSessionAndLogoutDevice(CustomUserDetail customUserDetail, DeviceInfoRequest deviceInfoRequest, String token)
+    public void logoutDevice(CustomUserDetail customUserDetail, DeviceInfoRequest deviceInfoRequest, String token)
             throws ApplicationException {
         Optional<Session> session = sessionRepository.findById(customUserDetail.getUser().getId());
         session.orElseThrow(() -> new ApplicationException(SESSION_NOT_FOUND));
-        DeviceInfo deviceInfo = null;
+        boolean deviceFound = false;
         for (DeviceInfo item : session.get().getDeviceInfoList()) {
-            if (item.getOS().equals(deviceInfoRequest.getOS()) && item.getDeviceName().equals(deviceInfoRequest.getDeviceName())
+            if (item.getOS().equals(deviceInfoRequest.getOS())
+                    && item.getDeviceName().equals(deviceInfoRequest.getDeviceName())
                     && item.getToken().equals(token)) {
-                deviceInfo = new DeviceInfo();
-                deviceInfo.setDeviceName(item.getDeviceName());
-                deviceInfo.setOS(item.getOS());
-                deviceInfo.setToken(item.getToken());
+                deviceFound = true;
+                session.get().getDeviceInfoList().remove(item);
                 break;
             }
         }
-        if (deviceInfo != null) {
-            session.get().getDeviceInfoList().remove(deviceInfo);
+        if (deviceFound) {
             sessionRepository.save(session.get());
         } else
             throw new ApplicationException(DEVICE_INFO_INVALID);
     }
 
     @Override
-    public String checkSessionAndLoginAnotherDevice(User user, LoginRequest loginRequest) throws ApplicationException {
+    public String createJWTAndSession(User user, LoginRequest loginRequest) throws ApplicationException {
         CustomUserDetail customUserDetail = new CustomUserDetail(user);
         Optional<Session> session = sessionRepository.findById(user.getId());
         String jwt = jwtTokenProvider.generateToken(customUserDetail, loginRequest.isRemember());
