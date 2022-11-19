@@ -9,12 +9,13 @@
         <property name="connection.url">jdbc:mysql://localhost:3306/testdb?createDatabaseIfNotExist=true&amp;serverTimezone=UTC&amp;useUnicode=true&amp;characterEncoding=utf8</property>
         <property name="connection.username">root</property>
         <property name="connection.password">1234</property>
-        <property name="connection.pool_size">1</property>
+        <property name="connection.pool_size">10</property>
         <property name="current_session_context_class">thread</property>
         <property name="show_sql">true</property>
         <mapping class="com.example.dao.entity.Product" />
         <mapping class="com.example.dao.entity.Brand" />
         <mapping class="com.example.dao.entity.Category"/>
         <mapping class="com.example.dao.entity.ProductReview"/>
+        <mapping class="com.example.dao.entity.Master"/>
     </session-factory>
 </hibernate-configuration>
