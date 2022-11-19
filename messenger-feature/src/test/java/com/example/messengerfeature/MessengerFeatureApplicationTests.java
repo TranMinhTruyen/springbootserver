@@ -1,4 +1,4 @@
-package com.example.messengerfeature;
+package com.ggapp.messengerfeature;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

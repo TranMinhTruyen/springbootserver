@@ -12,10 +12,10 @@
         <property name="connection.pool_size">10</property>
         <property name="current_session_context_class">thread</property>
         <property name="show_sql">true</property>
-        <mapping class="com.example.dao.entity.Product" />
-        <mapping class="com.example.dao.entity.Brand" />
-        <mapping class="com.example.dao.entity.Category"/>
-        <mapping class="com.example.dao.entity.ProductReview"/>
-        <mapping class="com.example.dao.entity.Master"/>
+        <mapping class="com.ggapp.dao.entity.Product" />
+        <mapping class="com.ggapp.dao.entity.Brand" />
+        <mapping class="com.ggapp.dao.entity.Category"/>
+        <mapping class="com.ggapp.dao.entity.ProductReview"/>
+        <mapping class="com.ggapp.dao.entity.Master"/>
     </session-factory>
 </hibernate-configuration>
