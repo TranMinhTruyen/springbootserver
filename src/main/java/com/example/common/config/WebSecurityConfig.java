@@ -1,5 +1,6 @@
 package com.example.common.config;
 
+import com.example.common.exception.CustomAuthenticationEntryPoint;
 import com.example.common.jwt.JWTAuthenticationFilter;
 import com.example.services.implement.UserServicesImplement;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
@@ -64,6 +66,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		return new BCryptPasswordEncoder();
 	}
 
+	@Bean
+	public AuthenticationEntryPoint authenticationEntryPoint(){
+		return new CustomAuthenticationEntryPoint();
+	}
+
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http.cors().and()
@@ -74,7 +81,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 				.anyRequest()
 				.authenticated()
 				.and()
-				.exceptionHandling()
+				.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint())
 				.and()
 				.sessionManagement()
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
