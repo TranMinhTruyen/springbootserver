@@ -8,6 +8,7 @@ import com.ggapp.common.dto.response.UserResponse;
 import com.ggapp.common.exception.ApplicationException;
 import com.ggapp.common.jwt.CustomUserDetail;
 import com.ggapp.common.utils.Constant;
+import com.ggapp.common.utils.FileUtils;
 import com.ggapp.common.utils.mapper.UserMapper;
 import com.ggapp.dao.document.AutoIncrement;
 import com.ggapp.dao.document.ConfirmKey;
@@ -18,7 +19,6 @@ import com.ggapp.services.SessionServices;
 import com.ggapp.services.UserServices;
 import com.google.common.hash.Hashing;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.MailException;
@@ -28,21 +28,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ResourceUtils;
+import org.springframework.util.StringUtils;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -83,6 +74,9 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
     @Autowired
     private UserMapper userMapper;
 
+    @Autowired
+    private FileUtils fileUtils;
+
     @Override
     public UserResponse createUser(UserRequest userRequest, String confirmKey) throws ApplicationException {
         if (!accountIsExists(userRequest.getAccount()) && !emailIsExists(userRequest.getEmail()) &&
@@ -103,20 +97,13 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
             newUser.setPostCode(userRequest.getPostCode());
             newUser.setEmail(userRequest.getEmail());
             newUser.setRole(userRequest.getRole());
-            String fileName = Constant.IMAGE_FILE_PATH + userRequest.getAccount() + ".png";
-            try {
-                byte[] data = Base64.getDecoder().decode(userRequest.getImage());
-                FileOutputStream fos = new FileOutputStream(new File(fileName));
-                fos.write(data);
-                fos.close();
-            } catch (IOException exception) {
-                throw new ApplicationException(exception.getMessage(), exception.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-            newUser.setImage(fileName);
+            newUser.setImageFilePath(fileUtils.saveFile(newUser.getId() +"_"+ userRequest.getAccount() + ".png", userRequest.getImageFileData()));
             newUser.setActive(true);
+            newUser.setDeleted(false);
             newUser.setCreatedBy(userRequest.getFirstName() + userRequest.getLastName());
             newUser.setCreatedDate(LocalDateTime.now());
             User result = userRepository.save(newUser);
+            confirmKeyRepository.deleteByEmailEqualsAndTypeEquals(result.getEmail(), Constant.REGISTER_TYPE);
             return getUserAfterUpdateOrCreate(result);
         } else throw new ApplicationException(USER_IS_EXIST);
     }
@@ -166,8 +153,9 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
         String jwt = null;
 
         //  if have account but not found session and have confirm key (case create new session)
-        if (checkConfirmKey(result.get().getEmail(), confirmKey, Constant.LOGIN_TYPE) == true) {
+        if (checkConfirmKey(result.get().getEmail(), confirmKey, Constant.LOGIN_TYPE)) {
             jwt = sessionServices.createJWTAndSession(result.get(), loginRequest);
+            confirmKeyRepository.deleteByEmailEqualsAndTypeEquals(result.get().getEmail(), Constant.LOGIN_TYPE);
         } else {
             sessionServices.checkSessionAndDeviceInfo(result.get(), loginRequest);
             jwt = sessionServices.getJWTFromSession(result.get(), loginRequest);
@@ -200,19 +188,9 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
             update.setCitizenId(request.getCitizenID());
         if (request.getEmail() != null)
             update.setEmail(request.getEmail());
-        if (request.getImage() != null) {
-            String fileName = Constant.IMAGE_FILE_PATH + update.getAccount() + ".png";
-            try {
-                Path path = Paths.get(update.getImage());
-                Files.deleteIfExists(path);
-                byte[] data = Base64.getDecoder().decode(request.getImage());
-                FileOutputStream fos = new FileOutputStream(new File(fileName));
-                fos.write(data);
-                fos.close();
-            } catch (IOException exception) {
-                throw new ApplicationException(exception.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-            update.setImage(fileName);
+        if (request.getImageFileData() != null) {
+            String filePath = fileUtils.updateFile(update.getImageFilePath(), request.getImageFileData());
+            update.setImageFilePath(filePath);
         }
         update.setActive(request.isActive());
         User result = userRepository.save(update);
@@ -265,7 +243,7 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
         response.setActive(user.isActive());
         response.setEmail(user.getEmail());
         response.setRole(user.getRole());
-        response.setImage(user.getImage());
+        response.setImageFileData(user.getImageFilePath());
         return response;
     }
 
@@ -280,13 +258,7 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
             userResponse.setAddress(user.get().getAddress());
             userResponse.setCitizenID(user.get().getCitizenId());
             userResponse.setEmail(user.get().getEmail());
-            try {
-                File file = ResourceUtils.getFile(user.get().getImage());
-                InputStream in = new FileInputStream(file);
-                userResponse.setImage(Base64.getEncoder().encodeToString(in.readAllBytes()));
-            } catch (IOException exception) {
-                userResponse.setImage(null);
-            }
+            userResponse.setImageFileData(fileUtils.getFile(user.get().getImageFilePath()));
             userResponse.setActive(user.get().isActive());
             return userResponse;
         } else
@@ -313,9 +285,8 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
     public void sendEmailConfirmKey(String email) throws ApplicationException {
         try {
             if (!emailIsExists(email)) {
-                String confirmKey;
                 Random random = new Random();
-                confirmKey = String.format("%06d", random.nextInt(999999));
+                String confirmKey = String.format("%06d", random.nextInt(999999));
                 ConfirmKey newConfirmKey = new ConfirmKey();
                 newConfirmKey.setEmail(email);
                 newConfirmKey.setKey(confirmKey);
@@ -381,15 +352,12 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
     }
 
     private boolean checkConfirmKey(String email, String key, String type) throws ApplicationException {
-        if (StringUtils.isEmpty(email) || StringUtils.isEmpty(key)) {
+        if (!StringUtils.hasText(email) || !StringUtils.hasText(key)) {
             return false;
         }
         Optional<ConfirmKey> isKeyExists = confirmKeyRepository.findByEmailEqualsAndTypeEquals(email, type);
         isKeyExists.orElseThrow(() -> new ApplicationException(CONFIRM_KEY_INVALID));
         LocalDateTime now = LocalDateTime.now();
-        if (isKeyExists.get().getKey().equals(key) && now.isBefore(isKeyExists.get().getExpire())) {
-            confirmKeyRepository.deleteByEmailEqualsAndTypeEquals(email, type);
-            return true;
-        } else return false;
+        return isKeyExists.get().getKey().equals(key) && now.isBefore(isKeyExists.get().getExpire());
     }
 }

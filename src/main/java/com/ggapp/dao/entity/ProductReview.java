@@ -28,6 +28,9 @@ public class ProductReview {
     @Column
     private String text;
 
+    @Column(name = "is_deleted")
+    private boolean isDeleted;
+
     @Column(name = "user_name")
     private String userName;
 

@@ -2,7 +2,7 @@ package com.ggapp.services.implement;
 
 import com.ggapp.common.dto.response.CartResponse;
 import com.ggapp.common.exception.ApplicationException;
-import com.ggapp.common.utils.Utils;
+import com.ggapp.common.utils.CommonUtils;
 import com.ggapp.common.utils.mapper.CartMapper;
 import com.ggapp.dao.document.Cart;
 import com.ggapp.dao.document.ListProduct;
@@ -51,7 +51,7 @@ public class CartServicesImplement implements CartServices {
     private CartMapper cartMapper;
 
     @Autowired
-    private Utils utils;
+    private CommonUtils commonUtils;
 
     @Override
     public CartResponse createCart(int customerId, int productId, long productAmount) throws ApplicationException {
@@ -66,15 +66,15 @@ public class CartServicesImplement implements CartServices {
             listProducts.add(new ListProduct(product.getId(),
                     product.getName(),
                     product.getPrice(),
-                    utils.getProductImage(product.getId()),
-                    utils.calculatePrice(product),
+                    commonUtils.getProductImage(product.getId()),
+                    commonUtils.calculatePrice(product),
                     product.getDiscount(),
                     checkProductAmount(product, productAmount)));
             product.setUnitInStock(productAmount > 1 ? (product.getUnitInStock() - productAmount) : (product.getUnitInStock() - 1));
             productRepository.save(product);
             newCart.setId(userResult.get().getId());
             newCart.setProductList(listProducts);
-            newCart.setTotalPrice(utils.calculatePrice(product, productAmount));
+            newCart.setTotalPrice(commonUtils.calculatePrice(product, productAmount));
             Cart cart = cartRepository.save(newCart);
             return getCartAfterUpdateOrCreate(cart);
         } else throw new ApplicationException(CART_CREATED_ERROR);
@@ -129,7 +129,7 @@ public class CartServicesImplement implements CartServices {
             update.setProductList(list);
 			update.setUpdateDate(LocalDateTime.now());
 			update.setUpdateBy(user.getFirstName() + user.getLastName());
-            update.setTotalPrice(utils.calculatePrice(list));
+            update.setTotalPrice(commonUtils.calculatePrice(list));
             Cart result = cartRepository.save(update);
             if (result.getProductList().isEmpty()) {
                 return deleteCart(customerId);
@@ -152,15 +152,15 @@ public class CartServicesImplement implements CartServices {
             productInCart.add(new ListProduct(product.getId(),
                     product.getName(),
                     product.getPrice(),
-                    utils.getProductImage(product.getId()),
-                    utils.calculatePrice(product),
+                    commonUtils.getProductImage(product.getId()),
+                    commonUtils.calculatePrice(product),
                     product.getDiscount(),
                     checkProductAmount(product, productAmount)));
             product.setUnitInStock(product.getUnitInStock() - 1);
             productRepository.save(product);
             cart.setId(user.getId());
             cart.setProductList(productInCart);
-            cart.setTotalPrice(utils.calculatePrice(productInCart));
+            cart.setTotalPrice(commonUtils.calculatePrice(productInCart));
             cartRepository.save(cart);
             return getCartAfterUpdateOrCreate(cart);
         } else {
@@ -188,7 +188,7 @@ public class CartServicesImplement implements CartServices {
                     break;
                 }
             }
-            update.setTotalPrice(utils.calculatePrice(list));
+            update.setTotalPrice(commonUtils.calculatePrice(list));
             update.setProductList(list);
             cartRepository.save(update);
             if (cartResult.get().getProductList().isEmpty()) {

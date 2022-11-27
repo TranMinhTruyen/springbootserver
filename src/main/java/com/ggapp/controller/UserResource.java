@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
@@ -50,22 +51,6 @@ public class UserResource {
 
     @Autowired
     private SessionServices sessionServices;
-
-//    @Operation(responses = {
-//            @ApiResponse(responseCode = "200", content = { @Content(mediaType = "application/json", schema = @Schema(implementation = JwtResponse.class)) }),
-//            @ApiResponse(responseCode = "400", description = "Bad request"),
-//            @ApiResponse(responseCode = "403", description = "Forbidden")
-//    })
-//    @PostMapping(value = "login", consumes = MediaType.APPLICATION_JSON_VALUE)
-//    public BaseResponse login(@Valid @RequestBody LoginRequest loginRequest) throws Exception {
-//        BaseResponse baseResponse = new BaseResponse();
-//        JwtResponse jwtResponse = userServices.login(loginRequest);
-//        baseResponse.setStatus(HttpStatus.OK.value());
-//        baseResponse.setStatusname(HttpStatus.OK.name());
-//        baseResponse.setMessage("Login valid");
-//        baseResponse.setPayload(jwtResponse);
-//        return baseResponse;
-//    }
 
     @Operation(responses = {
             @ApiResponse(responseCode = "200", content = { @Content(mediaType = "application/json", schema = @Schema(implementation = JwtResponse.class)) }),
@@ -238,6 +223,7 @@ public class UserResource {
 
     @Operation(responses = @ApiResponse(responseCode = "200"),
             security = {@SecurityRequirement(name = "Authorization")})
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping(value = "deleteUser")
     public BaseResponse deleteUser(@RequestParam int id){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

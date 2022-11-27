@@ -7,7 +7,7 @@ import com.ggapp.common.dto.response.ProductResponse;
 import com.ggapp.common.dto.response.ProductReviewReponse;
 import com.ggapp.common.exception.ApplicationException;
 import com.ggapp.common.jwt.CustomUserDetail;
-import com.ggapp.common.utils.Utils;
+import com.ggapp.common.utils.CommonUtils;
 import com.ggapp.common.utils.mapper.ProductMapper;
 import com.ggapp.common.utils.mapper.ProductReviewMapper;
 import com.ggapp.dao.document.Cart;
@@ -18,17 +18,20 @@ import com.ggapp.dao.entity.Brand;
 import com.ggapp.dao.entity.Category;
 import com.ggapp.dao.entity.Product;
 import com.ggapp.dao.entity.ProductReview;
+import com.ggapp.dao.entity.Voucher;
 import com.ggapp.dao.repository.mongo.CartRepository;
 import com.ggapp.dao.repository.mongo.ProductImageRepository;
 import com.ggapp.dao.repository.mysql.BrandRepository;
 import com.ggapp.dao.repository.mysql.CategoryRepository;
 import com.ggapp.dao.repository.mysql.ProductRepository;
 import com.ggapp.dao.repository.mysql.ProductReviewRepository;
+import com.ggapp.dao.repository.mysql.VoucherRepository;
 import com.ggapp.services.ProductServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
@@ -73,7 +76,7 @@ public class ProductServicesImplement implements ProductServices {
     private ProductImageRepository productImageRepository;
 
     @Autowired
-    private Utils utils;
+    private CommonUtils commonUtils;
 
     @Autowired
     private ProductMapper productMapper;
@@ -88,7 +91,7 @@ public class ProductServicesImplement implements ProductServices {
     public ProductResponse createProduct(ProductRequest productRequest) throws ApplicationException {
         Optional<Brand> brand = brandRepository.findById(productRequest.getId_brand());
         Optional<Category> category = categoryRepository.findById(productRequest.getId_category());
-        List<Product> product = productRepository.findAllByNameEqualsIgnoreCaseAndDeleteByIsNullAndDeleteDateIsNull(productRequest.getName());
+        List<Product> product = productRepository.findAllByNameEqualsIgnoreCaseAndIsDeletedFalse(productRequest.getName());
         SecurityContext securityContext = SecurityContextHolder.getContext();
         CustomUserDetail customUserDetail = (CustomUserDetail) securityContext.getAuthentication().getPrincipal();
         if (!product.isEmpty()) throw new ApplicationException(PRODUCT_IS_EXIST);
@@ -143,15 +146,15 @@ public class ProductServicesImplement implements ProductServices {
 
     @Override
     public CommonResponse getAllProduct(int page, int size) throws ApplicationException {
-        List<Product> productList = productRepository.findAllByDeleteByIsNullAndDeleteDateIsNull();
+        List<Product> productList = productRepository.findAllByIsDeletedFalse();
         List<ProductReview> productReviewList = productReviewRepository.findAll();
 
         List<ProductResponse> productResponseList = productMapper.entityToResponse(productList);
         List<ProductReviewReponse> productReviewResponseList = productReviewMapper.entityToResponse(productReviewList);
         List<ProductReviewReponse> temp;
         for (ProductResponse productResponse : productResponseList) {
-            productResponse.setImage(utils.getProductImage(productResponse.getId()));
-            productResponse.setPriceAfterDiscount(utils.calculatePrice(productResponse));
+            productResponse.setImage(commonUtils.getProductImage(productResponse.getId()));
+            productResponse.setPriceAfterDiscount(commonUtils.calculatePrice(productResponse));
             temp = new ArrayList<>();
             if (productReviewResponseList != null) {
                 for (ProductReviewReponse productReviewReponse : productReviewResponseList) {
@@ -172,14 +175,31 @@ public class ProductServicesImplement implements ProductServices {
         Optional<Product> product = productRepository.findById(id);
         product.orElseThrow(() -> new ApplicationException(PRODUCT_IS_EXIST));
         ProductResponse productResponse = productMapper.entityToResponse(product.get());
-        productResponse.setImage(utils.getProductImage(productResponse.getId()));
-        productResponse.setPriceAfterDiscount(utils.calculatePrice(productResponse));
+        productResponse.setImage(commonUtils.getProductImage(productResponse.getId()));
+        productResponse.setPriceAfterDiscount(commonUtils.calculatePrice(productResponse));
         return productResponse;
     }
 
     @Override
     public CommonResponse getProductByKeyWord(int page, int size, String name, String brand, String category, float fromPrice, float toPrice) throws ApplicationException {
-        List<ProductResponse> productResponseList = filterProduct(name, brand, category, fromPrice, toPrice);
+        List<Product> productList = new ArrayList<>();
+
+        if (StringUtils.hasText(name)) {
+            productList = productRepository.findAllByNameEqualsIgnoreCaseAndIsDeletedFalse(name);
+        }
+        if (StringUtils.hasText(brand) && !StringUtils.hasText(category)) {
+            productList = productRepository.findAllByBrandNameAndIsDeletedFalse(brand);
+        }
+        if (!StringUtils.hasText(brand) && StringUtils.hasText(category)) {
+            productList = productRepository.findAllByCategoryNameAndIsDeletedFalse(category);
+        }
+        if (StringUtils.hasText(brand) && StringUtils.hasText(category)) {
+            productList = productRepository.findAllByCategoryNameAndBrandNameAndIsDeletedFalse(category, brand);
+        }
+        if (productList.isEmpty()) {
+            productList = productRepository.findAllByIsDeletedFalse();
+        }
+        List<ProductResponse> productResponseList = filterProduct(fromPrice, toPrice, productList);
         if (productResponseList != null && !productResponseList.isEmpty()) {
             return new CommonResponse().getCommonResponse(page, size, productResponseList);
         } else throw new ApplicationException(PRODUCT_NOT_FOUND);
@@ -230,7 +250,7 @@ public class ProductServicesImplement implements ProductServices {
                     break;
                 }
             }
-            cart.setTotalPrice(utils.calculatePrice(cart.getProductList()));
+            cart.setTotalPrice(commonUtils.calculatePrice(cart.getProductList()));
         }
         cartRepository.saveAll(cartResult);
     }
@@ -244,7 +264,7 @@ public class ProductServicesImplement implements ProductServices {
                     break;
                 }
             }
-            cart.setTotalPrice(utils.calculatePrice(cart.getProductList()));
+            cart.setTotalPrice(commonUtils.calculatePrice(cart.getProductList()));
         }
         cartRepository.saveAll(cartResult);
         cartResult.forEach(cart -> {
@@ -276,90 +296,55 @@ public class ProductServicesImplement implements ProductServices {
 
     public ProductResponse getProductAfterUpdateOrCreate(Product product) {
         ProductResponse response = productMapper.entityToResponse(product);
-        response.setImage(utils.getProductImage(response.getId()));
-        response.setPriceAfterDiscount(utils.calculatePrice(response));
+        response.setImage(commonUtils.getProductImage(response.getId()));
+        response.setPriceAfterDiscount(commonUtils.calculatePrice(response));
         return response;
     }
 
-    private List<ProductResponse> filterProduct(@Nullable String name, @Nullable String brand, @Nullable String category, float fromPrice, float toPrice) {
-        List<Product> productList = productRepository.findAllByDeleteByIsNullAndDeleteDateIsNull();
+    private List<ProductResponse> filterProduct(float fromPrice, float toPrice, List<Product> productList) {
         List<Product> filter = new ArrayList<>();
         List<ProductResponse> productResponseList = new ArrayList();
-        if (name != null && fromPrice == 0 && toPrice == 0) {
+
+        if (fromPrice != 0 && toPrice != 0) {
             productList.forEach(items -> {
-                if (items.getName().toLowerCase().contains(name.toLowerCase())) {
+                if ((items.getPrice().compareTo(BigDecimal.valueOf(toPrice)) == -1 || items.getPrice().compareTo(BigDecimal.valueOf(toPrice)) == 0)
+                        && (items.getPrice().compareTo(BigDecimal.valueOf(fromPrice)) == 1) || items.getPrice().compareTo(BigDecimal.valueOf(fromPrice)) == 0) {
                     filter.add(items);
                 }
             });
         }
 
-        if (category == null && brand != null && fromPrice == 0 && toPrice == 0) {
+        if (fromPrice == 0 && toPrice != 0) {
             productList.forEach(items -> {
-                if (items.getBrand().getName().toLowerCase().contains(brand.toLowerCase())) {
+                if (items.getPrice().compareTo(BigDecimal.valueOf(toPrice)) == -1 || items.getPrice().compareTo(BigDecimal.valueOf(toPrice)) == 0) {
                     filter.add(items);
                 }
             });
         }
 
-        if (brand == null && category != null && fromPrice == 0 && toPrice == 0) {
+        if (fromPrice != 0 && toPrice == 0) {
             productList.forEach(items -> {
-                if (items.getCategory().getName().toLowerCase().contains(category.toLowerCase())) {
+                if (items.getPrice().compareTo(BigDecimal.valueOf(fromPrice)) == 1 || items.getPrice().compareTo(BigDecimal.valueOf(fromPrice)) == 0) {
                     filter.add(items);
                 }
             });
         }
 
-        if (fromPrice != 0 && toPrice != 0 && brand == null && category == null) {
-            productList.forEach(items -> {
-                if (items.getPrice().compareTo(BigDecimal.valueOf(toPrice)) == -1 && items.getPrice().compareTo(BigDecimal.valueOf(fromPrice)) == 1) {
-                    filter.add(items);
-                }
-            });
-        }
-
-        if (fromPrice != 0 && toPrice != 0 && brand != null && category == null) {
-            productList.forEach(items -> {
-                if (items.getPrice().compareTo(BigDecimal.valueOf(toPrice)) == -1 && items.getPrice().compareTo(BigDecimal.valueOf(fromPrice)) == 1 && items.getBrand().getName().toLowerCase().contains(brand.toLowerCase())) {
-                    filter.add(items);
-                }
-            });
-        }
-
-        if (fromPrice != 0 && toPrice != 0 && brand == null && category != null) {
-            productList.forEach(items -> {
-                if (items.getPrice().compareTo(BigDecimal.valueOf(toPrice)) == -1 && items.getPrice().compareTo(BigDecimal.valueOf(fromPrice)) == 1 && items.getCategory().getName().toLowerCase().contains(category.toLowerCase())) {
-                    filter.add(items);
-                }
-            });
-        }
-
-        if (fromPrice != 0 && toPrice != 0 && brand != null && category != null) {
-            productList.forEach(items -> {
-                if (items.getPrice().compareTo(BigDecimal.valueOf(toPrice)) < 0 && items.getPrice().compareTo(BigDecimal.valueOf(fromPrice)) > 0 && items.getBrand().getName().toLowerCase().contains(brand.toLowerCase()) && items.getCategory().getName().toLowerCase().contains(category.toLowerCase())) {
-                    filter.add(items);
-                }
-            });
-        }
-
-        if (brand != null && category != null && fromPrice == 0 && toPrice == 0) {
-            productList.forEach(items -> {
-                if (items.getBrand().getName().toLowerCase().equals(brand.toLowerCase()) && items.getCategory().getName().toLowerCase().equals(category.toLowerCase())) {
-                    filter.add(items);
-                }
-            });
+        if (fromPrice == 0 && toPrice == 0) {
+            filter.addAll(productList);
         }
         filter.forEach(item -> {
             ProductResponse productResponse = new ProductResponse();
             productResponse.setId(item.getId());
             productResponse.setName(item.getName());
             productResponse.setPrice(item.getPrice());
-            productResponse.setPriceAfterDiscount(utils.calculatePrice(item));
+            productResponse.setPriceAfterDiscount(commonUtils.calculatePrice(item));
             productResponse.setType(item.getType());
             productResponse.setUnitInStock(item.getUnitInStock());
             productResponse.setBrand(item.getBrand().getName());
             productResponse.setCategory(item.getCategory().getName());
             productResponse.setDiscount(item.getDiscount());
-            productResponse.setImage(utils.getProductImage(productResponse.getId()));
+            productResponse.setImage(commonUtils.getProductImage(productResponse.getId()));
             productResponseList.add(productResponse);
         });
         if (!productResponseList.isEmpty()) {

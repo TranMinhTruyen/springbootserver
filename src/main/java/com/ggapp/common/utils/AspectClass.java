@@ -7,6 +7,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
@@ -41,7 +42,9 @@ public class AspectClass {
             LOGGER.error(e.getMessage());
             throw new ApplicationException(e.getMessage(), e.getErrorCode());
         } catch (Throwable e) {
-            throw new ApplicationException(e.getMessage());
+            LOGGER.info("do rollback");
+            LOGGER.error(e.getMessage());
+            throw new ApplicationException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         } finally {
             Long timeTaken = System.currentTimeMillis() - startTime;
             LOGGER.info("End {} time {} ms", method, timeTaken);

@@ -34,8 +34,11 @@ public class Brand implements Serializable {
 	@Column
 	private String description;
 
-	@Column(columnDefinition = "LONGTEXT")
+	@Column
 	private String image;
+
+	@Column(name = "is_deleted")
+	private boolean isDeleted;
 
 	@JsonIgnore
 	@OneToMany(fetch = FetchType.LAZY, mappedBy="brand")

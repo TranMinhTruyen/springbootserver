@@ -31,6 +31,9 @@ public class Product implements Serializable {
 	@Version
 	private int version;
 
+	@Column(name = "product_code")
+	private String productCode;
+
 	@Column
 	private String name;
 
@@ -56,6 +59,12 @@ public class Product implements Serializable {
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy="product")
 	private List<ProductReview> productReviewList;
+
+	@OneToMany(fetch = FetchType.LAZY ,mappedBy = "product")
+	private List<ProductVoucher> productVoucherList;
+
+	@Column(name = "is_deleted")
+	private boolean isDeleted;
 
 	@Column(name = "created_date")
 	private LocalDateTime createdDate;

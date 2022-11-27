@@ -5,6 +5,7 @@ import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
+import javax.persistence.Column;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -37,27 +38,30 @@ public class Order {
 	@Field(value = "totalPrice")
 	private BigDecimal totalPrice;
 
-	@Field(value = "Address")
+	@Field(value = "address")
 	private String address;
 
 	@Field(value = "status")
 	private String status;
 
-	@Field(name = "CreatedDate")
+	@Column(name = "isDeleted")
+	private boolean isDeleted;
+
+	@Field(name = "createdDate")
 	private LocalDateTime createdDate;
 
-	@Field(name = "CreatedBy")
+	@Field(name = "createdBy")
 	private String createdBy;
 
-	@Field(name = "UpdateDate")
+	@Field(name = "updateDate")
 	private LocalDateTime updateDate;
 
-	@Field(name = "UpdateBy")
+	@Field(name = "updateBy")
 	private String updateBy;
 
-	@Field(name = "DeleteDate")
+	@Field(name = "deleteDate")
 	private LocalDateTime deleteDate;
 
-	@Field(name = "DeleteBy")
+	@Field(name = "deleteBy")
 	private String deleteBy;
 }

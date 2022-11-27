@@ -1,4 +1,5 @@
 package com.ggapp.common.dto.request;
+import lombok.Builder;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 import javax.validation.constraints.NotBlank;
@@ -47,10 +48,12 @@ public class UserRequest implements Serializable {
     @NotBlank(message = "citizenID is mandatory")
     private String citizenID;
 
-    private String image;
+    private String imageFileData;
 
     @NotBlank(message = "role is mandatory")
     private String role;
 
     private boolean isActive;
+
+    private boolean isDeleted;
 }
