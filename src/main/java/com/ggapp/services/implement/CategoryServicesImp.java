@@ -95,7 +95,7 @@ public class CategoryServicesImp implements CategoryServices {
 	public boolean deleteCategory(int id) {
 		Optional<Category> category = categoryRepository.findById(id);
 		if (category.isPresent()){
-			List<Product> products = productRepository.findAllByCategoryIdAndDeleteByIsNullAndDeleteDateIsNull(id);
+			List<Product> products = productRepository.findAllByCategoryIdAndIsDeletedFalse(id);
 			if (products != null && !products.isEmpty()){
 				products.stream().forEach(items -> {
 					items.setCategory(null);

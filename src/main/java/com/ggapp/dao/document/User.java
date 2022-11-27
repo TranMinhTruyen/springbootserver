@@ -5,6 +5,7 @@ import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
+import javax.persistence.Column;
 import java.time.LocalDateTime;
 import java.util.Date;
 
@@ -22,66 +23,69 @@ public class User {
     @Version
     private int version;
 
-    @Field(value = "Account")
+    @Field(value = "account")
     private String account;
 
-    @Field(value = "Password")
+    @Field(value = "password")
     private String password;
 
-    @Field(value = "FirstName")
+    @Field(value = "firstName")
     private String firstName;
 
-    @Field(value = "LastName")
+    @Field(value = "lastName")
     private String lastName;
 
-    @Field(value = "BirthDay")
+    @Field(value = "birthDay")
     private Date birthDay;
 
-    @Field(value = "Address")
+    @Field(value = "address")
     private String address;
 
-    @Field(value = "District")
+    @Field(value = "district")
     private String district;
 
-    @Field(value = "City")
+    @Field(value = "city")
     private String city;
 
-    @Field(value = "PostCode")
+    @Field(value = "postCode")
     private String postCode;
 
-    @Field(value = "CitizenID")
+    @Field(value = "citizenID")
     private String citizenId;
 
-    @Field(value = "Mail")
+    @Field(value = "mail")
     private String email;
 
-    @Field(value = "PhoneNumber")
+    @Field(value = "phoneNumber")
     private String phoneNumber;
 
-    @Field(value = "Role")
+    @Field(value = "role")
     private String role;
 
-    @Field(value = "Image")
-    private String image;
+    @Field(value = "imageFilePath")
+    private String imageFilePath;
 
-    @Field(value = "IsActive")
+    @Field(value = "isActive")
     private boolean isActive;
 
-    @Field(name = "CreatedDate")
+    @Column(name = "isDeleted")
+    private boolean isDeleted;
+
+    @Field(name = "createdDate")
     private LocalDateTime createdDate;
 
-    @Field(name = "CreatedBy")
+    @Field(name = "createdBy")
     private String createdBy;
 
-    @Field(name = "UpdateDate")
+    @Field(name = "updateDate")
     private LocalDateTime updateDate;
 
-    @Field(name = "UpdateBy")
+    @Field(name = "updateBy")
     private String updateBy;
 
-    @Field(name = "DeleteDate")
+    @Field(name = "deleteDate")
     private LocalDateTime deleteDate;
 
-    @Field(name = "DeleteBy")
+    @Field(name = "deleteBy")
     private String deleteBy;
 }

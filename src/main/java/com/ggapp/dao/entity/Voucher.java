@@ -4,14 +4,17 @@ import lombok.Data;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Version;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
- * @author Tran Minh Truyen on 19/11/2022
+ * @author Tran Minh Truyen on 26/11/2022
  * Dear maintainer.
  * When I wrote this code, only me and God knew what is was.
  * Now, only God knows!
@@ -21,7 +24,7 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Data
-public class Master {
+public class Voucher {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,16 +34,19 @@ public class Master {
     private int version;
 
     @Column
-    private String category;
+    private String code;
 
-    @Column
-    private String name;
+    @Column(name = "voucher_type")
+    private String voucherType;
 
-    @Column
-    private String value;
+    @Column(name = "discount_type")
+    private String discountType;
 
-    @Column(name = "sub_value")
-    private String subValue;
+    @Column(name = "discount_value")
+    private String discountValue;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "voucher")
+    private List<ProductVoucher> productVoucherList;
 
     @Column(name = "is_deleted")
     private boolean isDeleted;

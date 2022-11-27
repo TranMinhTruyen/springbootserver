@@ -85,7 +85,7 @@ public class BrandServicesImp implements BrandServices {
 	public boolean deleteBrand(int id) {
 		Optional<Brand> brand = brandRepository.findById(id);
 		if (brand.isPresent()){
-			List<Product> products = productRepository.findAllByBrandIdAndDeleteByIsNullAndDeleteDateIsNull(id);
+			List<Product> products = productRepository.findAllByBrandIdAndIsDeletedFalse(id);
 			if (products != null && !products.isEmpty()){
 				products.forEach(items -> {
 					items.setCategory(null);

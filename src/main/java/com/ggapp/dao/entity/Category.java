@@ -33,11 +33,14 @@ public class Category implements Serializable {
 	@Column
 	private String description;
 
-	@Column(columnDefinition = "LONGTEXT")
+	@Column
 	private String image;
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy="category")
 	private List<Product> productList;
+
+	@Column(name = "is_deleted")
+	private boolean isDeleted;
 
 	@Column(name = "created_date")
 	private LocalDateTime createdDate;

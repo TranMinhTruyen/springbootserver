@@ -19,7 +19,7 @@ public class UserResponse {
 	private String city;
 	private String postCode;
 	private String citizenID;
-	private String image;
+	private String imageFileData;
 	private String role;
 	private boolean isActive;
 }

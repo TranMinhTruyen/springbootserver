@@ -10,6 +10,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Date;
 
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
@@ -18,6 +19,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         ObjectMapper objectMapper = new ObjectMapper();
         BaseResponse baseResponse = new BaseResponse();
         baseResponse.setStatusname(HttpStatus.FORBIDDEN.name());
+        baseResponse.setTimestamp(null);
         baseResponse.setStatus(HttpStatus.FORBIDDEN.value());
         baseResponse.setMessage("Access denied");
         baseResponse.setPayload(null);
