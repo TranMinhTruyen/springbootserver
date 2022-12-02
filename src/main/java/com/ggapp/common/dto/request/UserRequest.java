@@ -54,6 +54,4 @@ public class UserRequest implements Serializable {
     private String role;
 
     private boolean isActive;
-
-    private boolean isDeleted;
 }

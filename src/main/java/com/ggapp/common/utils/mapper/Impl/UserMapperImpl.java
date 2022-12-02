@@ -30,7 +30,6 @@ public class UserMapperImpl implements UserMapper {
         user.setDistrict(userRequest.getDistrict());
         user.setCity(userRequest.getCity());
         user.setPostCode(userRequest.getPostCode());
-        user.setImageFilePath(userRequest.getImageFileData());
         user.setRole(userRequest.getRole());
         user.setActive(userRequest.isActive());
         return user;
@@ -51,7 +50,7 @@ public class UserMapperImpl implements UserMapper {
         userResponse.setDistrict(user.getDistrict());
         userResponse.setCity(user.getCity());
         userResponse.setPostCode(user.getPostCode());
-        userResponse.setImageFileData(user.getImageFilePath());
+        userResponse.setImageFilePath(user.getImageFilePath());
         userResponse.setRole(user.getRole());
         userResponse.setActive(user.isActive());
         return userResponse;

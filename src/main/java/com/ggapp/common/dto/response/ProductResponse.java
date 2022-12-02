@@ -13,6 +13,7 @@ import java.util.List;
 public class ProductResponse {
 	private int id;
 	private String name;
+	private String productCode;
 	private BigDecimal price;
 	private BigDecimal priceAfterDiscount;
 	private String type;

@@ -19,5 +19,6 @@
         <mapping class="com.ggapp.dao.entity.Master"/>
         <mapping class="com.ggapp.dao.entity.Voucher"/>
         <mapping class="com.ggapp.dao.entity.ProductVoucher"/>
+        <mapping class="com.ggapp.dao.entity.ProductImage"/>
     </session-factory>
 </hibernate-configuration>

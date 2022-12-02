@@ -1,13 +1,18 @@
 package com.ggapp.common.utils;
 
 public class Constant {
+    public static final String DATE_TIME_FORMAT_PATTERN = "dd-MM-yyyy HH:mm:ss z";
+
     public static final String LOGIN_TYPE = "LOGIN_TYPE";
     public static final String REGISTER_TYPE = "REGISTER_TYPE";
     public static final String IMAGE_FILE_PATH = "D:/GGappImage/";
+    public static final String USER_FILE_PATH = "UsersImage/";
+    public static final String BRAND_FILE_PATH = "BrandsImage/";
+    public static final String PRODUCT_FILE_PATH = "ProductsImage/";
 
     //JWT
     public static final long EXPIRATIONTIME = 86400000;
-    public static final long EXPIRATIONTIME_FOR_REMEMBER = 1000 * 2592000L;
+    public static final long EXPIRATIONTIME_FOR_REMEMBER = 1000 * 86400000L;
     public static final String SECRET = "UnlimitedBladeWork";
 
     //ORDER STATUS

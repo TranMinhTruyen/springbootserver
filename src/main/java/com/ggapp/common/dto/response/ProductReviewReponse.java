@@ -8,6 +8,5 @@ import lombok.Data;
  */
 @Data
 public class ProductReviewReponse extends ProductReviewRequest {
-    private int id;
     private String userName;
 }

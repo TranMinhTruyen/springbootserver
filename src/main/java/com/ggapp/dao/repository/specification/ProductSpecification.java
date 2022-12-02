@@ -8,7 +8,6 @@ import javax.persistence.criteria.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@AllArgsConstructor
 public final class ProductSpecification{
 	public Specification<Product> nameLike(String name) {
 		return new Specification<Product>() {

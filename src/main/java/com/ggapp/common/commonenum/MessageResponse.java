@@ -2,20 +2,30 @@ package com.ggapp.common.commonenum;
 
 import org.springframework.http.HttpStatus;
 
-public enum MessageError {
+public enum MessageResponse {
 
     //region Product message
     PRODUCT_IS_EXIST("Product is exists", HttpStatus.FORBIDDEN),
     PRODUCT_IMAGE_NOT_FOUND("Not found product image", HttpStatus.NOT_FOUND),
     PRODUCT_NOT_FOUND("Product not found", HttpStatus.NOT_FOUND),
+    CREATE_PRODUCT_SUCCESSFUL("Create product successful", HttpStatus.OK),
+    GET_PRODUCT_SUCCESSFUL("Get product successful", HttpStatus.OK),
+    DELETE_PRODUCT_IMAGE_SUCCESSFUL("Delete image successful", HttpStatus.OK),
+    DELETE_PRODUCT_SUCCESSFUL("Delete product successful", HttpStatus.OK),
     //endregion
 
     //region Brand message
     BRAND_NOT_FOUND("Brand not found", HttpStatus.NOT_FOUND),
+    BRAND_IS_EXIST("Brand is exists", HttpStatus.FORBIDDEN),
+    //endregion
+
+    //region Email message
+    EMAIL_SEND_SUCCESS("Email has been sent", HttpStatus.OK),
     //endregion
 
     //region Category message
     CATEGORY_NOT_FOUND("Category not found", HttpStatus.NOT_FOUND),
+    CATEGORY_IS_EXIST("Category is exists", HttpStatus.FORBIDDEN),
     //endregion
 
     //region User message
@@ -24,6 +34,15 @@ public enum MessageError {
     USER_NOT_FOUND("Not found user", HttpStatus.NOT_FOUND),
     USER_IS_EXIST("User account is exists", HttpStatus.FORBIDDEN),
     USER_IS_DISABLE("User is disable", HttpStatus.UNAUTHORIZED),
+    ACCESS_DENIED("Access denied", HttpStatus.UNAUTHORIZED),
+    USER_CREATED_SUCCESS("User is added", HttpStatus.OK),
+    LOGIN_VALID("Login successful", HttpStatus.OK),
+    GET_USER_SUCCESS("Get user success", HttpStatus.OK),
+    GET_PROFILE_USER_SUCCESS("Get profile user success", HttpStatus.OK),
+    UPDATE_USER_SUCCESS("User update success", HttpStatus.OK),
+    DELETED_USER_SUCCESS("User delete success", HttpStatus.OK),
+    LOGIC_DELETED_USER_SUCCESS("User logic delete success", HttpStatus.OK),
+    LOGOUT_USER_SUCCESS("Logout successful", HttpStatus.OK),
     //endregion
 
     //region ComfirmKey message
@@ -48,7 +67,7 @@ public enum MessageError {
     private String message;
     private HttpStatus httpStatus;
 
-    private MessageError(String message, HttpStatus httpStatus) {
+    private MessageResponse(String message, HttpStatus httpStatus) {
         this.message = message;
         this.httpStatus = httpStatus;
     }
