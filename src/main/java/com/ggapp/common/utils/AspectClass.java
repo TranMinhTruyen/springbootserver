@@ -23,7 +23,6 @@ public class AspectClass {
     private PlatformTransactionManager transactionManager;
 
     @Around(value = "execution(* com.ggapp.services.*.*(..))", argNames = "joinPoint")
-//    @Around("@annotation(com.ggapp.common.CustomAnotation.TransactionTracking)")
     public Object around(ProceedingJoinPoint joinPoint) throws ApplicationException {
         long startTime = System.currentTimeMillis();
         final String method = joinPoint.getTarget().getClass().getName() + "." + joinPoint.getSignature().getName();
@@ -35,14 +34,14 @@ public class AspectClass {
         try {
             value = joinPoint.proceed();
             transactionManager.commit(transactionStatus);
-            LOGGER.info("do commit");
+            LOGGER.info("Do commit");
         } catch (ApplicationException e) {
             transactionManager.rollback(transactionStatus);
-            LOGGER.info("do rollback");
+            LOGGER.info("Do rollback");
             LOGGER.error(e.getMessage());
             throw new ApplicationException(e.getMessage(), e.getErrorCode());
         } catch (Throwable e) {
-            LOGGER.info("do rollback");
+            LOGGER.info("Do rollback");
             LOGGER.error(e.getMessage());
             throw new ApplicationException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         } finally {

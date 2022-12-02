@@ -1,5 +1,7 @@
 package com.ggapp.services.implement;
+import com.ggapp.common.exception.ApplicationException;
 import com.ggapp.common.jwt.CustomUserDetail;
+import com.ggapp.common.utils.mapper.BrandMapper;
 import com.ggapp.dao.entity.Brand;
 import com.ggapp.dao.entity.Product;
 import com.ggapp.common.dto.request.BrandRequest;
@@ -15,6 +17,9 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+
+import static com.ggapp.common.commonenum.MessageResponse.BRAND_IS_EXIST;
+import static com.ggapp.common.commonenum.MessageResponse.BRAND_NOT_FOUND;
 
 /**
  * @author Tran Minh Truyen
@@ -35,18 +40,21 @@ public class BrandServicesImp implements BrandServices {
 	@Autowired
 	private ProductRepository productRepository;
 
+	@Autowired
+	private BrandMapper brandMapper;
+
 	@Override
-	public boolean createBrand(BrandRequest brandRequest, CustomUserDetail customUserDetail) {
-		if (brandRequest != null && !isExists(brandRequest.getName())){
+	public BrandResponse createBrand(BrandRequest brandRequest, CustomUserDetail customUserDetail) throws ApplicationException {
+		if (!isExists(brandRequest.getName())){
 			Brand newBrand = new Brand();
 			newBrand.setName(brandRequest.getName());
 			newBrand.setDescription(brandRequest.getDescription());
+			newBrand.setDeleted(false);
 			newBrand.setCreatedDate(LocalDateTime.now());
 			newBrand.setCreatedBy(customUserDetail.getUser().getFirstName() + customUserDetail.getUser().getLastName());
-			brandRepository.save(newBrand);
-			return true;
-		}
-		return false;
+			Brand result = brandRepository.save(newBrand);
+			return brandMapper.entityToResponse(result);
+		} else throw new ApplicationException(BRAND_IS_EXIST);
 	}
 
 	@Override
@@ -60,7 +68,7 @@ public class BrandServicesImp implements BrandServices {
 
 	@Override
 	public CommonResponse getBrandbyKeyword(int page, int size, String keyword) {
-		List<Brand> result = brandRepository.findAll(new BrandSpecification(keyword));
+		List<Brand> result = brandRepository.findAll(new BrandSpecification().nameLike(keyword));
 		if (!result.isEmpty()){
 			return new CommonResponse().getCommonResponse(page, size, result);
 		}
@@ -68,52 +76,53 @@ public class BrandServicesImp implements BrandServices {
 	}
 
 	@Override
-	public BrandResponse updateBrand(int id, BrandRequest brandRequest, CustomUserDetail customUserDetail) {
-		if (update(id, brandRequest, customUserDetail)){
-			Optional<Brand> brand = brandRepository.findById(id);
-			Brand result = brand.get();
-			BrandResponse brandResponse = new BrandResponse();
-			brandResponse.setId(result.getId());
-			brandResponse.setName(result.getName());
-			brandResponse.setDescription(result.getDescription());
-			return brandResponse;
-		}
-		return null;
+	public BrandResponse updateBrand(int id, BrandRequest brandRequest, CustomUserDetail customUserDetail) throws ApplicationException {
+		Optional<Brand> brand = brandRepository.findById(id);
+		brand.orElseThrow(() -> new ApplicationException(BRAND_NOT_FOUND));
+		Brand update = brand.get();
+		update.setName(brandRequest.getName());
+		update.setDescription(brandRequest.getDescription());
+		update.setUpdateDate(LocalDateTime.now());
+		update.setUpdateBy(customUserDetail.getUser().getFirstName() + customUserDetail.getUser().getLastName());
+		Brand result = brandRepository.save(update);
+		return brandMapper.entityToResponse(result);
 	}
 
 	@Override
-	public boolean deleteBrand(int id) {
+	public BrandResponse logicDeleteBrand(int id, CustomUserDetail customUserDetail) throws ApplicationException {
 		Optional<Brand> brand = brandRepository.findById(id);
-		if (brand.isPresent()){
-			List<Product> products = productRepository.findAllByBrandIdAndIsDeletedFalse(id);
-			if (products != null && !products.isEmpty()){
-				products.forEach(items -> {
-					items.setCategory(null);
-					productRepository.save(items);
-				});
-			}
-			brandRepository.deleteById(id);
-			return true;
+		brand.orElseThrow(() -> new ApplicationException(BRAND_NOT_FOUND));
+		List<Product> products = productRepository.findAllByBrandIdAndIsDeletedFalse(id);
+		if (products != null && !products.isEmpty()){
+			products.forEach(items -> {
+				items.setBrand(null);
+			});
+			productRepository.saveAll(products);
 		}
-		return false;
+		brand.get().setDeleted(true);
+		brand.get().setCreatedDate(LocalDateTime.now());
+		brand.get().setCreatedBy(customUserDetail.getUser().getFirstName() + customUserDetail.getUser().getLastName());
+		Brand result = brandRepository.save(brand.get());
+		return brandMapper.entityToResponse(result);
+	}
+
+	@Override
+	public boolean physicalDeleteBrand(int id) throws ApplicationException {
+		Optional<Brand> brand = brandRepository.findById(id);
+		brand.orElseThrow(() -> new ApplicationException(BRAND_NOT_FOUND));
+		List<Product> products = productRepository.findAllByBrandIdAndIsDeletedFalse(id);
+		if (products != null && !products.isEmpty()){
+			products.forEach(items -> {
+				items.setBrand(null);
+			});
+			productRepository.saveAll(products);
+		}
+		brandRepository.deleteById(brand.get().getId());
+		return true;
 	}
 
 	@Override
 	public boolean isExists(String brandName) {
-		return !brandRepository.findAll(new BrandSpecification(brandName)).isEmpty();
-	}
-
-	private boolean update (int id, BrandRequest brandRequest, CustomUserDetail customUserDetail){
-		Optional<Brand> brand = brandRepository.findById(id);
-		if (brandRequest != null && brand.isPresent()){
-			Brand update = brand.get();
-			update.setName(brandRequest.getName());
-			update.setDescription(brandRequest.getDescription());
-			update.setUpdateDate(LocalDateTime.now());
-			update.setUpdateBy(customUserDetail.getUser().getFirstName() + customUserDetail.getUser().getLastName());
-			brandRepository.save(update);
-			return true;
-		}
-		return false;
+		return !brandRepository.findAll(new BrandSpecification().nameLike(brandName)).isEmpty();
 	}
 }

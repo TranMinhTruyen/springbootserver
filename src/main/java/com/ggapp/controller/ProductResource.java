@@ -38,7 +38,7 @@ import java.util.List;
 @CrossOrigin("*")
 @RequestMapping("api/product")
 @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMP')")
-public class ProductResource {
+public class ProductResource extends CommonResource{
 	private static final Logger LOGGER = LoggerFactory.getLogger(ProductResource.class);
 
 	@Autowired
@@ -48,7 +48,8 @@ public class ProductResource {
 			security = {@SecurityRequirement(name = "Authorization")})
 	@PostMapping(value = "createProduct", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<BaseResponse> createProduct(@RequestBody ProductRequest productRequest) throws Exception {
-		ProductResponse productResponse = productServices.createProduct(productRequest);
+		this.getAuthentication();
+		ProductResponse productResponse = productServices.createProduct(productRequest, this.customUserDetail);
 		BaseResponse baseResponse = new BaseResponse();
 		baseResponse.setStatus(HttpStatus.OK.value());
 		baseResponse.setStatusname(HttpStatus.OK.name());
@@ -122,7 +123,7 @@ public class ProductResource {
 			security = {@SecurityRequirement(name = "Authorization")})
 	@DeleteMapping(value = "deleteImageOfProduct")
 	public ResponseEntity<BaseResponse> deleteImageOfProduct(@RequestParam int productId, @RequestParam List<Integer> imageId) throws Exception {
-		productServices.deleteImageOfProduct(productId, imageId);
+		productServices.deleteLogicImageOfProduct(productId, imageId);
 		BaseResponse baseResponse = new BaseResponse();
 		baseResponse.setStatus(HttpStatus.OK.value());
 		baseResponse.setStatusname(HttpStatus.OK.name());

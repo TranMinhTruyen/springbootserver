@@ -29,8 +29,6 @@ public class ProductReviewMapperImpl implements ProductReviewMapper {
         if (productReview == null)
             return null;
         ProductReviewReponse productReviewReponse = new ProductReviewReponse();
-        productReviewReponse.setId(productReview.getId());
-        productReviewReponse.setProductId(productReview.getProduct().getId());
         productReviewReponse.setStar(productReview.getStar());
         productReviewReponse.setUserName(productReview.getText());
         productReviewReponse.setText(productReview.getText());

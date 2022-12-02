@@ -63,6 +63,9 @@ public class Product implements Serializable {
 	@OneToMany(fetch = FetchType.LAZY ,mappedBy = "product")
 	private List<ProductVoucher> productVoucherList;
 
+	@OneToMany(fetch = FetchType.LAZY ,mappedBy = "product")
+	private List<ProductImage> imagesPath;
+
 	@Column(name = "is_deleted")
 	private boolean isDeleted;
 

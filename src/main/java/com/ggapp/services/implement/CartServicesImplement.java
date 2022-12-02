@@ -21,10 +21,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static com.ggapp.common.commonenum.MessageError.CART_CREATED_ERROR;
-import static com.ggapp.common.commonenum.MessageError.CART_NOT_FOUND;
-import static com.ggapp.common.commonenum.MessageError.PRODUCT_NOT_FOUND;
-import static com.ggapp.common.commonenum.MessageError.USER_NOT_FOUND;
+import static com.ggapp.common.commonenum.MessageResponse.CART_CREATED_ERROR;
+import static com.ggapp.common.commonenum.MessageResponse.CART_NOT_FOUND;
+import static com.ggapp.common.commonenum.MessageResponse.PRODUCT_NOT_FOUND;
+import static com.ggapp.common.commonenum.MessageResponse.USER_NOT_FOUND;
 
 /**
  * @author Tran Minh Truyen

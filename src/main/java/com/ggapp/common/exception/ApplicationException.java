@@ -1,6 +1,6 @@
 package com.ggapp.common.exception;
 
-import com.ggapp.common.commonenum.MessageError;
+import com.ggapp.common.commonenum.MessageResponse;
 import org.springframework.http.HttpStatus;
 
 public class ApplicationException extends Exception{
@@ -31,9 +31,9 @@ public class ApplicationException extends Exception{
     }
 
 
-    public ApplicationException(MessageError messageError) {
-        super(messageError.getMessage());
-        this.setErrorCode(messageError.getHttpStatus());
+    public ApplicationException(MessageResponse messageResponse) {
+        super(messageResponse.getMessage());
+        this.setErrorCode(messageResponse.getHttpStatus());
     }
 
     public ApplicationException(String message, Throwable cause, HttpStatus errorCode) {

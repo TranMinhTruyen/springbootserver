@@ -1,9 +1,8 @@
 package com.ggapp.controller;
+
 import com.ggapp.common.config.CustomSchema.UserSchema.UserSucessResponse;
 import com.ggapp.common.dto.request.DeviceInfoRequest;
 import com.ggapp.common.exception.ApplicationException;
-import com.ggapp.common.jwt.JWTTokenProvider;
-import com.ggapp.common.jwt.CustomUserDetail;
 import com.ggapp.dao.document.ResetPassword;
 import com.ggapp.common.dto.request.CheckEmailRequest;
 import com.ggapp.common.dto.request.LoginRequest;
@@ -22,16 +21,32 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+
+import static com.ggapp.common.commonenum.MessageResponse.ACCESS_DENIED;
+import static com.ggapp.common.commonenum.MessageResponse.DELETED_USER_SUCCESS;
+import static com.ggapp.common.commonenum.MessageResponse.DEVICE_INFO_INVALID;
+import static com.ggapp.common.commonenum.MessageResponse.EMAIL_SEND_SUCCESS;
+import static com.ggapp.common.commonenum.MessageResponse.GET_PROFILE_USER_SUCCESS;
+import static com.ggapp.common.commonenum.MessageResponse.GET_USER_SUCCESS;
+import static com.ggapp.common.commonenum.MessageResponse.LOGIN_VALID;
+import static com.ggapp.common.commonenum.MessageResponse.LOGOUT_USER_SUCCESS;
+import static com.ggapp.common.commonenum.MessageResponse.UPDATE_USER_SUCCESS;
+import static com.ggapp.common.commonenum.MessageResponse.USER_CREATED_SUCCESS;
 
 /**
  * @author Tran Minh Truyen
@@ -41,33 +56,24 @@ import javax.validation.Valid;
 @RestController(value = "UserResource")
 @CrossOrigin("*")
 @RequestMapping("api/user")
-public class UserResource {
-
+public class UserResource extends CommonResource {
     @Autowired
     private UserServices userServices;
-
-    @Autowired
-    private JWTTokenProvider jwtTokenProvider;
 
     @Autowired
     private SessionServices sessionServices;
 
     @Operation(responses = {
-            @ApiResponse(responseCode = "200", content = { @Content(mediaType = "application/json", schema = @Schema(implementation = JwtResponse.class)) }),
+            @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = JwtResponse.class))}),
             @ApiResponse(responseCode = "400", description = "Bad request"),
             @ApiResponse(responseCode = "403", description = "Forbidden")
     })
     @PostMapping(value = "login", consumes = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse login(@Valid @RequestBody LoginRequest loginRequest,
-                                           @RequestParam(required = false) String confirmKey)
-            throws Exception {
-        BaseResponse baseResponse = new BaseResponse();
+                              @RequestParam(required = false) String confirmKey)
+            throws ApplicationException {
         JwtResponse jwtResponse = userServices.loginAnotherDevice(loginRequest, confirmKey);
-        baseResponse.setStatus(HttpStatus.OK.value());
-        baseResponse.setStatusname(HttpStatus.OK.name());
-        baseResponse.setMessage("Login valid");
-        baseResponse.setPayload(jwtResponse);
-        return baseResponse;
+        return this.returnBaseReponse(jwtResponse, LOGIN_VALID);
     }
 
     @Operation(responses = {
@@ -76,13 +82,9 @@ public class UserResource {
             @ApiResponse(responseCode = "403", description = "Forbidden")
     })
     @PostMapping(value = "loginAnotherDeviceSendConfirmKey", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public BaseResponse loginAnotherDeviceSendConfirmKey(@Valid @RequestBody LoginRequest loginRequest) throws Exception {
-        BaseResponse baseResponse = new BaseResponse();
+    public BaseResponse loginAnotherDeviceSendConfirmKey(@Valid @RequestBody LoginRequest loginRequest) throws ApplicationException {
         userServices.sendEmailConfirmKey(loginRequest);
-        baseResponse.setStatus(HttpStatus.OK.value());
-        baseResponse.setStatusname(HttpStatus.OK.name());
-        baseResponse.setMessage("Email has been sent");
-        return baseResponse;
+        return this.returnBaseReponse(null, EMAIL_SEND_SUCCESS);
     }
 
     @Operation(responses = {
@@ -92,15 +94,9 @@ public class UserResource {
     },
             security = {@SecurityRequirement(name = "Authorization")})
     @PostMapping(value = "checkLoginStatus")
-    public BaseResponse checkLoginStatus(@Valid @RequestBody DeviceInfoRequest deviceInfoRequest) throws Exception {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
-        BaseResponse baseResponse = new BaseResponse();
-        sessionServices.checkSession(customUserDetail, deviceInfoRequest);
-        baseResponse.setStatus(HttpStatus.OK.value());
-        baseResponse.setStatusname(HttpStatus.OK.name());
-        baseResponse.setMessage("Device info valid");
-        return baseResponse;
+    public BaseResponse checkLoginStatus(@Valid @RequestBody DeviceInfoRequest deviceInfoRequest) throws ApplicationException {
+        sessionServices.checkSession(this.customUserDetail, deviceInfoRequest);
+        return this.returnBaseReponse(null, DEVICE_INFO_INVALID);
     }
 
     @Operation(responses = {
@@ -111,36 +107,26 @@ public class UserResource {
             security = {@SecurityRequirement(name = "Authorization")})
     @PostMapping(value = "logout")
     public BaseResponse logout(@Valid @RequestBody DeviceInfoRequest deviceInfoRequest,
-                               HttpServletRequest request) throws Exception {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
+                               HttpServletRequest request) throws ApplicationException {
+        this.getAuthentication();
         String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
             bearerToken = bearerToken.substring(7);
-        } else throw new ApplicationException("Access denied", HttpStatus.UNAUTHORIZED);
-        BaseResponse baseResponse = new BaseResponse();
-        sessionServices.logoutDevice(customUserDetail, deviceInfoRequest, bearerToken);
-        baseResponse.setStatus(HttpStatus.OK.value());
-        baseResponse.setStatusname(HttpStatus.OK.name());
-        baseResponse.setMessage("Logout successfully");
-        return baseResponse;
+        } else throw new ApplicationException(ACCESS_DENIED);
+        sessionServices.logoutDevice(this.customUserDetail, deviceInfoRequest, bearerToken);
+        return this.returnBaseReponse(null, LOGOUT_USER_SUCCESS);
     }
 
     @Operation(responses = {
-            @ApiResponse(responseCode = "200", content = { @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class)) }),
+            @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class))}),
             @ApiResponse(responseCode = "400", description = "Bad request"),
             @ApiResponse(responseCode = "403", description = "Forbidden")
     },
             summary = "This is API to reset password, a new password will be sent to email")
     @PostMapping(value = "resetPassword", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public BaseResponse resetPassword(@Valid @RequestBody ResetPassword resetPassword) throws Exception {
-        BaseResponse baseResponse = new BaseResponse();
+    public BaseResponse resetPassword(@Valid @RequestBody ResetPassword resetPassword) throws ApplicationException {
         UserResponse userResponse = userServices.resetPassword(resetPassword.getEmail());
-        baseResponse.setStatus(HttpStatus.OK.value());
-        baseResponse.setStatusname(HttpStatus.OK.name());
-        baseResponse.setMessage("Email has been sent");
-        baseResponse.setPayload(userResponse);
-        return baseResponse;
+        return this.returnBaseReponse(userResponse, EMAIL_SEND_SUCCESS);
     }
 
     @Operation(responses = {
@@ -149,60 +135,41 @@ public class UserResource {
             @ApiResponse(responseCode = "403", description = "Forbidden")
     })
     @PostMapping(value = "sendConfirmKey")
-    public BaseResponse sendConfirmKey(@RequestBody CheckEmailRequest checkEmailRequest) throws Exception {
-        BaseResponse baseResponse = new BaseResponse();
+    public BaseResponse sendConfirmKey(@RequestBody CheckEmailRequest checkEmailRequest) throws ApplicationException {
         userServices.sendEmailConfirmKey(checkEmailRequest.getEmail());
-        baseResponse.setStatus(HttpStatus.OK.value());
-        baseResponse.setStatusname(HttpStatus.OK.name());
-        baseResponse.setMessage("Email has been sent");
-        return baseResponse;
+        return this.returnBaseReponse(null, EMAIL_SEND_SUCCESS);
     }
 
     @Operation(responses = {
-            @ApiResponse(responseCode = "200", content = { @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class)) }),
+            @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class))}),
             @ApiResponse(responseCode = "400", description = "Bad request"),
             @ApiResponse(responseCode = "403", description = "Forbidden")
     },
             summary = "This is API to create user, a confirm key will be sent to email to activate user")
     @PostMapping(value = "createUser", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public BaseResponse createUser(@Valid @RequestBody UserRequest userRequest, @RequestParam String confirmKey) throws Exception {
-        BaseResponse baseResponse = new BaseResponse();
+    public BaseResponse createUser(@Valid @RequestBody UserRequest userRequest, @RequestParam String confirmKey) throws ApplicationException {
         UserResponse userResponse = userServices.createUser(userRequest, confirmKey);
-        baseResponse.setStatus(HttpStatus.OK.value());
-        baseResponse.setStatusname(HttpStatus.OK.name());
-        baseResponse.setMessage("User is added");
-        baseResponse.setPayload(userResponse);
-        return baseResponse;
+        return this.returnBaseReponse(userResponse, USER_CREATED_SUCCESS);
     }
 
     @Operation(responses = {
-            @ApiResponse(responseCode = "200", content = { @Content(mediaType = "application/json", schema = @Schema(implementation = UserSucessResponse.class)) }),
+            @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = UserSucessResponse.class))}),
             @ApiResponse(responseCode = "400", description = "Bad request"),
             @ApiResponse(responseCode = "403", description = "Forbidden")
     })
-    @GetMapping(value="getAllUser")
-    public BaseResponse getAllUser(@RequestParam int page, @RequestParam int size) throws Exception {
-        BaseResponse baseResponse = new BaseResponse();
+    @GetMapping(value = "getAllUser")
+    public BaseResponse getAllUser(@RequestParam int page, @RequestParam int size) throws ApplicationException {
         CommonResponse response = userServices.getAllUser(page, size);
-        baseResponse.setStatus(HttpStatus.OK.value());
-        baseResponse.setStatusname(HttpStatus.OK.name());
-        baseResponse.setMessage("Get users success");
-        baseResponse.setPayload(response);
-        return baseResponse;
+        return this.returnBaseReponse(response, GET_USER_SUCCESS);
     }
 
     @Operation(responses = @ApiResponse(responseCode = "200"))
-    @GetMapping(value="getUserByKeyword")
+    @GetMapping(value = "getUserByKeyword")
     public BaseResponse getUserByKeyword(@RequestParam int page,
                                          @RequestParam int size,
                                          @RequestParam(required = false) String keyword) throws ApplicationException {
-        BaseResponse baseResponse = new BaseResponse();
         CommonResponse response = userServices.getUserByKeyWord(page, size, keyword);
-        baseResponse.setStatus(HttpStatus.OK.value());
-        baseResponse.setStatusname(HttpStatus.OK.name());
-        baseResponse.setMessage("Get users success");
-        baseResponse.setPayload(response);
-        return baseResponse;
+        return this.returnBaseReponse(response, GET_USER_SUCCESS);
     }
 
     @Operation(responses = @ApiResponse(responseCode = "200"),
@@ -210,77 +177,27 @@ public class UserResource {
             summary = "This is API to update user infomation, user must login first to use this API")
     @PutMapping(value = "updateUser", consumes = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse updateUser(@Valid @RequestBody UserRequest userRequest) throws ApplicationException {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
-        BaseResponse baseResponse = new BaseResponse();
-        UserResponse userResponse = userServices.updateUser(customUserDetail.getUser().getId(), userRequest);
-        baseResponse.setStatus(HttpStatus.OK.value());
-        baseResponse.setStatusname(HttpStatus.OK.name());
-        baseResponse.setMessage("User is update");
-        baseResponse.setPayload(userResponse);
-        return baseResponse;
+        this.getAuthentication();
+        UserResponse userResponse = userServices.updateUser(this.customUserDetail.getUser().getId(), userRequest);
+        return this.returnBaseReponse(userResponse, UPDATE_USER_SUCCESS);
     }
 
     @Operation(responses = @ApiResponse(responseCode = "200"),
             security = {@SecurityRequirement(name = "Authorization")})
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping(value = "deleteUser")
-    public BaseResponse deleteUser(@RequestParam int id){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        BaseResponse baseResponse = new BaseResponse();
-        if (authentication != null && (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("USER")) ||
-                authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ADMIN")))
-        )
-        {
-            try {
-                userServices.deleteUser(id);
-                baseResponse.setStatus(HttpStatus.OK.value());
-                baseResponse.setStatusname(HttpStatus.OK.name());
-                baseResponse.setMessage("user is delete");
-                return baseResponse;
-            } catch (Exception exception) {
-                baseResponse.setStatus(HttpStatus.FORBIDDEN.value());
-                baseResponse.setStatusname(HttpStatus.FORBIDDEN.name());
-                baseResponse.setMessage(exception.getMessage());
-                return baseResponse;
-            }
-        }
-        else{
-            if (authentication == null) {
-                baseResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
-                baseResponse.setStatusname(HttpStatus.UNAUTHORIZED.name());
-                baseResponse.setMessage("Please login");
-                return baseResponse;
-            }
-            else {
-                baseResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
-                baseResponse.setStatusname(HttpStatus.UNAUTHORIZED.name());
-                baseResponse.setMessage("You don't have permission");
-                return baseResponse;
-            }
-        }
+    public BaseResponse deleteUser(@RequestParam int id) throws ApplicationException {
+        userServices.deleteUser(id);
+        return this.returnBaseReponse(null, DELETED_USER_SUCCESS);
     }
 
     @Operation(responses = @ApiResponse(responseCode = "200"),
             security = {@SecurityRequirement(name = "Authorization")},
             summary = "This is API to get user profile, user must login first to use this API")
     @PostMapping(value = "getProfileUser")
-    public BaseResponse getProfileUser() {
-        BaseResponse baseResponse = new BaseResponse();
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
-        try {
-            UserResponse userResponse = userServices.getProfileUser(customUserDetail.getUser().getId());
-            baseResponse.setStatus(HttpStatus.OK.value());
-            baseResponse.setStatusname(HttpStatus.OK.name());
-            baseResponse.setMessage("Get profile success");
-            baseResponse.setPayload(userResponse);
-            return baseResponse;
-        } catch (Exception exception) {
-            baseResponse.setStatus(HttpStatus.FORBIDDEN.value());
-            baseResponse.setStatusname(HttpStatus.FORBIDDEN.name());
-            baseResponse.setMessage(exception.getMessage());
-            return baseResponse;
-        }
+    public BaseResponse getProfileUser() throws ApplicationException {
+        this.getAuthentication();
+        UserResponse userResponse = userServices.getProfileUser(this.customUserDetail.getUser().getId());
+        return this.returnBaseReponse(userResponse, GET_PROFILE_USER_SUCCESS);
     }
 }

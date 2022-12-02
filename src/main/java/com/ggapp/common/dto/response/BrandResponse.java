@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @Data
 public class BrandResponse extends BrandRequest {
 	private int id;
+	private boolean isDeleted;
 	private LocalDateTime createdDate;
 	private String createdBy;
 	private LocalDateTime updateDate;

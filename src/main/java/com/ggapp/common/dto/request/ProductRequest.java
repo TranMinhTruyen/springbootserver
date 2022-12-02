@@ -15,6 +15,8 @@ public class ProductRequest {
 	@NotBlank(message = "name is mandatory")
 	private String name;
 
+	private String productCode;
+
 	@NotBlank(message = "price is mandatory")
 	private BigDecimal price;
 

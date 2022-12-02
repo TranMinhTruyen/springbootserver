@@ -5,6 +5,7 @@ import com.ggapp.common.dto.response.BrandResponse;
 import com.ggapp.common.utils.mapper.BrandMapper;
 import com.ggapp.dao.entity.Brand;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,8 +18,12 @@ public class BrandMapperImpl implements BrandMapper {
             return null;
         Brand brand = new Brand();
         brand.setName(brandRequest.getName());
-        brand.setDescription(brandRequest.getDescription());
-        brand.setImage(brandRequest.getImage());
+        if (StringUtils.hasText(brandRequest.getDescription())){
+            brand.setDescription(brandRequest.getDescription());
+        }
+        if (StringUtils.hasText(brandRequest.getImage())){
+            brand.setImage(brandRequest.getImage());
+        }
         return brand;
     }
 
@@ -31,6 +36,7 @@ public class BrandMapperImpl implements BrandMapper {
         brandResponse.setName(brand.getName());
         brandResponse.setDescription(brand.getDescription());
         brandResponse.setImage(brand.getImage());
+        brandResponse.setDeleted(brand.isDeleted());
         brandResponse.setCreatedDate(brand.getCreatedDate());
         brandResponse.setCreatedBy(brand.getCreatedBy());
         brandResponse.setUpdateDate(brand.getUpdateDate());

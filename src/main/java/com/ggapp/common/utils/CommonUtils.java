@@ -2,13 +2,13 @@ package com.ggapp.common.utils;
 
 import com.ggapp.common.dto.response.ProductImageResponse;
 import com.ggapp.common.dto.response.ProductResponse;
-import com.ggapp.dao.document.Image;
+import com.ggapp.common.exception.ApplicationException;
 import com.ggapp.dao.document.ListProduct;
-import com.ggapp.dao.document.ProductImage;
+import com.ggapp.dao.entity.ProductImage;
 import com.ggapp.dao.entity.Product;
 import com.ggapp.dao.entity.ProductVoucher;
 import com.ggapp.dao.entity.Voucher;
-import com.ggapp.dao.repository.mongo.ProductImageRepository;
+import com.ggapp.dao.repository.mysql.ProductImageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +24,9 @@ public class CommonUtils {
 
     @Autowired
     private ProductImageRepository productImageRepository;
+
+    @Autowired
+    private FileUtils fileUtils;
 
     public List<String> getMethodNameOfClass(Class<?> clazz) {
         List<String> methodName = new ArrayList<>();
@@ -98,14 +101,15 @@ public class CommonUtils {
         return totalPrice.setScale(0, RoundingMode.HALF_EVEN);
     }
 
-    public List<ProductImageResponse> getProductImage(int productId) {
-        Optional<ProductImage> productImageList = productImageRepository.findById(productId);
+    public List<ProductImageResponse> getProductImage(int productId) throws ApplicationException {
+        Optional<List<ProductImage>> productImageList = productImageRepository.findByProductId(productId);
         if (productImageList.isPresent()) {
             List<ProductImageResponse> productImageResponseList = new ArrayList<>();
-            for (Image i : productImageList.get().getImages()) {
-                ProductImageResponse productImageResponse = new ProductImageResponse();
-                productImageResponse.setImageId(i.getImageId());
-                productImageResponse.setImage(i.getImage());
+            ProductImageResponse productImageResponse = null;
+            for (ProductImage productImage : productImageList.get()) {
+                productImageResponse = new ProductImageResponse();
+                productImageResponse.setImageId(productImage.getId());
+                productImageResponse.setImageData(fileUtils.getFile(productImage.getImagePath()));
                 productImageResponseList.add(productImageResponse);
             }
             return productImageResponseList;

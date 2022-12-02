@@ -14,7 +14,11 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
+
+import static com.ggapp.common.utils.Constant.IMAGE_FILE_PATH;
 
 /**
  * @author Tran Minh Truyen on 19/11/2022
@@ -30,23 +34,33 @@ import java.util.Base64;
 public class FileUtils {
     /**
      * Save file to local drive
+     *
      * @param fileName
      * @param fileData
      * @return
      * @throws ApplicationException
      */
-    public String saveFile(String fileName, String fileData) throws ApplicationException {
+    public String saveFile(String fileName, String fileData, String fileDirectory) throws ApplicationException {
         if (StringUtils.hasText(fileData) && StringUtils.hasText(fileData)) {
+            String timeStamp = DateTimeFormatter.ofPattern("dd-MM-yyyy").format(LocalDateTime.now());
+            fileName = fileName + "_" + timeStamp + ".png";
+            String directoryName = IMAGE_FILE_PATH + fileDirectory + "/" + fileName;
+
             try {
-                fileName = Constant.IMAGE_FILE_PATH + fileName;
+                File directory = new File(IMAGE_FILE_PATH + fileDirectory);
+
+                if (!directory.exists()){
+                    if (!directory.mkdirs()) throw new ApplicationException("Created file failed", HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+
                 byte[] data = Base64.getDecoder().decode(fileData);
-                FileOutputStream fos = new FileOutputStream(new File(fileName));
+                FileOutputStream fos = new FileOutputStream(new File(directoryName));
                 fos.write(data);
                 fos.close();
             } catch (IOException exception) {
-                throw new ApplicationException(exception.getMessage(), exception.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new ApplicationException("Save file failed", HttpStatus.INTERNAL_SERVER_ERROR);
             }
-            return fileName;
+            return directoryName;
         }
         return null;
     }

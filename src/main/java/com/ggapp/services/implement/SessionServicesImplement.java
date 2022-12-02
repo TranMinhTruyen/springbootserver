@@ -19,8 +19,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import static com.ggapp.common.commonenum.MessageError.DEVICE_INFO_INVALID;
-import static com.ggapp.common.commonenum.MessageError.SESSION_NOT_FOUND;
+import static com.ggapp.common.commonenum.MessageResponse.DEVICE_INFO_INVALID;
+import static com.ggapp.common.commonenum.MessageResponse.SESSION_NOT_FOUND;
 
 /**
  * @author Tran Minh Truyen

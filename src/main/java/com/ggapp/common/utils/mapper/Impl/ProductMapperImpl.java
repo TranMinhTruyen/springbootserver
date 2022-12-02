@@ -17,6 +17,7 @@ public class ProductMapperImpl implements ProductMapper {
             return null;
         Product product = new Product();
         product.setName(productRequest.getName());
+        product.setProductCode(productRequest.getProductCode());
         product.setDiscount(productRequest.getDiscount());
         product.setPrice(productRequest.getPrice());
         product.setType(productRequest.getType());
@@ -33,6 +34,7 @@ public class ProductMapperImpl implements ProductMapper {
         ProductResponse productResponse = new ProductResponse();
         productResponse.setId(product.getId());
         productResponse.setName(product.getName());
+        productResponse.setProductCode(product.getProductCode());
         productResponse.setBrand(product.getBrand().getName());
         productResponse.setCategory(product.getCategory().getName());
         productResponse.setDiscount(product.getDiscount());

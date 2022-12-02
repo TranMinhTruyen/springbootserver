@@ -38,12 +38,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
-import static com.ggapp.common.commonenum.MessageError.CONFIRM_KEY_INVALID;
-import static com.ggapp.common.commonenum.MessageError.USER_IS_DISABLE;
-import static com.ggapp.common.commonenum.MessageError.USER_IS_EXIST;
-import static com.ggapp.common.commonenum.MessageError.USER_NOT_FOUND;
-import static com.ggapp.common.commonenum.MessageError.USER_NOT_FOUND_GET_ALL;
-import static com.ggapp.common.commonenum.MessageError.USER_NOT_MATCH;
+import static com.ggapp.common.commonenum.MessageResponse.CONFIRM_KEY_INVALID;
+import static com.ggapp.common.commonenum.MessageResponse.USER_IS_DISABLE;
+import static com.ggapp.common.commonenum.MessageResponse.USER_IS_EXIST;
+import static com.ggapp.common.commonenum.MessageResponse.USER_NOT_FOUND;
+import static com.ggapp.common.commonenum.MessageResponse.USER_NOT_FOUND_GET_ALL;
+import static com.ggapp.common.commonenum.MessageResponse.USER_NOT_MATCH;
+import static com.ggapp.common.utils.Constant.USER_FILE_PATH;
 
 
 /**
@@ -79,7 +80,7 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
 
     @Override
     public UserResponse createUser(UserRequest userRequest, String confirmKey) throws ApplicationException {
-        if (!accountIsExists(userRequest.getAccount()) && !emailIsExists(userRequest.getEmail()) &&
+        if (!accountIsExists(userRequest.getAccount()) && emailIsExists(userRequest.getEmail()) &&
                 checkConfirmKey(userRequest.getEmail(), confirmKey, Constant.REGISTER_TYPE)) {
             List<User> last = new AutoIncrement(userRepository).getLastOfCollection();
             User newUser = new User();
@@ -97,14 +98,17 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
             newUser.setPostCode(userRequest.getPostCode());
             newUser.setEmail(userRequest.getEmail());
             newUser.setRole(userRequest.getRole());
-            newUser.setImageFilePath(fileUtils.saveFile(newUser.getId() +"_"+ userRequest.getAccount() + ".png", userRequest.getImageFileData()));
+            newUser.setImageFilePath(fileUtils.saveFile(userRequest.getAccount() + "_" + newUser.getId(),
+                    userRequest.getImageFileData(), USER_FILE_PATH + userRequest.getAccount()));
             newUser.setActive(true);
             newUser.setDeleted(false);
             newUser.setCreatedBy(userRequest.getFirstName() + userRequest.getLastName());
             newUser.setCreatedDate(LocalDateTime.now());
             User result = userRepository.save(newUser);
             confirmKeyRepository.deleteByEmailEqualsAndTypeEquals(result.getEmail(), Constant.REGISTER_TYPE);
-            return getUserAfterUpdateOrCreate(result);
+            UserResponse userResponse = userMapper.entityToResponse(result);
+            userResponse.setImageFilePath(newUser.getImageFilePath());
+            return userResponse;
         } else throw new ApplicationException(USER_IS_EXIST);
     }
 
@@ -134,9 +138,6 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
         result.orElseThrow(() -> new ApplicationException(USER_NOT_FOUND));
         if (!result.get().isActive()) {
             throw new ApplicationException(USER_NOT_FOUND);
-        }
-        if (!result.get().isActive()) {
-            throw new ApplicationException(USER_IS_DISABLE);
         }
         String jwt = sessionServices.getJWTFromSession(result.get(), loginRequest);
         return new JwtResponse(jwt);
@@ -194,7 +195,7 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
         }
         update.setActive(request.isActive());
         User result = userRepository.save(update);
-        return getUserAfterUpdateOrCreate(result);
+        return userMapper.entityToResponse(result);
     }
 
     @Override
@@ -215,7 +216,7 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
 
     public boolean emailIsExists(String email) throws ApplicationException {
         Optional<User> checkEmail = userRepository.findByEmailEqualsIgnoreCase(email);
-        return checkEmail.isPresent();
+        return checkEmail.isEmpty();
     }
 
     @Override
@@ -233,20 +234,6 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
         } else throw new ApplicationException("User not found with id: " + id, HttpStatus.NOT_FOUND);
     }
 
-    public UserResponse getUserAfterUpdateOrCreate(User user) {
-        UserResponse response = new UserResponse();
-        response.setAddress(user.getAddress());
-        response.setBirthDay(user.getBirthDay());
-        response.setLastName(user.getLastName());
-        response.setFirstName(user.getFirstName());
-        response.setCitizenID(user.getCitizenId());
-        response.setActive(user.isActive());
-        response.setEmail(user.getEmail());
-        response.setRole(user.getRole());
-        response.setImageFileData(user.getImageFilePath());
-        return response;
-    }
-
     @Override
     public UserResponse getProfileUser(int id) throws ApplicationException {
         UserResponse userResponse = new UserResponse();
@@ -255,10 +242,15 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
             userResponse.setFirstName(user.get().getFirstName());
             userResponse.setLastName(user.get().getLastName());
             userResponse.setBirthDay(user.get().getBirthDay());
-            userResponse.setAddress(user.get().getAddress());
-            userResponse.setCitizenID(user.get().getCitizenId());
             userResponse.setEmail(user.get().getEmail());
-            userResponse.setImageFileData(fileUtils.getFile(user.get().getImageFilePath()));
+            userResponse.setPhoneNumber(user.get().getPhoneNumber());
+            userResponse.setCitizenID(user.get().getCitizenId());
+            userResponse.setAddress(user.get().getAddress());
+            userResponse.setDistrict(user.get().getDistrict());
+            userResponse.setCity(user.get().getCity());
+            userResponse.setPostCode(user.get().getPostCode());
+            userResponse.setImageFilePath(fileUtils.getFile(user.get().getImageFilePath()));
+            userResponse.setRole(user.get().getRole());
             userResponse.setActive(user.get().isActive());
             return userResponse;
         } else
@@ -277,14 +269,14 @@ public class UserServicesImplement implements UserDetailsService, UserServices {
             mailMessage.setSubject("GG-App Reset Password");
             mailMessage.setText("This is your new password: " + newPassword + "\n" + "Please change your password");
             emailSender.send(mailMessage);
-            return getUserAfterUpdateOrCreate(after);
+            return userMapper.entityToResponse(after);
         } else throw new ApplicationException(USER_NOT_FOUND);
     }
 
     @Override
     public void sendEmailConfirmKey(String email) throws ApplicationException {
         try {
-            if (!emailIsExists(email)) {
+            if (emailIsExists(email)) {
                 Random random = new Random();
                 String confirmKey = String.format("%06d", random.nextInt(999999));
                 ConfirmKey newConfirmKey = new ConfirmKey();
