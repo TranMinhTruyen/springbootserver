@@ -22,11 +22,55 @@ public class AspectClass {
     @Autowired
     private PlatformTransactionManager transactionManager;
 
+    @Around(value = "execution(* com.ggapp.controller.*.*(..))", argNames = "joinPoint")
+    public Object controllerLogger(ProceedingJoinPoint joinPoint) throws ApplicationException {
+        Object value = null;
+        long startTime = System.currentTimeMillis();
+        final String controller = joinPoint.getTarget().getClass().getName() + "." + joinPoint.getSignature().getName();
+        LOGGER.info("Start time taken by controller: {}", controller);
+        try {
+            value = joinPoint.proceed();
+            LOGGER.info("Run controller: {}", controller);
+        } catch (ApplicationException e) {
+            LOGGER.error("Controller name {} has error: {}", controller, e.getMessage());
+            throw new ApplicationException(e.getMessage(), e.getErrorCode());
+        } catch (Throwable e) {
+            LOGGER.error("Controller name {} has error: {}", controller, e.getMessage());
+            throw new ApplicationException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        } finally {
+            Long timeTaken = System.currentTimeMillis() - startTime;
+            LOGGER.info("End {} time taken {} ms", controller, timeTaken);
+        }
+        return value;
+    }
+
+    @Around(value = "execution(* com.ggapp.common.*.*(..))", argNames = "joinPoint")
+    public Object commonLogger(ProceedingJoinPoint joinPoint) throws ApplicationException {
+        Object value = null;
+        long startTime = System.currentTimeMillis();
+        final String method = joinPoint.getTarget().getClass().getName() + "." + joinPoint.getSignature().getName();
+        LOGGER.info("Start time taken by controller: {}", method);
+        try {
+            value = joinPoint.proceed();
+            LOGGER.info("Run controller: {}", method);
+        } catch (ApplicationException e) {
+            LOGGER.error("Controller name {} has error: {}", method, e.getMessage());
+            throw new ApplicationException(e.getMessage(), e.getErrorCode());
+        } catch (Throwable e) {
+            LOGGER.error("Controller name {} has error: {}", method, e.getMessage());
+            throw new ApplicationException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        } finally {
+            Long timeTaken = System.currentTimeMillis() - startTime;
+            LOGGER.info("End {} time taken {} ms", method, timeTaken);
+        }
+        return value;
+    }
+
     @Around(value = "execution(* com.ggapp.services.*.*(..))", argNames = "joinPoint")
     public Object around(ProceedingJoinPoint joinPoint) throws ApplicationException {
         long startTime = System.currentTimeMillis();
         final String method = joinPoint.getTarget().getClass().getName() + "." + joinPoint.getSignature().getName();
-        LOGGER.info("Start time taken by {}", method);
+        LOGGER.info("Start time taken by method: {}", method);
         DefaultTransactionDefinition definition = new DefaultTransactionDefinition();
         definition.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
         TransactionStatus transactionStatus = transactionManager.getTransaction(definition);
@@ -42,11 +86,11 @@ public class AspectClass {
             throw new ApplicationException(e.getMessage(), e.getErrorCode());
         } catch (Throwable e) {
             LOGGER.info("Do rollback");
-            LOGGER.error(e.getMessage());
+            LOGGER.error("Method name {} has error: {}", method, e.getMessage());
             throw new ApplicationException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         } finally {
             Long timeTaken = System.currentTimeMillis() - startTime;
-            LOGGER.info("End {} time {} ms", method, timeTaken);
+            LOGGER.info("End {} time taken {} ms", method, timeTaken);
         }
         return value;
     }

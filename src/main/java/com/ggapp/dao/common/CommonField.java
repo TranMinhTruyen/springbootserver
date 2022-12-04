@@ -1,6 +1,6 @@
 package com.ggapp.dao.common;
 
-import com.ggapp.common.commonenum.HistoryChangeType;
+import com.ggapp.common.enums.HistoryChangeType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

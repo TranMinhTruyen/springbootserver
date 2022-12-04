@@ -9,7 +9,7 @@ import com.ggapp.common.dto.response.CommonResponse;
 import com.ggapp.common.dto.response.NewsResponse;
 import com.ggapp.dao.repository.mongo.NewsRepository;
 import com.ggapp.dao.repository.mongo.UserRepository;
-import com.ggapp.services.NewsServices;
+import com.ggapp.services.NewsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,9 +22,9 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class NewsServicesImp implements NewsServices {
+public class NewsServiceImp implements NewsService {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(NewsServicesImp.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(NewsServiceImp.class);
 
 	@Autowired
 	private NewsRepository newsRepository;

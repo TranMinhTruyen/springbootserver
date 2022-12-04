@@ -1,6 +1,6 @@
 package com.ggapp.common.exception;
 
-import com.ggapp.common.commonenum.MessageResponse;
+import com.ggapp.common.enums.MessageResponse;
 import org.springframework.http.HttpStatus;
 
 public class ApplicationException extends Exception{

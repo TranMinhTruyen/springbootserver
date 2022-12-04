@@ -2,7 +2,7 @@ package com.ggapp.controller;
 import com.ggapp.common.jwt.CustomUserDetail;
 import com.ggapp.common.dto.response.BaseResponse;
 import com.ggapp.common.dto.response.CartResponse;
-import com.ggapp.services.CartServices;
+import com.ggapp.services.CartService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CartResource {
 
 	@Autowired
-	private CartServices cartServices;
+	private CartService cartService;
 
 	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
 			security = {@SecurityRequirement(name = "Authorization")})
@@ -46,15 +46,15 @@ public class CartResource {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
 		BaseResponse baseResponse = new BaseResponse();
-		if (!cartServices.isCartExists(customUserDetail.getUser().getId())) {
-			CartResponse cartResponse = cartServices.createCart(customUserDetail.getUser().getId(), productId, productAmount);
+		if (!cartService.isCartExists(customUserDetail.getAccountDetail().getOwnerId())) {
+			CartResponse cartResponse = cartService.createCart(customUserDetail.getAccountDetail().getOwnerId(), productId, productAmount);
 			baseResponse.setStatus(HttpStatus.OK.value());
 			baseResponse.setStatusname(HttpStatus.OK.name());
 			baseResponse.setMessage("Cart is created");
 			baseResponse.setPayload(cartResponse);
 		}
 		else {
-			CartResponse cartResponse = cartServices.addProductToCart(customUserDetail.getUser().getId(), productId, productAmount);
+			CartResponse cartResponse = cartService.addProductToCart(customUserDetail.getAccountDetail().getOwnerId(), productId, productAmount);
 			baseResponse.setStatus(HttpStatus.OK.value());
 			baseResponse.setStatusname(HttpStatus.OK.name());
 			baseResponse.setMessage("Product is added");
@@ -69,7 +69,7 @@ public class CartResource {
 	public BaseResponse getCartById() throws Exception {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
-		CartResponse cartResponse = cartServices.getCartById(customUserDetail.getUser().getId());
+		CartResponse cartResponse = cartService.getCartById(customUserDetail.getAccountDetail().getOwnerId());
 		BaseResponse baseResponse = new BaseResponse();
 		baseResponse.setStatus(200);
 		baseResponse.setMessage("Get cart success");
@@ -84,7 +84,7 @@ public class CartResource {
 												@RequestParam long amount) throws Exception {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
-		CartResponse cartResponse = cartServices.updateProductAmountInCart(customUserDetail.getUser().getId(), productId, amount);
+		CartResponse cartResponse = cartService.updateProductAmountInCart(customUserDetail.getAccountDetail().getOwnerId(), productId, amount);
 		BaseResponse baseResponse = new BaseResponse();
 		baseResponse.setStatus(200);
 		baseResponse.setMessage("Product amount is updated");
@@ -98,7 +98,7 @@ public class CartResource {
 	public BaseResponse updateProductList(@RequestParam int productId) {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
-		CartResponse cartResponse = cartServices.removeProductFromCart(customUserDetail.getUser().getId(), productId);
+		CartResponse cartResponse = cartService.removeProductFromCart(customUserDetail.getAccountDetail().getOwnerId(), productId);
 		BaseResponse baseResponse = new BaseResponse();
 		baseResponse.setStatus(200);
 		baseResponse.setMessage("Product is removed");
@@ -112,7 +112,7 @@ public class CartResource {
 	public BaseResponse deleteCart(){
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
-		cartServices.deleteCart(customUserDetail.getUser().getId());
+		cartService.deleteCart(customUserDetail.getAccountDetail().getOwnerId());
 		BaseResponse baseResponse = new BaseResponse();
 		baseResponse.setStatus(200);
 		baseResponse.setMessage("Cart is deleted");

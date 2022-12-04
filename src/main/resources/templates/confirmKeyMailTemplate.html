@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    </head>
+    <body>
+        <p th:text="'Dear ' + ${name} + ','"></p>
+        <p th:text="'This is your comfirm key: ' + ${key} + ','"></p>
+        <p><b>Key will expired in 5 minutes</b></p>
+        <p>
+            <span>Regards, </span>
+            <br/>
+            <em>Truyen</em>
+        </p>
+    </body>
+</html>

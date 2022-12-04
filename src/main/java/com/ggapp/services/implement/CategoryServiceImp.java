@@ -8,7 +8,7 @@ import com.ggapp.common.dto.response.CommonResponse;
 import com.ggapp.dao.repository.mysql.CategoryRepository;
 import com.ggapp.dao.repository.mysql.ProductRepository;
 import com.ggapp.dao.repository.specification.CategorySpecification;
-import com.ggapp.services.CategoryServices;
+import com.ggapp.services.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +28,7 @@ import java.util.Optional;
  */
 
 @Service
-public class CategoryServicesImp implements CategoryServices {
+public class CategoryServiceImp implements CategoryService {
 
 	@Autowired
 	private CategoryRepository categoryRepository;
@@ -43,7 +43,7 @@ public class CategoryServicesImp implements CategoryServices {
 			newCategory.setName(categoryRequest.getName());
 			newCategory.setDescription(categoryRequest.getDescription());
 			newCategory.setCreatedDate(LocalDateTime.now());
-			newCategory.setCreatedBy(customUserDetail.getUser().getFirstName() + customUserDetail.getUser().getLastName());
+			newCategory.setCreatedBy(customUserDetail.getAccountDetail().getFirstName() + customUserDetail.getAccountDetail().getLastName());
 			categoryRepository.save(newCategory);
 			return true;
 		}
@@ -120,7 +120,7 @@ public class CategoryServicesImp implements CategoryServices {
 			update.setName(categoryRequest.getName());
 			update.setDescription(categoryRequest.getDescription());
 			update.setUpdateDate(LocalDateTime.now());
-			update.setUpdateBy(customUserDetail.getUser().getFirstName() + customUserDetail.getUser().getLastName());
+			update.setUpdateBy(customUserDetail.getAccountDetail().getFirstName() + customUserDetail.getAccountDetail().getLastName());
 			categoryRepository.save(update);
 			return true;
 		}

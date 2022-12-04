@@ -1,4 +1,4 @@
-package com.ggapp.common.commonenum;
+package com.ggapp.common.enums;
 
 import org.springframework.http.HttpStatus;
 
@@ -47,11 +47,13 @@ public enum MessageResponse {
 
     //region ComfirmKey message
     CONFIRM_KEY_INVALID("Confirm key invalid", HttpStatus.UNAUTHORIZED),
+    CONFIRM_KEY_EXPIRED("Confirm key expired", HttpStatus.UNAUTHORIZED),
     //endregion
 
     //region Session message
     SESSION_NOT_FOUND("Session not found", HttpStatus.UNAUTHORIZED),
     DEVICE_INFO_INVALID("Device info invalid", HttpStatus.UNAUTHORIZED),
+    DEVICE_ALREADY_LOGIN("Device already login", HttpStatus.UNAUTHORIZED),
     //endregion
 
     //region Order message

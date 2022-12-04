@@ -1,6 +1,6 @@
 package com.ggapp.common.jwt;
 
-import com.ggapp.services.implement.UserServicesImplement;
+import com.ggapp.services.AccountService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -30,7 +30,7 @@ public class JWTAuthenticationFilter extends GenericFilter {
 	private JWTTokenProvider jwtTokenProvider;
 
 	@Autowired
-	private UserServicesImplement userServicesImplement;
+	private AccountService accountService;
 
 	@Override
 	public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
@@ -38,7 +38,7 @@ public class JWTAuthenticationFilter extends GenericFilter {
 			String jwt = getJwtFromRequest((HttpServletRequest) servletRequest);
 			if (StringUtils.hasText(jwt) && jwtTokenProvider.validateToken(jwt)) {
 				int userId = jwtTokenProvider.getUserIdFromJWT(jwt);
-				UserDetails userDetails = userServicesImplement.loadUserById(userId);
+				UserDetails userDetails = accountService.loadUserById(userId);
 				if(userDetails != null && userDetails.isEnabled()) {
 					UsernamePasswordAuthenticationToken
 							authentication = new UsernamePasswordAuthenticationToken(userDetails, null,

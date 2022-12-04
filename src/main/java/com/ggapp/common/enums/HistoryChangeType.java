@@ -1,4 +1,4 @@
-package com.ggapp.common.commonenum;
+package com.ggapp.common.enums;
 
 public enum HistoryChangeType {
     NEW(1),

@@ -3,7 +3,7 @@ import com.ggapp.common.dto.request.ProductRequest;
 import com.ggapp.common.dto.response.BaseResponse;
 import com.ggapp.common.dto.response.CommonResponse;
 import com.ggapp.common.dto.response.ProductResponse;
-import com.ggapp.services.ProductServices;
+import com.ggapp.services.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -42,14 +42,14 @@ public class ProductResource extends CommonResource{
 	private static final Logger LOGGER = LoggerFactory.getLogger(ProductResource.class);
 
 	@Autowired
-	private ProductServices productServices;
+	private ProductService productService;
 
 	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
 			security = {@SecurityRequirement(name = "Authorization")})
 	@PostMapping(value = "createProduct", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<BaseResponse> createProduct(@RequestBody ProductRequest productRequest) throws Exception {
 		this.getAuthentication();
-		ProductResponse productResponse = productServices.createProduct(productRequest, this.customUserDetail);
+		ProductResponse productResponse = productService.createProduct(productRequest, this.customUserDetail);
 		BaseResponse baseResponse = new BaseResponse();
 		baseResponse.setStatus(HttpStatus.OK.value());
 		baseResponse.setStatusname(HttpStatus.OK.name());
@@ -62,7 +62,7 @@ public class ProductResource extends CommonResource{
 	@GetMapping(value = "getProductById")
 	@PreAuthorize("permitAll()")
 	public ResponseEntity<BaseResponse> getProductById(@RequestParam int id) throws Exception {
-		ProductResponse productResponse = productServices.getProductById(id);
+		ProductResponse productResponse = productService.getProductById(id);
 		BaseResponse baseResponse = new BaseResponse();
 		baseResponse.setStatus(HttpStatus.OK.value());
 		baseResponse.setStatusname(HttpStatus.OK.name());
@@ -81,7 +81,7 @@ public class ProductResource extends CommonResource{
 												@RequestParam(required = false) String category,
 												@RequestParam(required = false, defaultValue = "0") float fromPrice,
 												@RequestParam(required = false, defaultValue = "0") float toPrice) throws Exception {
-		CommonResponse commonResponse = productServices.getProductByKeyWord(page, size, name, brand,
+		CommonResponse commonResponse = productService.getProductByKeyWord(page, size, name, brand,
 				category, fromPrice, toPrice);
 		BaseResponse baseResponse = new BaseResponse();
 		baseResponse.setStatus(HttpStatus.OK.value());
@@ -96,7 +96,7 @@ public class ProductResource extends CommonResource{
 	@GetMapping(value="getAllProduct")
 	@PreAuthorize("permitAll()")
 	public ResponseEntity<BaseResponse> getAllProduct(@RequestParam int page, @RequestParam int size) throws Exception {
-		CommonResponse commonResponse = productServices.getAllProduct(page, size);
+		CommonResponse commonResponse = productService.getAllProduct(page, size);
 		BaseResponse baseResponse = new BaseResponse();
 		baseResponse.setStatus(HttpStatus.OK.value());
 		baseResponse.setStatusname(HttpStatus.OK.name());
@@ -110,7 +110,7 @@ public class ProductResource extends CommonResource{
 			security = {@SecurityRequirement(name = "Authorization")})
 	@PutMapping(value = "updateProduct", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<BaseResponse> updateProduct(@RequestParam int id, @RequestBody ProductRequest productRequest) throws Exception {
-		ProductResponse productResponse = productServices.updateProduct(id, productRequest);
+		ProductResponse productResponse = productService.updateProduct(id, productRequest);
 		BaseResponse baseResponse = new BaseResponse();
 		baseResponse.setStatus(HttpStatus.OK.value());
 		baseResponse.setStatusname(HttpStatus.OK.name());
@@ -123,7 +123,7 @@ public class ProductResource extends CommonResource{
 			security = {@SecurityRequirement(name = "Authorization")})
 	@DeleteMapping(value = "deleteImageOfProduct")
 	public ResponseEntity<BaseResponse> deleteImageOfProduct(@RequestParam int productId, @RequestParam List<Integer> imageId) throws Exception {
-		productServices.deleteLogicImageOfProduct(productId, imageId);
+		productService.deleteLogicImageOfProduct(productId, imageId);
 		BaseResponse baseResponse = new BaseResponse();
 		baseResponse.setStatus(HttpStatus.OK.value());
 		baseResponse.setStatusname(HttpStatus.OK.name());
@@ -136,7 +136,7 @@ public class ProductResource extends CommonResource{
 			security = {@SecurityRequirement(name = "Authorization")})
 	@DeleteMapping(value = "deleteProduct")
 	public ResponseEntity<?>deleteProduct(@RequestParam List<Integer> id) throws Exception {
-		productServices.deleteProduct(id);
+		productService.deleteProduct(id);
 		BaseResponse baseResponse = new BaseResponse();
 		baseResponse.setStatus(HttpStatus.OK.value());
 		baseResponse.setStatusname(HttpStatus.OK.name());

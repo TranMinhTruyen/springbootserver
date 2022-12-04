@@ -15,8 +15,8 @@ import com.ggapp.dao.repository.mongo.CartRepository;
 import com.ggapp.dao.repository.mongo.OrderRepository;
 import com.ggapp.dao.repository.mongo.UserRepository;
 import com.ggapp.dao.repository.mysql.ProductRepository;
-import com.ggapp.services.CartServices;
-import com.ggapp.services.OrderServices;
+import com.ggapp.services.CartService;
+import com.ggapp.services.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,10 +27,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import static com.ggapp.common.commonenum.MessageResponse.CART_NOT_FOUND;
-import static com.ggapp.common.commonenum.MessageResponse.ORDER_NOT_FOUND;
-import static com.ggapp.common.commonenum.MessageResponse.ORDER_NOT_FOUND_PRODUCT;
-import static com.ggapp.common.commonenum.MessageResponse.USER_NOT_FOUND;
+import static com.ggapp.common.enums.MessageResponse.CART_NOT_FOUND;
+import static com.ggapp.common.enums.MessageResponse.ORDER_NOT_FOUND;
+import static com.ggapp.common.enums.MessageResponse.ORDER_NOT_FOUND_PRODUCT;
+import static com.ggapp.common.enums.MessageResponse.USER_NOT_FOUND;
 
 /**
  * @author Tran Minh Truyen
@@ -43,7 +43,7 @@ import static com.ggapp.common.commonenum.MessageResponse.USER_NOT_FOUND;
  */
 
 @Service
-public class OrderServicesImplement implements OrderServices {
+public class OrderServiceImp implements OrderService {
 
     @Autowired
     private OrderRepository orderRepository;
@@ -58,7 +58,7 @@ public class OrderServicesImplement implements OrderServices {
     private ProductRepository productRepository;
 
     @Autowired
-    private CartServices cartServices;
+    private CartService cartService;
 
     @Override
     public OrderResponse createOrderByCart(int customerId) throws ApplicationException {
@@ -84,7 +84,7 @@ public class OrderServicesImplement implements OrderServices {
             stringBuilder.append(userResult.get().getCity());
             newOrder.setAddress(stringBuilder.toString());
             Order order = orderRepository.save(newOrder);
-            cartServices.deleteCartAfterCreateOrder(cartResult.get().getId());
+            cartService.deleteCartAfterCreateOrder(cartResult.get().getId());
             return getOrderAfterCreateOrUpdate(order);
         } else return null;
     }
@@ -104,7 +104,7 @@ public class OrderServicesImplement implements OrderServices {
                         productList.add(product);
                         totalPrice = totalPrice.add(product.getPriceAfterDiscount()
                                 .multiply(BigDecimal.valueOf(product.getProductAmount())));
-                        cartServices.removeProductFromCart(customerId, product.getId());
+                        cartService.removeProductFromCart(customerId, product.getId());
                     }
                 }
             }

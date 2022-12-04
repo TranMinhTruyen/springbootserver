@@ -20,13 +20,4 @@ public class ConfirmKey {
 
 	@Field(value = "Type")
 	private String type;
-
-	@Override
-	public String toString() {
-		return "ConfirmKey{" +
-				"email='" + email + '\'' +
-				", key='" + key + '\'' +
-				", expire=" + expire +
-				'}';
-	}
 }

@@ -6,7 +6,7 @@ import com.ggapp.common.dto.request.OrderRequest;
 import com.ggapp.common.dto.request.UserOrderRequest;
 import com.ggapp.common.dto.response.CommonResponse;
 import com.ggapp.common.dto.response.OrderResponse;
-import com.ggapp.services.OrderServices;
+import com.ggapp.services.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -41,7 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class OrderResource {
 
 	@Autowired
-	private OrderServices orderServices;
+	private OrderService orderService;
 
 	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
 			security = {@SecurityRequirement(name = "Authorization")})
@@ -52,10 +52,10 @@ public class OrderResource {
 		OrderResponse orderResponse;
 		BaseResponse baseResponse = new BaseResponse();
 		if (userOrderRequest.getProductId() != null && userOrderRequest.getProductId().length > 0) {
-			orderResponse = orderServices.createOrderByProductId(customUserDetail.getUser().getId(), userOrderRequest.getProductId());
+			orderResponse = orderService.createOrderByProductId(customUserDetail.getAccountDetail().getOwnerId(), userOrderRequest.getProductId());
 		}
 		else {
-			orderResponse = orderServices.createOrderByCart(customUserDetail.getUser().getId());
+			orderResponse = orderService.createOrderByCart(customUserDetail.getAccountDetail().getOwnerId());
 		}
 		baseResponse.setStatus(HttpStatus.OK.value());
 		baseResponse.setStatusname(HttpStatus.OK.name());
@@ -72,7 +72,7 @@ public class OrderResource {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
 		BaseResponse baseResponse = new BaseResponse();
-		CommonResponse commonResponse = orderServices.getOrderByCustomerId(page, size, customUserDetail.getUser().getId());
+		CommonResponse commonResponse = orderService.getOrderByCustomerId(page, size, customUserDetail.getAccountDetail().getOwnerId());
 		baseResponse.setStatus(HttpStatus.OK.value());
 		baseResponse.setStatusname(HttpStatus.OK.name());
 		baseResponse.setMessage("Get order success");
@@ -89,7 +89,7 @@ public class OrderResource {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
 		BaseResponse baseResponse = new BaseResponse();
-		CommonResponse commonResponse = orderServices.getOrderByCustomerId(page, size, customUserDetail.getUser().getId());
+		CommonResponse commonResponse = orderService.getOrderByCustomerId(page, size, customUserDetail.getAccountDetail().getOwnerId());
 		baseResponse.setStatus(HttpStatus.OK.value());
 		baseResponse.setStatusname(HttpStatus.OK.name());
 		baseResponse.setMessage("Get order success");
@@ -107,7 +107,7 @@ public class OrderResource {
 		BaseResponse baseResponse = new BaseResponse();
 		OrderRequest orderRequest = new OrderRequest();
 		orderRequest.setAddress(userOrderRequest.getAddress());
-		orderServices.updateOrder(customUserDetail.getUser().getId(), orderRequest);
+		orderService.updateOrder(customUserDetail.getAccountDetail().getOwnerId(), orderRequest);
 		baseResponse.setStatus(HttpStatus.OK.value());
 		baseResponse.setStatusname(HttpStatus.OK.name());
 		baseResponse.setMessage("Update order success");
@@ -125,7 +125,7 @@ public class OrderResource {
 		BaseResponse baseResponse = new BaseResponse();
 		OrderRequest order = new OrderRequest();
 		order.setAddress(orderRequest.getAddress());
-		orderServices.updateOrder(customUserDetail.getUser().getId(), order);
+		orderService.updateOrder(customUserDetail.getAccountDetail().getOwnerId(), order);
 		baseResponse.setStatus(HttpStatus.OK.value());
 		baseResponse.setStatusname(HttpStatus.OK.name());
 		baseResponse.setMessage("Update order success");

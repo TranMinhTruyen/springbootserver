@@ -5,7 +5,7 @@ import com.ggapp.common.dto.response.BrandResponse;
 import com.ggapp.common.dto.response.CommonResponse;
 import com.ggapp.common.exception.ApplicationException;
 import com.ggapp.common.jwt.CustomUserDetail;
-import com.ggapp.services.BrandServices;
+import com.ggapp.services.BrandService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -37,7 +37,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class BrandResource {
 
 	@Autowired
-	private BrandServices brandServices;
+	private BrandService brandService;
 
 	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
 			security = {@SecurityRequirement(name = "Authorization")})
@@ -46,7 +46,7 @@ public class BrandResource {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
 		BaseResponse baseResponse = new BaseResponse();
-		BrandResponse result = brandServices.createBrand(brandRequest, customUserDetail);
+		BrandResponse result = brandService.createBrand(brandRequest, customUserDetail);
 		baseResponse.setStatus(HttpStatus.OK.value());
 		baseResponse.setStatusname(HttpStatus.OK.name());
 		baseResponse.setMessage("Created brand successfully");
@@ -60,7 +60,7 @@ public class BrandResource {
 	public BaseResponse getBrandByKeyword(@RequestParam int page,
 											   @RequestParam int size,
 											   @RequestParam(required = false) String keyword){
-		CommonResponse commonResponse = brandServices.getBrandbyKeyword(page, size, keyword);
+		CommonResponse commonResponse = brandService.getBrandbyKeyword(page, size, keyword);
 		BaseResponse baseResponse = new BaseResponse();
 		baseResponse.setStatus(HttpStatus.OK.value());
 		baseResponse.setStatusname(HttpStatus.OK.name());
@@ -74,7 +74,7 @@ public class BrandResource {
 	@PreAuthorize("permitAll()")
 	public BaseResponse getAllBrand(@RequestParam int page,
 										@RequestParam int size){
-		CommonResponse commonResponse = brandServices.getAllBrand(page, size);
+		CommonResponse commonResponse = brandService.getAllBrand(page, size);
 		BaseResponse baseResponse = new BaseResponse();
 		baseResponse.setStatus(HttpStatus.OK.value());
 		baseResponse.setStatusname(HttpStatus.OK.name());
@@ -89,7 +89,7 @@ public class BrandResource {
 	public BaseResponse updateBrand(@RequestParam int id, @RequestBody BrandRequest brandRequest) throws ApplicationException {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
-		BrandResponse brandResponse = brandServices.updateBrand(id, brandRequest, customUserDetail);
+		BrandResponse brandResponse = brandService.updateBrand(id, brandRequest, customUserDetail);
 		BaseResponse baseResponse = new BaseResponse();
 		baseResponse.setStatus(HttpStatus.OK.value());
 		baseResponse.setStatusname(HttpStatus.OK.name());
@@ -104,7 +104,7 @@ public class BrandResource {
 	public BaseResponse logicDeleteBrand(@RequestParam int id) throws ApplicationException {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
-		BrandResponse brandResponse = brandServices.logicDeleteBrand(id, customUserDetail);
+		BrandResponse brandResponse = brandService.logicDeleteBrand(id, customUserDetail);
 		BaseResponse baseResponse = new BaseResponse();
 		baseResponse.setStatus(HttpStatus.OK.value());
 		baseResponse.setStatusname(HttpStatus.OK.name());
@@ -118,7 +118,7 @@ public class BrandResource {
 	@DeleteMapping(value = "physicalDeleteBrand")
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	public BaseResponse physicalDeleteBrand(@RequestParam int id) throws ApplicationException {
-		brandServices.physicalDeleteBrand(id);
+		brandService.physicalDeleteBrand(id);
 		BaseResponse baseResponse = new BaseResponse();
 		baseResponse.setStatus(HttpStatus.OK.value());
 		baseResponse.setStatusname(HttpStatus.OK.name());

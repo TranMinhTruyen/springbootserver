@@ -11,4 +11,8 @@ public class DeviceInfoRequest {
 
     @NotBlank(message = "DeviceName is mandatory")
     private String deviceName;
+
+    private String deviceMac;
+
+    private String deviceIp;
 }

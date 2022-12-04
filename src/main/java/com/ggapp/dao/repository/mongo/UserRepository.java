@@ -15,11 +15,5 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends MongoRepository<User, Integer> {
     Optional<List<User>> findUserByFirstNameContainingOrLastNameContaining(String firstName, String lastName);
-
-    @Query(value = "{$and : [{$or : [{account: :#{#account}}, {email: {$regex: :#{#account}, $options: 'i'}}]}, {password: :#{#password}}]}")
-    Optional<User> findUsersByAccountEqualsAndPasswordEquals(@Param("account") String account, @Param("password") String password);
-
-    Optional<User> findUserByAccount(String account);
-
     Optional<User> findByEmailEqualsIgnoreCase(String email);
 }

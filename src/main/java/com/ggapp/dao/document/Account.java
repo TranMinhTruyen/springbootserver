@@ -7,57 +7,39 @@ import org.springframework.data.mongodb.core.mapping.Field;
 
 import javax.persistence.Column;
 import java.time.LocalDateTime;
-import java.util.Date;
-
 
 /**
- * @author Tran Minh Truyen
+ * @author Tran Minh Truyen on 04/12/2022
+ * Dear maintainer.
+ * When I wrote this code, only me and God knew what is was.
+ * Now, only God knows!
+ * So if you are done trying to 'optimize' this routine (and failed), please increment the
+ * following counter as a warning to the next guy
+ * TOTAL_HOURS_WASTED_HERE =
  */
 
-@Document(collection = "User")
+@Document(collection = "Account")
 @Data
-public class User {
-
+public class Account {
     private int id;
 
     @Version
     private int version;
 
-    @Field(value = "firstName")
-    private String firstName;
-
-    @Field(value = "lastName")
-    private String lastName;
-
-    @Field(value = "birthDay")
-    private Date birthDay;
-
-    @Field(value = "address")
-    private String address;
-
-    @Field(value = "district")
-    private String district;
-
-    @Field(value = "city")
-    private String city;
-
-    @Field(value = "postCode")
-    private String postCode;
-
-    @Field(value = "citizenID")
-    private String citizenId;
+    @Field(value = "account")
+    private String account;
 
     @Field(value = "mail")
     private String email;
 
-    @Field(value = "phoneNumber")
-    private String phoneNumber;
+    @Field(value = "password")
+    private String password;
 
-    @Field(value = "role")
-    private String role;
+    @Field(value = "ownerId")
+    private int ownerId;
 
-    @Field(value = "imageFilePath")
-    private String imageFilePath;
+    @Field(value = "accountType")
+    private String accountType;
 
     @Field(value = "isActive")
     private boolean isActive;

@@ -5,7 +5,7 @@ import com.ggapp.common.dto.response.BaseResponse;
 import com.ggapp.common.dto.response.CategoryResponse;
 import com.ggapp.common.dto.response.CommonResponse;
 import com.ggapp.common.jwt.CustomUserDetail;
-import com.ggapp.services.CategoryServices;
+import com.ggapp.services.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -37,7 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CategoryResource {
 
     @Autowired
-    private CategoryServices categoryServices;
+    private CategoryService categoryService;
 
     @Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
             security = {@SecurityRequirement(name = "Authorization")})
@@ -45,10 +45,10 @@ public class CategoryResource {
     public ResponseEntity<?> createCategory(@RequestBody CategoryRequest categoryRequest) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
-        if (categoryServices.isExists(categoryRequest.getName())) {
+        if (categoryService.isExists(categoryRequest.getName())) {
             return new ResponseEntity<>("Category is exists", HttpStatus.UNAUTHORIZED);
         }
-        if (categoryServices.createCategory(categoryRequest, customUserDetail))
+        if (categoryService.createCategory(categoryRequest, customUserDetail))
             return new ResponseEntity<>(categoryRequest, HttpStatus.OK);
         else
             return new ResponseEntity<>("Error", HttpStatus.BAD_REQUEST);
@@ -62,7 +62,7 @@ public class CategoryResource {
                                                              @RequestParam(required = false) String keyword) {
 
 
-        CommonResponse commonResponse = categoryServices.getCategoryByKeyword(page, size, keyword);
+        CommonResponse commonResponse = categoryService.getCategoryByKeyword(page, size, keyword);
         BaseResponse baseResponse = new BaseResponse();
         baseResponse.setStatus(HttpStatus.OK.value());
         baseResponse.setStatusname(HttpStatus.OK.name());
@@ -75,7 +75,7 @@ public class CategoryResource {
     @GetMapping(value = "getAllCategory")
     public ResponseEntity<BaseResponse> getAllCategory(@RequestParam int page,
                                                        @RequestParam int size) {
-        CommonResponse commonResponse = categoryServices.getAllCategory(page, size);
+        CommonResponse commonResponse = categoryService.getAllCategory(page, size);
         BaseResponse baseResponse = new BaseResponse();
         baseResponse.setStatus(HttpStatus.OK.value());
         baseResponse.setStatusname(HttpStatus.OK.name());
@@ -91,7 +91,7 @@ public class CategoryResource {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
         if (authentication != null && (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")))) {
-            CategoryResponse categoryResponse = categoryServices.updateCategory(id, categoryRequest, customUserDetail);
+            CategoryResponse categoryResponse = categoryService.updateCategory(id, categoryRequest, customUserDetail);
             if (categoryResponse != null) {
                 return new ResponseEntity<>(categoryResponse, HttpStatus.OK);
             } else return new ResponseEntity<>("Error", HttpStatus.BAD_REQUEST);
@@ -106,7 +106,7 @@ public class CategoryResource {
     public ResponseEntity<?> deleteBrand(@RequestParam int id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")))) {
-            if (categoryServices.deleteCategory(id)) {
+            if (categoryService.deleteCategory(id)) {
                 return new ResponseEntity<>("category is deleted", HttpStatus.OK);
             } else return new ResponseEntity<>("Error", HttpStatus.BAD_REQUEST);
         } else {

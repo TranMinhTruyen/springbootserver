@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * @author Tran Minh Truyen
  */
-public interface ProductServices {
+public interface ProductService {
 	ProductResponse createProduct(ProductRequest productRequest, CustomUserDetail customUserDetail) throws ApplicationException;
 	CommonResponse getAllProduct(int page, int size) throws ApplicationException;
 	ProductResponse getProductById(int id) throws ApplicationException;

@@ -10,7 +10,7 @@ import com.ggapp.common.dto.response.CommonResponse;
 import com.ggapp.dao.repository.mysql.BrandRepository;
 import com.ggapp.dao.repository.mysql.ProductRepository;
 import com.ggapp.dao.repository.specification.BrandSpecification;
-import com.ggapp.services.BrandServices;
+import com.ggapp.services.BrandService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,8 +18,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static com.ggapp.common.commonenum.MessageResponse.BRAND_IS_EXIST;
-import static com.ggapp.common.commonenum.MessageResponse.BRAND_NOT_FOUND;
+import static com.ggapp.common.enums.MessageResponse.BRAND_IS_EXIST;
+import static com.ggapp.common.enums.MessageResponse.BRAND_NOT_FOUND;
 
 /**
  * @author Tran Minh Truyen
@@ -32,7 +32,7 @@ import static com.ggapp.common.commonenum.MessageResponse.BRAND_NOT_FOUND;
  */
 
 @Service
-public class BrandServicesImp implements BrandServices {
+public class BrandServiceImp implements BrandService {
 
 	@Autowired
 	private BrandRepository brandRepository;
@@ -51,7 +51,7 @@ public class BrandServicesImp implements BrandServices {
 			newBrand.setDescription(brandRequest.getDescription());
 			newBrand.setDeleted(false);
 			newBrand.setCreatedDate(LocalDateTime.now());
-			newBrand.setCreatedBy(customUserDetail.getUser().getFirstName() + customUserDetail.getUser().getLastName());
+			newBrand.setCreatedBy(customUserDetail.getAccountDetail().getFirstName() + customUserDetail.getAccountDetail().getLastName());
 			Brand result = brandRepository.save(newBrand);
 			return brandMapper.entityToResponse(result);
 		} else throw new ApplicationException(BRAND_IS_EXIST);
@@ -83,7 +83,7 @@ public class BrandServicesImp implements BrandServices {
 		update.setName(brandRequest.getName());
 		update.setDescription(brandRequest.getDescription());
 		update.setUpdateDate(LocalDateTime.now());
-		update.setUpdateBy(customUserDetail.getUser().getFirstName() + customUserDetail.getUser().getLastName());
+		update.setUpdateBy(customUserDetail.getAccountDetail().getFirstName() + customUserDetail.getAccountDetail().getLastName());
 		Brand result = brandRepository.save(update);
 		return brandMapper.entityToResponse(result);
 	}
@@ -101,7 +101,7 @@ public class BrandServicesImp implements BrandServices {
 		}
 		brand.get().setDeleted(true);
 		brand.get().setCreatedDate(LocalDateTime.now());
-		brand.get().setCreatedBy(customUserDetail.getUser().getFirstName() + customUserDetail.getUser().getLastName());
+		brand.get().setCreatedBy(customUserDetail.getAccountDetail().getFirstName() + customUserDetail.getAccountDetail().getLastName());
 		Brand result = brandRepository.save(brand.get());
 		return brandMapper.entityToResponse(result);
 	}

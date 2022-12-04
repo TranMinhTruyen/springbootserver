@@ -18,8 +18,6 @@ public class UserMapperImpl implements UserMapper {
         if (userRequest == null)
             return null;
         User user = new User();
-        user.setAccount(userRequest.getAccount());
-        user.setPassword(Hashing.sha512().hashString(userRequest.getPassword(), StandardCharsets.UTF_8).toString());
         user.setFirstName(userRequest.getFirstName());
         user.setLastName(userRequest.getLastName());
         user.setBirthDay(userRequest.getBirthDay());
@@ -31,7 +29,6 @@ public class UserMapperImpl implements UserMapper {
         user.setCity(userRequest.getCity());
         user.setPostCode(userRequest.getPostCode());
         user.setRole(userRequest.getRole());
-        user.setActive(userRequest.isActive());
         return user;
     }
 

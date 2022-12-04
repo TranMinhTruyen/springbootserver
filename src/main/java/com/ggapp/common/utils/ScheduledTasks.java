@@ -17,8 +17,9 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.util.ArrayList;
 import java.util.List;
+
+import static com.ggapp.common.utils.Constant.LOGOUT;
 
 @Component
 @EnableScheduling
@@ -56,15 +57,14 @@ public class ScheduledTasks {
 	private void clearSession() {
 		LOGGER.info("Start clear session");
 		List<Session> sessionList = sessionRepository.findAll();
-		List<DeviceInfo> deleteItem = new ArrayList<>();
 		for (Session session: sessionList){
 			for (DeviceInfo deviceInfo: session.getDeviceInfoList()) {
 				if(!jwtTokenProvider.validateToken(deviceInfo.getToken())){
-					deleteItem.add(deviceInfo);
+					deviceInfo.setToken(null);
+					deviceInfo.setStatus(LOGOUT);
 					LOGGER.info("Session is deleted: DeviceName: {}, OS: {}", deviceInfo.getDeviceName(), deviceInfo.getOS());
 				}
 			}
-			session.getDeviceInfoList().removeAll(deleteItem);
 		}
 		sessionRepository.saveAll(sessionList);
 		sessionList.clear();

@@ -23,7 +23,7 @@ public class ApiExceptionHandler {
         baseResponse.setStatus(exception.getErrorCode().value());
         baseResponse.setStatusname(exception.getErrorCode().name());
         baseResponse.setMessage(exception.getMessage());
-        return new ResponseEntity<BaseResponse>(baseResponse, HttpStatus.OK);
+        return new ResponseEntity<>(baseResponse, HttpStatus.OK);
     }
 
     @ExceptionHandler({Exception.class})
@@ -32,7 +32,7 @@ public class ApiExceptionHandler {
         baseResponse.setStatus(HttpStatus.FORBIDDEN.value());
         baseResponse.setStatusname(HttpStatus.FORBIDDEN.name());
         baseResponse.setMessage(exception.getMessage());
-        return new ResponseEntity<BaseResponse>(baseResponse, HttpStatus.OK);
+        return new ResponseEntity<>(baseResponse, HttpStatus.OK);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -49,6 +49,6 @@ public class ApiExceptionHandler {
         baseResponse.setStatusname(HttpStatus.BAD_REQUEST.name());
         baseResponse.setMessage("Validation failed");
         baseResponse.setPayload(errors);
-        return new ResponseEntity<BaseResponse>(baseResponse, HttpStatus.OK);
+        return new ResponseEntity<>(baseResponse, HttpStatus.OK);
     }
 }

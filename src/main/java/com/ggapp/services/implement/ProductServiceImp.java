@@ -5,6 +5,7 @@ import com.ggapp.common.dto.request.ProductRequest;
 import com.ggapp.common.dto.response.CommonResponse;
 import com.ggapp.common.dto.response.ProductImageResponse;
 import com.ggapp.common.dto.response.ProductResponse;
+import com.ggapp.common.dto.response.ProductReviewReponse;
 import com.ggapp.common.exception.ApplicationException;
 import com.ggapp.common.jwt.CustomUserDetail;
 import com.ggapp.common.utils.CommonUtils;
@@ -17,16 +18,14 @@ import com.ggapp.dao.entity.ProductImage;
 import com.ggapp.dao.entity.Brand;
 import com.ggapp.dao.entity.Category;
 import com.ggapp.dao.entity.Product;
-import com.ggapp.dao.entity.ProductReview;
 import com.ggapp.dao.repository.mongo.CartRepository;
 import com.ggapp.dao.repository.mysql.ProductImageRepository;
 import com.ggapp.dao.repository.mysql.BrandRepository;
 import com.ggapp.dao.repository.mysql.CategoryRepository;
 import com.ggapp.dao.repository.mysql.ProductRepository;
 import com.ggapp.dao.repository.mysql.ProductReviewRepository;
-import com.ggapp.services.ProductServices;
+import com.ggapp.services.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -38,11 +37,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static com.ggapp.common.commonenum.MessageResponse.BRAND_NOT_FOUND;
-import static com.ggapp.common.commonenum.MessageResponse.CATEGORY_NOT_FOUND;
-import static com.ggapp.common.commonenum.MessageResponse.PRODUCT_IMAGE_NOT_FOUND;
-import static com.ggapp.common.commonenum.MessageResponse.PRODUCT_IS_EXIST;
-import static com.ggapp.common.commonenum.MessageResponse.PRODUCT_NOT_FOUND;
+import static com.ggapp.common.enums.MessageResponse.BRAND_NOT_FOUND;
+import static com.ggapp.common.enums.MessageResponse.CATEGORY_NOT_FOUND;
+import static com.ggapp.common.enums.MessageResponse.PRODUCT_IMAGE_NOT_FOUND;
+import static com.ggapp.common.enums.MessageResponse.PRODUCT_IS_EXIST;
+import static com.ggapp.common.enums.MessageResponse.PRODUCT_NOT_FOUND;
 import static com.ggapp.common.utils.Constant.PRODUCT_FILE_PATH;
 
 /**
@@ -56,7 +55,7 @@ import static com.ggapp.common.utils.Constant.PRODUCT_FILE_PATH;
  */
 
 @Service
-public class ProductServicesImplement implements ProductServices {
+public class ProductServiceImp implements ProductService {
 
     @Autowired
     private ProductRepository productRepository;
@@ -100,7 +99,7 @@ public class ProductServicesImplement implements ProductServices {
         newProduct.setBrand(brand.get());
         newProduct.setCategory(category.get());
         newProduct.setCreatedDate(LocalDateTime.now());
-        newProduct.setCreatedBy(customUserDetail.getUser().getFirstName() + customUserDetail.getUser().getLastName());
+        newProduct.setCreatedBy(customUserDetail.getAccountDetail().getFirstName() + customUserDetail.getAccountDetail().getLastName());
         newProduct.setDeleted(false);
         addOrUpdateProductImage(newProduct, productRequest.getImage(), false);
         Product result = productRepository.save(newProduct);
@@ -120,9 +119,6 @@ public class ProductServicesImplement implements ProductServices {
                         item.getImageData(), PRODUCT_FILE_PATH + product.getName()));
                 imageList.add(image);
             }
-            if (imageList.isEmpty()) {
-                throw new ApplicationException("Save image failed" , HttpStatus.INTERNAL_SERVER_ERROR);
-            }
             List<ProductImage> saveAll = productImageRepository.saveAll(imageList);
             product.setImagesPath(saveAll);
         }
@@ -131,7 +127,7 @@ public class ProductServicesImplement implements ProductServices {
             if (imageList.isPresent()) {
                 List<ProductImage> result = imageList.get();
                 for (ProductImageRequest productImageRequest : productImageList) {
-                    for (ProductImage productImage: result) {
+                    for (ProductImage productImage : result) {
                         if (productImage.getId() == productImageRequest.getImageId()) {
                             productImage.setImagePath(fileUtils.saveFile(product.getName() + "_" + product.getProductCode(),
                                     productImageRequest.getImageData(), PRODUCT_FILE_PATH + product.getName()));
@@ -147,7 +143,6 @@ public class ProductServicesImplement implements ProductServices {
     @Override
     public CommonResponse getAllProduct(int page, int size) throws ApplicationException {
         List<Product> productList = productRepository.findAllByIsDeletedFalse();
-        List<ProductReview> productReviewList = productReviewRepository.findAll();
         List<ProductResponse> productResponseList = new ArrayList<>();
         for (Product product : productList) {
             productResponseList.add(getProduct(product));
@@ -201,7 +196,7 @@ public class ProductServicesImplement implements ProductServices {
         update.setPrice(productRequest.getPrice());
         update.setUnitInStock(productRequest.getUnitInStock());
         update.setUpdateDate(LocalDateTime.now());
-        update.setUpdateBy(customUserDetail.getUser().getFirstName() + customUserDetail.getUser().getLastName());
+        update.setUpdateBy(customUserDetail.getAccountDetail().getFirstName() + customUserDetail.getAccountDetail().getLastName());
         if (productRequest.getImage() != null && !productRequest.getImage().isEmpty())
             addOrUpdateProductImage(update, productRequest.getImage(), true);
         update.setDiscount(productRequest.getDiscount());
@@ -297,7 +292,7 @@ public class ProductServicesImplement implements ProductServices {
         ProductResponse response = productMapper.entityToResponse(product);
         List<ProductImageResponse> productImageResponseList = new ArrayList<>();
         ProductImageResponse productImageResponse = null;
-        for (ProductImage productImage: product.getImagesPath()) {
+        for (ProductImage productImage : product.getImagesPath()) {
             productImageResponse = new ProductImageResponse();
             productImageResponse.setImageId(productImage.getId());
             productImageResponse.setImageData(productImage.getImagePath());
@@ -311,13 +306,16 @@ public class ProductServicesImplement implements ProductServices {
     public ProductResponse getProduct(Product product) throws ApplicationException {
         ProductResponse response = productMapper.entityToResponse(product);
         List<ProductImageResponse> productImageResponseList = new ArrayList<>();
+        List<ProductReviewReponse> productReviewReponseList = new ArrayList<>();
         ProductImageResponse productImageResponse = null;
-        for (ProductImage productImage: product.getImagesPath()) {
+        for (ProductImage productImage : product.getImagesPath()) {
             productImageResponse = new ProductImageResponse();
             productImageResponse.setImageId(productImage.getId());
             productImageResponse.setImageData(fileUtils.getFile(productImage.getImagePath()));
             productImageResponseList.add(productImageResponse);
         }
+        productReviewReponseList = productReviewMapper.entityToResponse(product.getProductReviewList());
+        response.setProductReviewList(productReviewReponseList);
         response.setImage(productImageResponseList);
         response.setPriceAfterDiscount(commonUtils.calculatePrice(response));
         return response;
@@ -325,12 +323,12 @@ public class ProductServicesImplement implements ProductServices {
 
     private List<ProductResponse> filterProduct(float fromPrice, float toPrice, List<Product> productList) throws ApplicationException {
         List<Product> filter = new ArrayList<>();
-        List<ProductResponse> productResponseList = new ArrayList();
+        List<ProductResponse> productResponseList = new ArrayList<>();
 
         if (fromPrice != 0 && toPrice != 0) {
             productList.forEach(items -> {
-                if ((items.getPrice().compareTo(BigDecimal.valueOf(toPrice)) == -1 || items.getPrice().compareTo(BigDecimal.valueOf(toPrice)) == 0)
-                        && (items.getPrice().compareTo(BigDecimal.valueOf(fromPrice)) == 1) || items.getPrice().compareTo(BigDecimal.valueOf(fromPrice)) == 0) {
+                if ((items.getPrice().compareTo(BigDecimal.valueOf(toPrice)) < 0 || items.getPrice().compareTo(BigDecimal.valueOf(toPrice)) == 0)
+                        && (items.getPrice().compareTo(BigDecimal.valueOf(fromPrice)) > 0) || items.getPrice().compareTo(BigDecimal.valueOf(fromPrice)) == 0) {
                     filter.add(items);
                 }
             });
@@ -338,7 +336,7 @@ public class ProductServicesImplement implements ProductServices {
 
         if (fromPrice == 0 && toPrice != 0) {
             productList.forEach(items -> {
-                if (items.getPrice().compareTo(BigDecimal.valueOf(toPrice)) == -1 || items.getPrice().compareTo(BigDecimal.valueOf(toPrice)) == 0) {
+                if (items.getPrice().compareTo(BigDecimal.valueOf(toPrice)) < 0 || items.getPrice().compareTo(BigDecimal.valueOf(toPrice)) == 0) {
                     filter.add(items);
                 }
             });
@@ -346,7 +344,7 @@ public class ProductServicesImplement implements ProductServices {
 
         if (fromPrice != 0 && toPrice == 0) {
             productList.forEach(items -> {
-                if (items.getPrice().compareTo(BigDecimal.valueOf(fromPrice)) == 1 || items.getPrice().compareTo(BigDecimal.valueOf(fromPrice)) == 0) {
+                if (items.getPrice().compareTo(BigDecimal.valueOf(fromPrice)) > 0 || items.getPrice().compareTo(BigDecimal.valueOf(fromPrice)) == 0) {
                     filter.add(items);
                 }
             });

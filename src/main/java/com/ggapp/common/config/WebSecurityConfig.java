@@ -2,7 +2,9 @@ package com.ggapp.common.config;
 
 import com.ggapp.common.exception.CustomAuthenticationEntryPoint;
 import com.ggapp.common.jwt.JWTAuthenticationFilter;
-import com.ggapp.services.implement.UserServicesImplement;
+import com.ggapp.services.AccountService;
+import com.ggapp.services.implement.AccountServiceImp;
+import com.ggapp.services.implement.UserServiceImp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,63 +30,63 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-	private static final String[] WHITE_LIST = {
-			"/api/user/login",
-			"/api/user/loginAnotherDevice",
-			"/api/user/loginAnotherDeviceSendConfirmKey",
-			"/api/user/createUser",
-			"/api/user/resetPassword",
-			"/api/user/sendConfirmKey",
-			"/api/user/checkConfirmKey",
-			"/api/user/checkLoginStatus",
-			"/v3/api-docs/**",
-			"/swagger-ui/**",
-			"/swagger-ui.html",
-	};
+    private static final String[] WHITE_LIST = {
+            "/api/account/login",
+            "/api/account/loginAnotherDevice",
+            "/api/account/loginAnotherDeviceSendConfirmKey",
+            "/api/user/createUser",
+            "/api/account/resetPassword",
+            "/api/account/sendConfirmKey",
+            "/api/account/checkConfirmKey",
+            "/api/account/checkLoginStatus",
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+    };
 
-	@Autowired
-	private UserServicesImplement userServicesImplement;
+    @Autowired
+    private AccountServiceImp accountServiceImp;
 
-	@Bean
-	public JWTAuthenticationFilter jwtAuthenticationFilter() {
-		return new JWTAuthenticationFilter();
-	}
+    @Bean
+    public JWTAuthenticationFilter jwtAuthenticationFilter() {
+        return new JWTAuthenticationFilter();
+    }
 
-	@Bean(BeanIds.AUTHENTICATION_MANAGER)
-	@Override
-	public AuthenticationManager authenticationManagerBean() throws Exception {
-		return super.authenticationManagerBean();
-	}
+    @Bean(BeanIds.AUTHENTICATION_MANAGER)
+    @Override
+    public AuthenticationManager authenticationManagerBean() throws Exception {
+        return super.authenticationManagerBean();
+    }
 
-	@Override
-	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-		auth.userDetailsService(userServicesImplement).passwordEncoder(passwordEncoder());;
-	}
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.userDetailsService(accountServiceImp).passwordEncoder(passwordEncoder());
+    }
 
-	@Bean
-	public PasswordEncoder passwordEncoder() {
-		return new BCryptPasswordEncoder();
-	}
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
-	@Bean
-	public AuthenticationEntryPoint authenticationEntryPoint(){
-		return new CustomAuthenticationEntryPoint();
-	}
+    @Bean
+    public AuthenticationEntryPoint authenticationEntryPoint() {
+        return new CustomAuthenticationEntryPoint();
+    }
 
-	@Override
-	protected void configure(HttpSecurity http) throws Exception {
-		http.cors().and()
-				.csrf().disable()
-				.authorizeRequests()
-				.antMatchers(HttpMethod.GET).permitAll()
-				.antMatchers(WHITE_LIST).permitAll()
-				.anyRequest()
-				.authenticated()
-				.and()
-				.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint())
-				.and()
-				.sessionManagement()
-				.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-		http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
-	}
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.cors().and()
+                .csrf().disable()
+                .authorizeRequests()
+                .antMatchers(HttpMethod.GET).permitAll()
+                .antMatchers(WHITE_LIST).permitAll()
+                .anyRequest()
+                .authenticated()
+                .and()
+                .exceptionHandling().authenticationEntryPoint(authenticationEntryPoint())
+                .and()
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+    }
 }

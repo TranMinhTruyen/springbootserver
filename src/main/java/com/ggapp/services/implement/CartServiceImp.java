@@ -11,7 +11,7 @@ import com.ggapp.dao.entity.Product;
 import com.ggapp.dao.repository.mongo.CartRepository;
 import com.ggapp.dao.repository.mongo.UserRepository;
 import com.ggapp.dao.repository.mysql.ProductRepository;
-import com.ggapp.services.CartServices;
+import com.ggapp.services.CartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -21,10 +21,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static com.ggapp.common.commonenum.MessageResponse.CART_CREATED_ERROR;
-import static com.ggapp.common.commonenum.MessageResponse.CART_NOT_FOUND;
-import static com.ggapp.common.commonenum.MessageResponse.PRODUCT_NOT_FOUND;
-import static com.ggapp.common.commonenum.MessageResponse.USER_NOT_FOUND;
+import static com.ggapp.common.enums.MessageResponse.CART_CREATED_ERROR;
+import static com.ggapp.common.enums.MessageResponse.CART_NOT_FOUND;
+import static com.ggapp.common.enums.MessageResponse.PRODUCT_NOT_FOUND;
+import static com.ggapp.common.enums.MessageResponse.USER_NOT_FOUND;
 
 /**
  * @author Tran Minh Truyen
@@ -37,7 +37,7 @@ import static com.ggapp.common.commonenum.MessageResponse.USER_NOT_FOUND;
  */
 
 @Service
-public class CartServicesImplement implements CartServices {
+public class CartServiceImp implements CartService {
     @Autowired
     private CartRepository cartRepository;
 

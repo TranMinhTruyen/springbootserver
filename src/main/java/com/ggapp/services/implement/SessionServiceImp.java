@@ -3,13 +3,13 @@ package com.ggapp.services.implement;
 import com.ggapp.common.dto.request.DeviceInfoRequest;
 import com.ggapp.common.dto.request.LoginRequest;
 import com.ggapp.common.exception.ApplicationException;
+import com.ggapp.common.jwt.AccountDetail;
 import com.ggapp.common.jwt.CustomUserDetail;
 import com.ggapp.common.jwt.JWTTokenProvider;
 import com.ggapp.dao.document.DeviceInfo;
 import com.ggapp.dao.document.Session;
-import com.ggapp.dao.document.User;
 import com.ggapp.dao.repository.mongo.SessionRepository;
-import com.ggapp.services.SessionServices;
+import com.ggapp.services.SessionService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,8 +19,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import static com.ggapp.common.commonenum.MessageResponse.DEVICE_INFO_INVALID;
-import static com.ggapp.common.commonenum.MessageResponse.SESSION_NOT_FOUND;
+import static com.ggapp.common.enums.MessageResponse.DEVICE_INFO_INVALID;
+import static com.ggapp.common.enums.MessageResponse.SESSION_NOT_FOUND;
+import static com.ggapp.common.utils.Constant.LOGIN;
+import static com.ggapp.common.utils.Constant.LOGOUT;
 
 /**
  * @author Tran Minh Truyen
@@ -33,7 +35,7 @@ import static com.ggapp.common.commonenum.MessageResponse.SESSION_NOT_FOUND;
  */
 
 @Service
-public class SessionServicesImplement implements SessionServices {
+public class SessionServiceImp implements SessionService {
 
     @Autowired
     private SessionRepository sessionRepository;
@@ -43,8 +45,8 @@ public class SessionServicesImplement implements SessionServices {
 
 
     @Override
-    public String getJWTFromSession(User user, LoginRequest loginRequest) {
-        Optional<Session> session = sessionRepository.findById(user.getId());
+    public String getJWTFromSession(AccountDetail accountDetail, LoginRequest loginRequest) {
+        Optional<Session> session = sessionRepository.findById(accountDetail.getOwnerId());
         if (session.isPresent()) {
             String jwt = null;
             for (DeviceInfo item : session.get().getDeviceInfoList()) {
@@ -63,13 +65,15 @@ public class SessionServicesImplement implements SessionServices {
     }
 
     @Override
-    public void checkSessionAndDeviceInfo(User user, LoginRequest loginRequest) throws ApplicationException {
-        Optional<Session> session = sessionRepository.findById(user.getId());
+    public boolean checkSessionAndDeviceInfo(AccountDetail accountDetail, LoginRequest loginRequest) throws ApplicationException {
+        Optional<Session> session = sessionRepository.findById(accountDetail.getOwnerId());
         if (session.isPresent()) {
             boolean jwt = false;
             for (DeviceInfo item : session.get().getDeviceInfoList()) {
                 if (item.getOS().equals(loginRequest.getDeviceInfo().getOS())
-                        && item.getDeviceName().equals(loginRequest.getDeviceInfo().getDeviceName())) {
+                        && item.getDeviceName().equals(loginRequest.getDeviceInfo().getDeviceName())
+                        && item.getDeviceMac().equals(loginRequest.getDeviceInfo().getDeviceMac())
+                        && item.getDeviceIp().equals(loginRequest.getDeviceInfo().getDeviceIp())) {
                     jwt = true;
                     break;
                 }
@@ -77,6 +81,7 @@ public class SessionServicesImplement implements SessionServices {
             if (!jwt) {
                 throw new ApplicationException(DEVICE_INFO_INVALID);
             }
+            return true;
         }
         else {
             throw new ApplicationException(SESSION_NOT_FOUND);
@@ -85,7 +90,7 @@ public class SessionServicesImplement implements SessionServices {
 
     @Override
     public void checkSession(CustomUserDetail customUserDetail, DeviceInfoRequest deviceInfoRequest) throws ApplicationException {
-        Optional<Session> session = sessionRepository.findById(customUserDetail.getUser().getId());
+        Optional<Session> session = sessionRepository.findById(customUserDetail.getAccountDetail().getOwnerId());
         if (session.isPresent() &&
                 (session.get().getDeviceInfoList().stream().noneMatch(deviceInfo -> deviceInfo.getOS().equals(deviceInfoRequest.getOS())) ||
                         session.get().getDeviceInfoList().stream().noneMatch(deviceInfo -> deviceInfo.getDeviceName().equals(deviceInfoRequest.getDeviceName())))) {
@@ -96,15 +101,17 @@ public class SessionServicesImplement implements SessionServices {
     @Override
     public void logoutDevice(CustomUserDetail customUserDetail, DeviceInfoRequest deviceInfoRequest, String token)
             throws ApplicationException {
-        Optional<Session> session = sessionRepository.findById(customUserDetail.getUser().getId());
+        Optional<Session> session = sessionRepository.findById(customUserDetail.getAccountDetail().getOwnerId());
         session.orElseThrow(() -> new ApplicationException(SESSION_NOT_FOUND));
         boolean deviceFound = false;
         for (DeviceInfo item : session.get().getDeviceInfoList()) {
             if (item.getOS().equals(deviceInfoRequest.getOS())
                     && item.getDeviceName().equals(deviceInfoRequest.getDeviceName())
-                    && item.getToken().equals(token)) {
+                    && item.getDeviceMac().equals(deviceInfoRequest.getDeviceMac())
+                    && item.getDeviceIp().equals(deviceInfoRequest.getDeviceIp())) {
                 deviceFound = true;
-                session.get().getDeviceInfoList().remove(item);
+                item.setToken(null);
+                item.setStatus(LOGOUT);
                 break;
             }
         }
@@ -115,30 +122,35 @@ public class SessionServicesImplement implements SessionServices {
     }
 
     @Override
-    public String createJWTAndSession(User user, LoginRequest loginRequest) throws ApplicationException {
-        CustomUserDetail customUserDetail = new CustomUserDetail(user);
-        Optional<Session> session = sessionRepository.findById(user.getId());
+    public String createJWTAndSession(AccountDetail accountDetail, LoginRequest loginRequest) throws ApplicationException {
+        CustomUserDetail customUserDetail = new CustomUserDetail(accountDetail);
+        Optional<Session> session = sessionRepository.findById(accountDetail.getOwnerId());
         String jwt = jwtTokenProvider.generateToken(customUserDetail, loginRequest.isRemember());
         if (session.isPresent()) {
-            DeviceInfo deviceInfo = new DeviceInfo();
-            deviceInfo.setDeviceName(loginRequest.getDeviceInfo().getDeviceName());
-            deviceInfo.setOS(loginRequest.getDeviceInfo().getOS());
-            deviceInfo.setToken(jwt);
+            DeviceInfo deviceInfo = setDeviceInfo(loginRequest, jwt);
             session.get().getDeviceInfoList().add(deviceInfo);
             sessionRepository.save(session.get());
         } else {
             Session newSession = new Session();
             List<DeviceInfo> deviceInfoList = new ArrayList<>();
-            DeviceInfo deviceInfo = new DeviceInfo();
-            deviceInfo.setDeviceName(loginRequest.getDeviceInfo().getDeviceName());
-            deviceInfo.setOS(loginRequest.getDeviceInfo().getOS());
-            deviceInfo.setToken(jwt);
+            DeviceInfo deviceInfo = setDeviceInfo(loginRequest, jwt);
             deviceInfoList.add(deviceInfo);
-            newSession.setId(customUserDetail.getUser().getId());
+            newSession.setId(customUserDetail.getAccountDetail().getOwnerId());
             newSession.setDeviceInfoList(deviceInfoList);
             newSession.setCreatedDate(new Date());
             sessionRepository.save(newSession);
         }
         return jwt;
+    }
+
+    private DeviceInfo setDeviceInfo(LoginRequest loginRequest, String jwt) {
+        DeviceInfo deviceInfo = new DeviceInfo();
+        deviceInfo.setDeviceName(loginRequest.getDeviceInfo().getDeviceName());
+        deviceInfo.setOS(loginRequest.getDeviceInfo().getOS());
+        deviceInfo.setDeviceMac(loginRequest.getDeviceInfo().getDeviceMac());
+        deviceInfo.setDeviceIp(loginRequest.getDeviceInfo().getDeviceIp());
+        deviceInfo.setToken(jwt);
+        deviceInfo.setStatus(LOGIN);
+        return deviceInfo;
     }
 }

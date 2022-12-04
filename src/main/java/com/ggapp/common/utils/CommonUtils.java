@@ -3,11 +3,15 @@ package com.ggapp.common.utils;
 import com.ggapp.common.dto.response.ProductImageResponse;
 import com.ggapp.common.dto.response.ProductResponse;
 import com.ggapp.common.exception.ApplicationException;
+import com.ggapp.common.jwt.AccountDetail;
+import com.ggapp.dao.document.Account;
 import com.ggapp.dao.document.ListProduct;
+import com.ggapp.dao.document.User;
 import com.ggapp.dao.entity.ProductImage;
 import com.ggapp.dao.entity.Product;
 import com.ggapp.dao.entity.ProductVoucher;
 import com.ggapp.dao.entity.Voucher;
+import com.ggapp.dao.repository.mongo.UserRepository;
 import com.ggapp.dao.repository.mysql.ProductImageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -19,11 +23,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static com.ggapp.common.enums.MessageResponse.USER_NOT_FOUND;
+import static com.ggapp.common.utils.Constant.ADMIN_TYPE;
+import static com.ggapp.common.utils.Constant.EMPLOYEE_TYPE;
+import static com.ggapp.common.utils.Constant.USER_TYPE;
+
 @Component
 public class CommonUtils {
 
     @Autowired
     private ProductImageRepository productImageRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private FileUtils fileUtils;
@@ -81,7 +93,8 @@ public class CommonUtils {
         if (voucher.getDiscountType().equals(Constant.PERCENT)) {
             BigDecimal discountPrice = totalPrice.multiply(BigDecimal.valueOf((Long.parseLong(voucher.getDiscountValue()) / 100)));
             totalPrice = totalPrice.subtract(discountPrice);
-        } else {
+        }
+        if (voucher.getDiscountType().equals(Constant.FLAT)) {
             totalPrice = totalPrice.subtract(new BigDecimal(voucher.getDiscountValue()));
         }
         return totalPrice;
@@ -114,5 +127,27 @@ public class CommonUtils {
             }
             return productImageResponseList;
         } else return null;
+    }
+
+    public AccountDetail accountToAccountDetail (Account account) throws ApplicationException {
+        AccountDetail accountDetail = new AccountDetail();
+        Optional<User> user;
+
+        switch (account.getAccountType()) {
+            case USER_TYPE:
+                user = userRepository.findById(account.getOwnerId());
+                user.orElseThrow(() -> new ApplicationException(USER_NOT_FOUND));
+                accountDetail.setOwnerId(user.get().getId());
+                accountDetail.setAccount(account.getAccount());
+                accountDetail.setPassword(account.getPassword());
+                accountDetail.setRole(user.get().getRole());
+                accountDetail.setActive(account.isActive());
+                break;
+            case EMPLOYEE_TYPE:
+                break;
+            case ADMIN_TYPE:
+                break;
+        }
+        return accountDetail;
     }
 }

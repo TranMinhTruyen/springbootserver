@@ -1,6 +1,5 @@
 package com.ggapp.common.jwt;
 
-import com.ggapp.dao.document.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
@@ -16,22 +15,22 @@ import java.util.Collections;
 @Data
 @AllArgsConstructor
 public class CustomUserDetail implements UserDetails {
-	User user;
+	AccountDetail accountDetail;
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		GrantedAuthority authorities = new SimpleGrantedAuthority(user.getRole());
+		GrantedAuthority authorities = new SimpleGrantedAuthority(accountDetail.getRole());
 		return Collections.singleton(authorities);
 	}
 
 	@Override
 	public String getPassword() {
-		return user.getPassword();
+		return accountDetail.getPassword();
 	}
 
 	@Override
 	public String getUsername() {
-		return user.getAccount();
+		return accountDetail.getAccount();
 	}
 
 	@Override
@@ -51,6 +50,6 @@ public class CustomUserDetail implements UserDetails {
 
 	@Override
 	public boolean isEnabled() {
-		return user.isActive();
+		return accountDetail.isActive();
 	}
 }

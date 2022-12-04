@@ -13,6 +13,15 @@ public class DeviceInfo {
     @Field(value = "deviceName")
     private String deviceName;
 
+    @Field(value = "deviceMac")
+    private String deviceMac;
+
+    @Field(value = "deviceIp")
+    private String deviceIp;
+
     @Field(value = "token")
     private String token;
+
+    @Field(value = "status")
+    private String status;
 }

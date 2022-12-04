@@ -5,7 +5,7 @@ import com.ggapp.common.dto.response.BaseResponse;
 import com.ggapp.common.dto.response.CommonResponse;
 import com.ggapp.common.dto.response.NewsResponse;
 
-public interface NewsServices {
+public interface NewsService {
 	NewsResponse createNews (int userCreateId, NewsRequest newsRequest) throws Exception;
 	CommonResponse getAllNews (int page, int size) throws Exception;
 	CommonResponse getNewsByKeyWord (int page, int size, int userCreateId, String userCreateName, String title) throws Exception;

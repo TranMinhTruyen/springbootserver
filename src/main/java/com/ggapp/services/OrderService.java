@@ -8,7 +8,7 @@ import com.ggapp.common.exception.ApplicationException;
 /**
  * @author Tran Minh Truyen
  */
-public interface OrderServices {
+public interface OrderService {
 	OrderResponse createOrderByCart(int customerId) throws ApplicationException;
 	OrderResponse createOrderByProductId(int customerId, int[] productId) throws ApplicationException;
 	CommonResponse getOrderByCustomerId(int page, int size, int id);

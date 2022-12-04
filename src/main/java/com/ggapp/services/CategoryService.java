@@ -5,7 +5,7 @@ import com.ggapp.common.dto.response.CategoryResponse;
 import com.ggapp.common.dto.response.CommonResponse;
 import com.ggapp.common.jwt.CustomUserDetail;
 
-public interface CategoryServices {
+public interface CategoryService {
 	boolean createCategory(CategoryRequest categoryRequest, CustomUserDetail customUserDetail);
 	CommonResponse getAllCategory(int page, int size);
 	CommonResponse getCategoryByKeyword(int page, int size, String keyword);

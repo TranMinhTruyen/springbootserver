@@ -28,4 +28,13 @@ public class Constant {
     //DISCOUNT TYPE
     public static final String PERCENT = "PERCENT";
     public static final String FLAT = "FLAT";
+
+    //DEVICE STATUS
+    public static final String LOGIN = "LOGIN";
+    public static final String LOGOUT = "LOGOUT";
+
+    //ACCOUNT TYPE
+    public static final String USER_TYPE = "USER";
+    public static final String EMPLOYEE_TYPE = "EMPLOYEE";
+    public static final String ADMIN_TYPE = "ADMIN";
 }
