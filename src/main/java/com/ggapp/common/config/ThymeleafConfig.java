@@ -2,6 +2,8 @@ package com.ggapp.common.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.thymeleaf.spring5.SpringTemplateEngine;
+import org.thymeleaf.spring5.view.ThymeleafViewResolver;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import org.thymeleaf.templateresolver.ITemplateResolver;
 
@@ -15,9 +17,25 @@ import org.thymeleaf.templateresolver.ITemplateResolver;
  * TOTAL_HOURS_WASTED_HERE =
  */
 @Configuration
-public class EmailConfig {
+public class ThymeleafConfig {
+
     @Bean
-    public ITemplateResolver thymeleafTemplateResolver() {
+    public ThymeleafViewResolver viewResolver() {
+        ThymeleafViewResolver viewResolver = new ThymeleafViewResolver();
+        viewResolver.setTemplateEngine(templateEngine());
+        viewResolver.setOrder(1);
+        return viewResolver;
+    }
+
+    @Bean
+    public SpringTemplateEngine templateEngine() {
+        SpringTemplateEngine templateEngine = new SpringTemplateEngine();
+        templateEngine.setTemplateResolver(templateResolver());
+        return templateEngine;
+    }
+
+    @Bean
+    public ITemplateResolver templateResolver() {
         ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
         templateResolver.setPrefix("templates/");
         templateResolver.setSuffix(".html");

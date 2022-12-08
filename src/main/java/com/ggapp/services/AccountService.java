@@ -27,4 +27,5 @@ public interface AccountService {
     UserDetails loadUserById(int id) throws ApplicationException;
     void sendEmailRegisterConfirmKey(String email) throws ApplicationException;
     void sendEmailLoginConfirmKey(LoginRequest loginRequest) throws ApplicationException;
+    void activateAccount(String email) throws ApplicationException;
 }

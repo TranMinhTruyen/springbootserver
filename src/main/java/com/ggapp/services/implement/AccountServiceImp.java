@@ -227,6 +227,12 @@ public class AccountServiceImp implements AccountService, UserDetailsService {
     }
 
     @Override
+    public void activateAccount(String email) throws ApplicationException {
+        Optional<ConfirmKey> confirmKey = confirmKeyRepository.findByEmailEqualsAndTypeEquals(email, Constant.REGISTER_TYPE);
+        confirmKey.orElseThrow(() -> new ApplicationException(CONFIRM_KEY_INVALID));
+    }
+
+    @Override
     @Deprecated
     public UserDetails loadUserByUsername(String s) throws UsernameNotFoundException {
         return null;
