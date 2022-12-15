@@ -8,6 +8,5 @@ import javax.validation.constraints.NotBlank;
 public class CategoryRequest {
 
 	@NotBlank(message = "name is mandatory")
-	private String name;
 	private int version;
 }
