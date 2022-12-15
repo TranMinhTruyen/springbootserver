@@ -18,7 +18,6 @@ public class UserResponse {
 	private String address;
 	private String district;
 	private String city;
-	private String postCode;
 	private String citizenID;
 	private String imageFilePath;
 	private String role;
