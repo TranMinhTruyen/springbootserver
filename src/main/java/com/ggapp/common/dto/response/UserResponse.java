@@ -22,5 +22,4 @@ public class UserResponse {
 	private String citizenID;
 	private String imageFilePath;
 	private String role;
-	private boolean isActive;
 }
