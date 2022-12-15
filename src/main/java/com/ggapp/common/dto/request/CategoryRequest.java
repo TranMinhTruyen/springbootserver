@@ -10,5 +10,4 @@ public class CategoryRequest {
 	@NotBlank(message = "name is mandatory")
 	private String name;
 	private int version;
-	private String description;
 }
