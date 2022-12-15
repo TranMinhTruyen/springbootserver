@@ -2,7 +2,7 @@ package com.ggapp.controller;
 import com.ggapp.common.dto.request.BrandRequest;
 import com.ggapp.common.dto.response.BaseResponse;
 import com.ggapp.common.dto.response.BrandResponse;
-import com.ggapp.common.dto.response.CommonResponse;
+import com.ggapp.common.dto.response.CommonResponsePayload;
 import com.ggapp.common.exception.ApplicationException;
 import com.ggapp.common.jwt.CustomUserDetail;
 import com.ggapp.services.BrandService;
@@ -60,12 +60,12 @@ public class BrandResource {
 	public BaseResponse getBrandByKeyword(@RequestParam int page,
 											   @RequestParam int size,
 											   @RequestParam(required = false) String keyword){
-		CommonResponse commonResponse = brandService.getBrandbyKeyword(page, size, keyword);
+		CommonResponsePayload commonResponsePayload = brandService.getBrandbyKeyword(page, size, keyword);
 		BaseResponse baseResponse = new BaseResponse();
 		baseResponse.setStatus(HttpStatus.OK.value());
 		baseResponse.setStatusname(HttpStatus.OK.name());
 		baseResponse.setMessage("Get brand successfully");
-		baseResponse.setPayload(commonResponse);
+		baseResponse.setPayload(commonResponsePayload);
 		return baseResponse;
 	}
 
@@ -74,19 +74,19 @@ public class BrandResource {
 	@PreAuthorize("permitAll()")
 	public BaseResponse getAllBrand(@RequestParam int page,
 										@RequestParam int size){
-		CommonResponse commonResponse = brandService.getAllBrand(page, size);
+		CommonResponsePayload commonResponsePayload = brandService.getAllBrand(page, size);
 		BaseResponse baseResponse = new BaseResponse();
 		baseResponse.setStatus(HttpStatus.OK.value());
 		baseResponse.setStatusname(HttpStatus.OK.name());
 		baseResponse.setMessage("Get brand successfully");
-		baseResponse.setPayload(commonResponse);
+		baseResponse.setPayload(commonResponsePayload);
 		return baseResponse;
 	}
 
 	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
 			security = {@SecurityRequirement(name = "Authorization")})
 	@PutMapping(value = "updateBrand", consumes = MediaType.APPLICATION_JSON_VALUE)
-	public BaseResponse updateBrand(@RequestParam int id, @RequestBody BrandRequest brandRequest) throws ApplicationException {
+	public BaseResponse updateBrand(@RequestParam long id, @RequestBody BrandRequest brandRequest) throws ApplicationException {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
 		BrandResponse brandResponse = brandService.updateBrand(id, brandRequest, customUserDetail);
@@ -101,7 +101,7 @@ public class BrandResource {
 	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
 			security = {@SecurityRequirement(name = "Authorization")})
 	@DeleteMapping(value = "logicDeleteBrand")
-	public BaseResponse logicDeleteBrand(@RequestParam int id) throws ApplicationException {
+	public BaseResponse logicDeleteBrand(@RequestParam long id) throws ApplicationException {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
 		BrandResponse brandResponse = brandService.logicDeleteBrand(id, customUserDetail);
@@ -117,7 +117,7 @@ public class BrandResource {
 			security = {@SecurityRequirement(name = "Authorization")})
 	@DeleteMapping(value = "physicalDeleteBrand")
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
-	public BaseResponse physicalDeleteBrand(@RequestParam int id) throws ApplicationException {
+	public BaseResponse physicalDeleteBrand(@RequestParam long id) throws ApplicationException {
 		brandService.physicalDeleteBrand(id);
 		BaseResponse baseResponse = new BaseResponse();
 		baseResponse.setStatus(HttpStatus.OK.value());

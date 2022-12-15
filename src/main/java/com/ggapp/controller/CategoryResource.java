@@ -3,7 +3,7 @@ package com.ggapp.controller;
 import com.ggapp.common.dto.request.CategoryRequest;
 import com.ggapp.common.dto.response.BaseResponse;
 import com.ggapp.common.dto.response.CategoryResponse;
-import com.ggapp.common.dto.response.CommonResponse;
+import com.ggapp.common.dto.response.CommonResponsePayload;
 import com.ggapp.common.jwt.CustomUserDetail;
 import com.ggapp.services.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -62,12 +62,12 @@ public class CategoryResource {
                                                              @RequestParam(required = false) String keyword) {
 
 
-        CommonResponse commonResponse = categoryService.getCategoryByKeyword(page, size, keyword);
+        CommonResponsePayload commonResponsePayload = categoryService.getCategoryByKeyword(page, size, keyword);
         BaseResponse baseResponse = new BaseResponse();
         baseResponse.setStatus(HttpStatus.OK.value());
         baseResponse.setStatusname(HttpStatus.OK.name());
         baseResponse.setMessage("Get category successfully");
-        baseResponse.setPayload(commonResponse);
+        baseResponse.setPayload(commonResponsePayload);
         return new ResponseEntity<BaseResponse>(baseResponse, HttpStatus.OK);
     }
 
@@ -75,19 +75,19 @@ public class CategoryResource {
     @GetMapping(value = "getAllCategory")
     public ResponseEntity<BaseResponse> getAllCategory(@RequestParam int page,
                                                        @RequestParam int size) {
-        CommonResponse commonResponse = categoryService.getAllCategory(page, size);
+        CommonResponsePayload commonResponsePayload = categoryService.getAllCategory(page, size);
         BaseResponse baseResponse = new BaseResponse();
         baseResponse.setStatus(HttpStatus.OK.value());
         baseResponse.setStatusname(HttpStatus.OK.name());
         baseResponse.setMessage("Get category successfully");
-        baseResponse.setPayload(commonResponse);
+        baseResponse.setPayload(commonResponsePayload);
         return new ResponseEntity<BaseResponse>(baseResponse, HttpStatus.OK);
     }
 
     @Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
             security = {@SecurityRequirement(name = "Authorization")})
     @PutMapping(value = "updateCategory", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> updateCategory(@RequestParam int id, @RequestBody CategoryRequest categoryRequest) {
+    public ResponseEntity<?> updateCategory(@RequestParam long id, @RequestBody CategoryRequest categoryRequest) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
         if (authentication != null && (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")))) {
@@ -103,7 +103,7 @@ public class CategoryResource {
     @Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
             security = {@SecurityRequirement(name = "Authorization")})
     @DeleteMapping(value = "deleteCategory")
-    public ResponseEntity<?> deleteBrand(@RequestParam int id) {
+    public ResponseEntity<?> deleteBrand(@RequestParam long id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")))) {
             if (categoryService.deleteCategory(id)) {

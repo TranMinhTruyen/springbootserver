@@ -1,8 +1,12 @@
 package com.ggapp.controller;
 
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author Tran Minh Truyen on 07/12/2022
@@ -15,8 +19,9 @@ import org.springframework.web.bind.annotation.GetMapping;
  */
 @Controller
 public class ThymeleafResource {
-    @GetMapping(value = "/test")
-    public String  test(Model model) {
-        return "confirmKeyMailTemplate";
+    @GetMapping(value = "/view/activate-page")
+    public String activePage(@RequestParam(name = "confirmKey", required = false) String confirmKey,
+                                                @RequestParam(name = "email", required = false) String email, Model model) {
+        return "activatePage";
     }
 }

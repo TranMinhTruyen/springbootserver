@@ -10,7 +10,7 @@ import java.util.List;
 @Document(collection = "Session")
 @Data
 public class Session {
-    private int id;
+    private Long id;
 
     @Field(value = "CreatedDate")
     private Date createdDate;

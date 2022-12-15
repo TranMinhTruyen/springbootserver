@@ -37,7 +37,7 @@ public class JWTAuthenticationFilter extends GenericFilter {
 		try {
 			String jwt = getJwtFromRequest((HttpServletRequest) servletRequest);
 			if (StringUtils.hasText(jwt) && jwtTokenProvider.validateToken(jwt)) {
-				int userId = jwtTokenProvider.getUserIdFromJWT(jwt);
+				long userId = jwtTokenProvider.getUserIdFromJWT(jwt);
 				UserDetails userDetails = accountService.loadUserById(userId);
 				if(userDetails != null && userDetails.isEnabled()) {
 					UsernamePasswordAuthenticationToken

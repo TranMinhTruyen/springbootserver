@@ -4,14 +4,17 @@ import lombok.Data;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Version;
+import javax.persistence.OneToMany;
+import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
- * @author Tran Minh Truyen on 19/11/2022
+ * @author Tran Minh Truyen on 11/12/2022
  * Dear maintainer.
  * When I wrote this code, only me and God knew what is was.
  * Now, only God knows!
@@ -21,29 +24,25 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Data
-public class Master {
-
+public class Store implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Version
-    private int version;
+    @Column(name = "store_code")
+    private String storeCode;
 
-    @Column
-    private String category;
+    @Column(name = "store_address")
+    private String storeAddress;
 
-    @Column
-    private String name;
+    @Column(name = "manage_id")
+    private int manageId;
 
-    @Column
-    private String value;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "store")
+    private List<ProductStore> productStoreList;
 
-    @Column(name = "sub_value")
-    private String subValue;
-
-    @Column(name = "is_deleted")
-    private boolean isDeleted;
+    @Column(name = "is_active")
+    private boolean isActive;
 
     @Column(name = "created_date")
     private LocalDateTime createdDate;

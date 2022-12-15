@@ -3,19 +3,27 @@ package com.ggapp.services.implement;
 import com.ggapp.common.dto.request.LoginRequest;
 import com.ggapp.common.exception.ApplicationException;
 import com.ggapp.services.MailService;
+import io.github.classgraph.Resource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ResourceUtils;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 
+import javax.activation.DataSource;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -60,14 +68,18 @@ public class MailServiceImp implements MailService {
     void sendMail(String to, String subject, String content) throws ApplicationException {
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         try {
-            MimeMessageHelper message = new MimeMessageHelper(mimeMessage, StandardCharsets.UTF_8.name());
+            MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, StandardCharsets.UTF_8.name());
+            File file = new ClassPathResource("/static/image/GGexamplelogo.jpg").getFile();
             message.setFrom(mail);
             message.setTo(to);
             message.setSubject(subject);
             message.setText(content, true);
+            message.addInline("attachment.png", file);
             javaMailSender.send(mimeMessage);
         }  catch (MailException | MessagingException e) {
             throw new ApplicationException(e.getMessage(), HttpStatus.FORBIDDEN);
+        } catch (IOException exception) {
+            throw new ApplicationException(exception.getMessage(), exception.getCause(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

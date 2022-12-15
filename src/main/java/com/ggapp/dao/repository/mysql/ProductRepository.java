@@ -14,10 +14,10 @@ import java.util.List;
  */
 
 @Repository
-public interface ProductRepository extends JpaRepository<Product, Integer>, JpaSpecificationExecutor<Product> {
+public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
 
 	@Query("select p from Product p where p.isDeleted = false and p.brand.id = :brandId")
-	List<Product> findAllByBrandIdAndIsDeletedFalse(@Param("brandId") int brandId);
+	List<Product> findAllByBrandIdAndIsDeletedFalse(@Param("brandId") Long brandId);
 
 	@Query("select p from Product p " +
 			"left join p.brand b " +
@@ -25,7 +25,7 @@ public interface ProductRepository extends JpaRepository<Product, Integer>, JpaS
 	List<Product> findAllByBrandNameAndIsDeletedFalse(@Param("brandName") String brandName);
 
 	@Query("select p from Product p where p.isDeleted = false and p.category.id = :categoryId")
-	List<Product> findAllByCategoryIdAndIsDeletedFalse(@Param("categoryId") int categoryId);
+	List<Product> findAllByCategoryIdAndIsDeletedFalse(@Param("categoryId") Long categoryId);
 
 	@Query("select p from Product p " +
 			"left join p.category c " +

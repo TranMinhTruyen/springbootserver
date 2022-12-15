@@ -13,9 +13,9 @@ import java.util.Optional;
  * @author Tran Minh Truyen
  */
 @Repository
-public interface ProductReviewRepository extends JpaRepository<ProductReview, Integer> {
+public interface ProductReviewRepository extends JpaRepository<ProductReview, Long> {
     Optional<List<ProductReview>> findProductReviewByUserNameContainingIgnoreCase(String userName);
 
     @Query(value = "select pr from ProductReview pr where pr.product.id = :productId")
-    Optional<List<ProductReview>> findByProductId(@Param(value = "productId") Integer productId);
+    Optional<List<ProductReview>> findByProductId(@Param(value = "productId") Long productId);
 }

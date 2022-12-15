@@ -20,10 +20,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -146,6 +144,17 @@ public class AccountResource extends CommonResource {
     @PostMapping(value = "sendConfirmKey")
     public BaseResponse sendConfirmKey(@RequestBody CheckEmailRequest checkEmailRequest) throws ApplicationException {
         accountService.sendEmailRegisterConfirmKey(checkEmailRequest.getEmail());
+        return this.returnBaseReponse(null, EMAIL_SEND_SUCCESS);
+    }
+
+    @Operation(responses = {
+            @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "400", description = "Bad request"),
+            @ApiResponse(responseCode = "403", description = "Forbidden")
+    })
+    @PostMapping(value = "activateAccount")
+    public BaseResponse activateAccount(@RequestParam String key, @RequestParam String email) throws ApplicationException {
+        accountService.activateAccount(key, email);
         return this.returnBaseReponse(null, EMAIL_SEND_SUCCESS);
     }
 }

@@ -2,6 +2,7 @@ package com.ggapp.dao.entity;
 
 import lombok.Data;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -11,7 +12,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 /**
- * @author Tran Minh Truyen on 26/11/2022
+ * @author Tran Minh Truyen on 11/12/2022
  * Dear maintainer.
  * When I wrote this code, only me and God knew what is was.
  * Now, only God knows!
@@ -21,9 +22,8 @@ import javax.persistence.Table;
  */
 @Entity
 @Data
-@Table(name = "product_voucher")
-public class ProductVoucher {
-
+@Table(name = "product_store")
+public class ProductStore {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -33,6 +33,9 @@ public class ProductVoucher {
     private Product product;
 
     @ManyToOne
-    @JoinColumn(name = "voucher_id")
-    private Voucher voucher;
+    @JoinColumn(name = "store_id")
+    private Store store;
+
+    @Column(name = "is_active")
+    private boolean isActive;
 }

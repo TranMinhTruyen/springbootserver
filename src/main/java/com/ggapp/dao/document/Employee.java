@@ -22,7 +22,7 @@ import java.util.Date;
 @Document(collection = "Employee")
 @Data
 public class Employee {
-    private int id;
+    private Long id;
 
     @Version
     private int version;
@@ -59,6 +59,9 @@ public class Employee {
 
     @Field(value = "position")
     private String position;
+
+    @Field(value = "departmentName")
+    private String departmentName;
 
     @Field(value = "level")
     private String level;

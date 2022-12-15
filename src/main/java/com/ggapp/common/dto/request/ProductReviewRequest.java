@@ -7,7 +7,8 @@ import lombok.Data;
  */
 @Data
 public class ProductReviewRequest {
-    private int productId;
+    private long id;
+    private int version;
     private int star;
     private String text;
 }

@@ -4,6 +4,10 @@ import org.springframework.http.HttpStatus;
 
 public enum MessageResponse {
 
+    //region Request error message
+    VERSION_IS_NOT_LATEST("The version is not latest please reload version", HttpStatus.BAD_REQUEST),
+    //endregion
+
     //region Product message
     PRODUCT_IS_EXIST("Product is exists", HttpStatus.FORBIDDEN),
     PRODUCT_IMAGE_NOT_FOUND("Not found product image", HttpStatus.NOT_FOUND),

@@ -7,6 +7,7 @@ import java.util.Optional;
 
 public interface ConfirmKeyRepository extends MongoRepository<ConfirmKey, String> {
 	Optional<ConfirmKey> findByEmailEqualsAndTypeEquals(String email, String type);
+	Optional<ConfirmKey> findByKeyEqualsAndEmailEqualsAndTypeEquals(String key, String email, String type);
 	void deleteByEmailEqualsAndTypeEquals(String email, String type);
 	void deleteByEmailEquals(String email);
 }

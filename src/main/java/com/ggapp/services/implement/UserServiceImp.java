@@ -1,7 +1,7 @@
 package com.ggapp.services.implement;
 
 import com.ggapp.common.dto.request.UserRequest;
-import com.ggapp.common.dto.response.CommonResponse;
+import com.ggapp.common.dto.response.CommonResponsePayload;
 import com.ggapp.common.dto.response.UserResponse;
 import com.ggapp.common.exception.ApplicationException;
 import com.ggapp.common.utils.Constant;
@@ -69,7 +69,7 @@ public class UserServiceImp implements UserService {
             newUser.setBirthDay(userRequest.getBirthDay());
             if (last != null)
                 newUser.setId(last.get(0).getId() + 1);
-            else newUser.setId(1);
+            else newUser.setId(1L);
             newUser.setAddress(userRequest.getAddress());
             newUser.setDistrict(userRequest.getDistrict());
             newUser.setCity(userRequest.getCity());
@@ -92,25 +92,25 @@ public class UserServiceImp implements UserService {
     }
 
     @Override
-    public CommonResponse getAllUser(int page, int size) throws ApplicationException {
+    public CommonResponsePayload getAllUser(int page, int size) throws ApplicationException {
         List<User> result = userRepository.findAll();
         List<UserResponse> userResponseList = userMapper.entityToResponse(result);
         if (result.isEmpty()) {
             throw new ApplicationException(USER_NOT_FOUND_GET_ALL);
         }
-        return new CommonResponse().getCommonResponse(page, size, userResponseList);
+        return new CommonResponsePayload().getCommonResponse(page, size, userResponseList);
     }
 
     @Override
-    public CommonResponse getUserByKeyWord(int page, int size, String keyword) throws ApplicationException {
+    public CommonResponsePayload getUserByKeyWord(int page, int size, String keyword) throws ApplicationException {
         Optional<List<User>> result = userRepository.findUserByFirstNameContainingOrLastNameContaining(keyword, keyword);
         result.orElseThrow(() -> new ApplicationException(USER_NOT_MATCH));
         List<UserResponse> userResponseList = userMapper.entityToResponse(result.get());
-        return new CommonResponse().getCommonResponse(page, size, userResponseList);
+        return new CommonResponsePayload().getCommonResponse(page, size, userResponseList);
     }
 
     @Override
-    public UserResponse updateUser(int id, UserRequest request) throws ApplicationException {
+    public UserResponse updateUser(Long id, UserRequest request) throws ApplicationException {
         Optional<User> user = userRepository.findById(id);
         user.orElseThrow(() -> new ApplicationException(USER_NOT_FOUND));
         User update = user.get();
@@ -141,7 +141,7 @@ public class UserServiceImp implements UserService {
     }
 
     @Override
-    public boolean deleteUser(int id) throws ApplicationException {
+    public boolean deleteUser(Long id) throws ApplicationException {
         Optional<User> user = userRepository.findById(id);
         if (user.isPresent()) {
             userRepository.deleteById(id);
@@ -155,7 +155,7 @@ public class UserServiceImp implements UserService {
     }
 
     @Override
-    public UserResponse getProfileUser(int id) throws ApplicationException {
+    public UserResponse getProfileUser(Long id) throws ApplicationException {
         UserResponse userResponse = new UserResponse();
         Optional<User> user = userRepository.findById(id);
         if (user.isPresent()) {

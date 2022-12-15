@@ -1,7 +1,7 @@
 package com.ggapp.services.implement;
 
 import com.ggapp.common.dto.request.OrderRequest;
-import com.ggapp.common.dto.response.CommonResponse;
+import com.ggapp.common.dto.response.CommonResponsePayload;
 import com.ggapp.common.dto.response.OrderResponse;
 import com.ggapp.common.exception.ApplicationException;
 import com.ggapp.common.utils.Constant;
@@ -61,7 +61,7 @@ public class OrderServiceImp implements OrderService {
     private CartService cartService;
 
     @Override
-    public OrderResponse createOrderByCart(int customerId) throws ApplicationException {
+    public OrderResponse createOrderByCart(Long customerId) throws ApplicationException {
         List<Order> last = new AutoIncrement(orderRepository).getLastOfCollection();
         Optional<Cart> cartResult = cartRepository.findById(customerId);
         Optional<User> userResult = userRepository.findById(customerId);
@@ -71,7 +71,7 @@ public class OrderServiceImp implements OrderService {
             Order newOrder = new Order();
             if (last != null)
                 newOrder.setId(last.get(0).getId() + 1);
-            else newOrder.setId(1);
+            else newOrder.setId(1L);
             newOrder.setCustomerId(userResult.get().getId());
             newOrder.setCreateDate(new Date());
             newOrder.setListProducts(cartResult.get().getProductList());
@@ -90,7 +90,7 @@ public class OrderServiceImp implements OrderService {
     }
 
     @Override
-    public OrderResponse createOrderByProductId(int customerId, int[] productId) throws ApplicationException {
+    public OrderResponse createOrderByProductId(Long customerId, int[] productId) throws ApplicationException {
         List<Order> last = new AutoIncrement(orderRepository).getLastOfCollection();
         Optional<Cart> cartResult = cartRepository.findById(customerId);
         Optional<User> userResult = userRepository.findById(customerId);
@@ -111,7 +111,7 @@ public class OrderServiceImp implements OrderService {
             if (!productList.isEmpty()) {
                 if (last != null)
                     newOrder.setId(last.get(0).getId() + 1);
-                else newOrder.setId(1);
+                else newOrder.setId(1L);
                 newOrder.setCustomerId(userResult.get().getId());
                 newOrder.setCreateDate(new Date());
                 newOrder.setListProducts(productList);
@@ -146,16 +146,16 @@ public class OrderServiceImp implements OrderService {
     }
 
     @Override
-    public CommonResponse getOrderByCustomerId(int page, int size, int id) {
+    public CommonResponsePayload getOrderByCustomerId(int page, int size, Long id) {
         List<Order> result = orderRepository.findOrderByCustomerId(id);
         if (result != null) {
-            return new CommonResponse().getCommonResponse(page, size, result);
+            return new CommonResponsePayload().getCommonResponse(page, size, result);
         } else return null;
     }
 
     @Override
     @Transactional
-    public boolean updateOrder(int id, OrderRequest orderRequest) throws ApplicationException {
+    public boolean updateOrder(Long id, OrderRequest orderRequest) throws ApplicationException {
         Optional<Order> order = orderRepository.findById(id);
         order.orElseThrow(() -> new ApplicationException(ORDER_NOT_FOUND));
         if (order.isPresent()) {
@@ -169,7 +169,7 @@ public class OrderServiceImp implements OrderService {
     }
 
     @Override
-    public boolean deleteOrder(int id, int customerId) throws ApplicationException {
+    public boolean deleteOrder(Long id, Long customerId) throws ApplicationException {
         Optional<Order> order = orderRepository.findOrderByIdAndCustomerId(id, customerId);
         order.orElseThrow(() -> new ApplicationException(ORDER_NOT_FOUND));
         for (ListProduct listProduct : order.get().getListProducts()) {
@@ -179,7 +179,7 @@ public class OrderServiceImp implements OrderService {
         return true;
     }
 
-    private void returnProductFromOrder(int productId, long amount) {
+    private void returnProductFromOrder(Long productId, long amount) {
         Optional<Product> update = productRepository.findById(productId);
         update.get().setUnitInStock(update.get().getUnitInStock() + amount);
         productRepository.save(update.get());

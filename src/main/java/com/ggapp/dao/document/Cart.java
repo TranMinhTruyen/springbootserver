@@ -17,7 +17,7 @@ import java.util.List;
 @Data
 public class Cart {
 
-	private int id;
+	private Long id;
 
 	@Version
 	private int version;

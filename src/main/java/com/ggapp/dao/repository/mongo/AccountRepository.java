@@ -18,7 +18,7 @@ import java.util.Optional;
  * TOTAL_HOURS_WASTED_HERE =
  */
 @Repository
-public interface AccountRepository extends MongoRepository<Account, Integer> {
+public interface AccountRepository extends MongoRepository<Account, Long> {
     @Query(value = "{$and : [{$or : [{account: :#{#account}}, {email: {$regex: :#{#account}, $options: 'i'}}]}, {password: :#{#password}}]}")
     Optional<Account> findByAccountOrEmailEqualsAndPasswordEquals(@Param("account") String account, @Param("password") String password);
 

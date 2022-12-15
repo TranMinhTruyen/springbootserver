@@ -11,8 +11,8 @@ import java.util.Optional;
  * @author Tran Minh Truyen
  */
 @Repository
-public interface OrderRepository extends MongoRepository<Order, Integer>{
-	List<Order> findOrderByCustomerId(int customerId);
-	Order findOrderById(int id);
-	Optional<Order> findOrderByIdAndCustomerId(int id, int customerId);
+public interface OrderRepository extends MongoRepository<Order, Long>{
+	List<Order> findOrderByCustomerId(Long customerId);
+	Order findOrderById(Long id);
+	Optional<Order> findOrderByIdAndCustomerId(Long id, Long customerId);
 }

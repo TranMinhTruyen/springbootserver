@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class CategoryResponse extends CategoryRequest {
-	private int id;
+	private long id;
 	private boolean isDeleted;
 	private LocalDateTime createdDate;
 	private String createdBy;

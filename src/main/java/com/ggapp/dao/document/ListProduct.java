@@ -19,7 +19,7 @@ import java.util.List;
 public class ListProduct {
 
 	@Field(value = "productId")
-	private int id;
+	private Long id;
 
 	@Field(value = "productName")
 	private String productName;

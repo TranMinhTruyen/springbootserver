@@ -9,8 +9,8 @@ import java.util.Date;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class NewsResponse extends NewsRequest {
-	private int id;
-	private int userCreateId;
+	private long id;
+	private long userCreateId;
 	private String userCreateName;
 	private Date createDate;
 }

@@ -5,12 +5,14 @@ import com.ggapp.common.dto.response.ProductResponse;
 import com.ggapp.common.exception.ApplicationException;
 import com.ggapp.common.jwt.AccountDetail;
 import com.ggapp.dao.document.Account;
+import com.ggapp.dao.document.Employee;
 import com.ggapp.dao.document.ListProduct;
 import com.ggapp.dao.document.User;
 import com.ggapp.dao.entity.ProductImage;
 import com.ggapp.dao.entity.Product;
 import com.ggapp.dao.entity.ProductVoucher;
 import com.ggapp.dao.entity.Voucher;
+import com.ggapp.dao.repository.mongo.EmployeeRepository;
 import com.ggapp.dao.repository.mongo.UserRepository;
 import com.ggapp.dao.repository.mysql.ProductImageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +38,9 @@ public class CommonUtils {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private EmployeeRepository employeeRepository;
 
     @Autowired
     private FileUtils fileUtils;
@@ -114,14 +119,14 @@ public class CommonUtils {
         return totalPrice.setScale(0, RoundingMode.HALF_EVEN);
     }
 
-    public List<ProductImageResponse> getProductImage(int productId) throws ApplicationException {
+    public List<ProductImageResponse> getProductImage(Long productId) throws ApplicationException {
         Optional<List<ProductImage>> productImageList = productImageRepository.findByProductId(productId);
         if (productImageList.isPresent()) {
             List<ProductImageResponse> productImageResponseList = new ArrayList<>();
             ProductImageResponse productImageResponse = null;
             for (ProductImage productImage : productImageList.get()) {
                 productImageResponse = new ProductImageResponse();
-                productImageResponse.setImageId(productImage.getId());
+                productImageResponse.setId(productImage.getId());
                 productImageResponse.setImageData(fileUtils.getFile(productImage.getImagePath()));
                 productImageResponseList.add(productImageResponse);
             }
@@ -131,11 +136,10 @@ public class CommonUtils {
 
     public AccountDetail accountToAccountDetail (Account account) throws ApplicationException {
         AccountDetail accountDetail = new AccountDetail();
-        Optional<User> user;
 
         switch (account.getAccountType()) {
             case USER_TYPE:
-                user = userRepository.findById(account.getOwnerId());
+                Optional<User> user = userRepository.findById(account.getOwnerId());
                 user.orElseThrow(() -> new ApplicationException(USER_NOT_FOUND));
                 accountDetail.setOwnerId(user.get().getId());
                 accountDetail.setAccount(account.getAccount());
@@ -144,6 +148,15 @@ public class CommonUtils {
                 accountDetail.setActive(account.isActive());
                 break;
             case EMPLOYEE_TYPE:
+                Optional<Employee> employee = employeeRepository.findById(account.getOwnerId());;
+                employee.orElseThrow(() -> new ApplicationException(USER_NOT_FOUND));
+                accountDetail.setOwnerId(employee.get().getId());
+                accountDetail.setAccount(account.getAccount());
+                accountDetail.setPassword(account.getPassword());
+                accountDetail.setRole(employee.get().getRole());
+                accountDetail.setPosition(employee.get().getPosition());
+                accountDetail.setDepartmentName(employee.get().getDepartmentName());
+                accountDetail.setActive(account.isActive());
                 break;
             case ADMIN_TYPE:
                 break;

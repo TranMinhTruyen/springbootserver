@@ -33,6 +33,7 @@ public class BrandMapperImpl implements BrandMapper {
             return null;
         BrandResponse brandResponse = new BrandResponse();
         brandResponse.setId(brand.getId());
+        brandResponse.setVersion(brand.getVersion());
         brandResponse.setName(brand.getName());
         brandResponse.setDescription(brand.getDescription());
         brandResponse.setImage(brand.getImage());

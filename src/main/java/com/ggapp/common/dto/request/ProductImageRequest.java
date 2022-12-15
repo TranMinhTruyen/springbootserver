@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class ProductImageRequest {
-	private int imageId;
+	private long imageId;
 	private String imageData;
 }

@@ -81,7 +81,7 @@ public class AccountServiceImp implements AccountService, UserDetailsService {
         List<User> last = new AutoIncrement(accountRepository).getLastOfCollection();
         if (last != null)
             account.setId(last.get(0).getId() + 1);
-        else account.setId(1);
+        else account.setId(1L);
         account.setAccount(userRequest.getAccount());
         account.setPassword(Hashing.sha512().hashString(userRequest.getPassword(), StandardCharsets.UTF_8).toString());
         account.setEmail(user.getEmail());
@@ -99,7 +99,7 @@ public class AccountServiceImp implements AccountService, UserDetailsService {
         List<User> last = new AutoIncrement(accountRepository).getLastOfCollection();
         if (last != null)
             account.setId(last.get(0).getId() + 1);
-        else account.setId(1);
+        else account.setId(1L);
         account.setEmail(employee.getEmail());
         account.setOwnerId(employee.getId());
         account.setActive(employee.isActive());
@@ -157,7 +157,7 @@ public class AccountServiceImp implements AccountService, UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserById(int id) throws ApplicationException {
+    public UserDetails loadUserById(Long id) throws ApplicationException {
         Optional<Account> result = accountRepository.findById(id);
         if (result.isPresent()) {
             AccountDetail accountDetail = commonUtils.accountToAccountDetail(result.get());
@@ -227,9 +227,14 @@ public class AccountServiceImp implements AccountService, UserDetailsService {
     }
 
     @Override
-    public void activateAccount(String email) throws ApplicationException {
-        Optional<ConfirmKey> confirmKey = confirmKeyRepository.findByEmailEqualsAndTypeEquals(email, Constant.REGISTER_TYPE);
+    public void activateAccount(String key, String email) throws ApplicationException {
+        Optional<ConfirmKey> confirmKey = confirmKeyRepository.findByKeyEqualsAndEmailEqualsAndTypeEquals(key, email, Constant.REGISTER_TYPE);
         confirmKey.orElseThrow(() -> new ApplicationException(CONFIRM_KEY_INVALID));
+        Optional<Account> account = accountRepository.findByEmailEqualsIgnoreCase(confirmKey.get().getEmail());
+        account.orElseThrow(() -> new ApplicationException(USER_NOT_FOUND));
+        account.get().setActive(true);
+        accountRepository.save(account.get());
+        confirmKeyRepository.deleteByEmailEquals(email);
     }
 
     @Override

@@ -24,8 +24,8 @@ public interface AccountService {
     JwtResponse loginAnotherDevice(LoginRequest loginRequest, String confirmKey) throws ApplicationException;
     UserResponse resetPassword(String email) throws ApplicationException;
     boolean accountIsExists(String account);
-    UserDetails loadUserById(int id) throws ApplicationException;
+    UserDetails loadUserById(Long id) throws ApplicationException;
     void sendEmailRegisterConfirmKey(String email) throws ApplicationException;
     void sendEmailLoginConfirmKey(LoginRequest loginRequest) throws ApplicationException;
-    void activateAccount(String email) throws ApplicationException;
+    void activateAccount(String key, String email) throws ApplicationException;
 }

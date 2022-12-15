@@ -4,7 +4,7 @@ import com.ggapp.common.exception.ApplicationException;
 import com.ggapp.common.jwt.CustomUserDetail;
 import com.ggapp.common.dto.request.OrderRequest;
 import com.ggapp.common.dto.request.UserOrderRequest;
-import com.ggapp.common.dto.response.CommonResponse;
+import com.ggapp.common.dto.response.CommonResponsePayload;
 import com.ggapp.common.dto.response.OrderResponse;
 import com.ggapp.services.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -72,11 +72,11 @@ public class OrderResource {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
 		BaseResponse baseResponse = new BaseResponse();
-		CommonResponse commonResponse = orderService.getOrderByCustomerId(page, size, customUserDetail.getAccountDetail().getOwnerId());
+		CommonResponsePayload commonResponsePayload = orderService.getOrderByCustomerId(page, size, customUserDetail.getAccountDetail().getOwnerId());
 		baseResponse.setStatus(HttpStatus.OK.value());
 		baseResponse.setStatusname(HttpStatus.OK.name());
 		baseResponse.setMessage("Get order success");
-		baseResponse.setPayload(commonResponse);
+		baseResponse.setPayload(commonResponsePayload);
 		return baseResponse;
 	}
 
@@ -89,11 +89,11 @@ public class OrderResource {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
 		BaseResponse baseResponse = new BaseResponse();
-		CommonResponse commonResponse = orderService.getOrderByCustomerId(page, size, customUserDetail.getAccountDetail().getOwnerId());
+		CommonResponsePayload commonResponsePayload = orderService.getOrderByCustomerId(page, size, customUserDetail.getAccountDetail().getOwnerId());
 		baseResponse.setStatus(HttpStatus.OK.value());
 		baseResponse.setStatusname(HttpStatus.OK.name());
 		baseResponse.setMessage("Get order success");
-		baseResponse.setPayload(commonResponse);
+		baseResponse.setPayload(commonResponsePayload);
 		return baseResponse;
 	}
 
@@ -119,7 +119,7 @@ public class OrderResource {
 	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
 			security = {@SecurityRequirement(name = "Authorization")})
 	@PutMapping(value = "emp/empUpdateOrder", consumes = MediaType.APPLICATION_JSON_VALUE)
-	public BaseResponse empUpdateOrder(@RequestParam int id, @RequestBody OrderRequest orderRequest) throws ApplicationException {
+	public BaseResponse empUpdateOrder(@RequestParam long id, @RequestBody OrderRequest orderRequest) throws ApplicationException {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
 		BaseResponse baseResponse = new BaseResponse();
@@ -138,7 +138,7 @@ public class OrderResource {
 	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
 			security = {@SecurityRequirement(name = "Authorization")})
 	@DeleteMapping(value = "deleteOrder")
-	public BaseResponse deleteOrder(@RequestParam int id) throws Exception {
+	public BaseResponse deleteOrder(@RequestParam long id) throws Exception {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
 		BaseResponse baseResponse = new BaseResponse();

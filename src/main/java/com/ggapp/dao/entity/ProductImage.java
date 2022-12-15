@@ -21,7 +21,7 @@ public class ProductImage implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private int id;
+	private Long id;
 
 	@Version
 	private int version;

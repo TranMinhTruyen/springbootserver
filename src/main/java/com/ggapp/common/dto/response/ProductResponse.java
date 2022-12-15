@@ -11,7 +11,8 @@ import java.util.List;
  */
 @Data
 public class ProductResponse {
-	private int id;
+	private long id;
+	private int version;
 	private String name;
 	private String productCode;
 	private BigDecimal price;

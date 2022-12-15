@@ -9,6 +9,7 @@ import java.util.Date;
  */
 @Data
 public class UserResponse {
+	private int version;
 	private String firstName;
 	private String lastName;
 	private String email;

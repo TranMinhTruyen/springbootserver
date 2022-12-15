@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
  */
 public class Department {
 
-    private int id;
+    private Long id;
 
     @Version
     private int version;

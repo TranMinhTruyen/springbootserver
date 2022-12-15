@@ -13,7 +13,9 @@ import java.util.List;
 public class CartRequest {
 
 	@NotBlank(message = "customerId is mandatory")
-	private int customerId;
+	private long customerId;
+
+	private int version;
 
 	@NotBlank(message = "productList is mandatory")
 	private List<ListProduct> productList;

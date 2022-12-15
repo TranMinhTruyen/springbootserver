@@ -15,6 +15,8 @@ public class ProductRequest {
 	@NotBlank(message = "name is mandatory")
 	private String name;
 
+	private int version;
+
 	private String productCode;
 
 	@NotBlank(message = "price is mandatory")
@@ -30,10 +32,10 @@ public class ProductRequest {
 	private long unitInStock;
 
 	@NotBlank(message = "id_brand is mandatory")
-	private int id_brand;
+	private Long idBrand;
 
 	@NotBlank(message = "id_category is mandatory")
-	private int id_category;
+	private Long idCategory;
 
 	@NotBlank(message = "isNew is mandatory")
 	private boolean isNew;

@@ -4,7 +4,7 @@ import com.ggapp.dao.entity.Category;
 import com.ggapp.dao.entity.Product;
 import com.ggapp.common.dto.request.CategoryRequest;
 import com.ggapp.common.dto.response.CategoryResponse;
-import com.ggapp.common.dto.response.CommonResponse;
+import com.ggapp.common.dto.response.CommonResponsePayload;
 import com.ggapp.dao.repository.mysql.CategoryRepository;
 import com.ggapp.dao.repository.mysql.ProductRepository;
 import com.ggapp.dao.repository.specification.CategorySpecification;
@@ -51,7 +51,7 @@ public class CategoryServiceImp implements CategoryService {
 	}
 
 	@Override
-	public CommonResponse getAllCategory(int page, int size) {
+	public CommonResponsePayload getAllCategory(int page, int size) {
 		List<Category> result = categoryRepository.findAll();
 		List<CategoryResponse> categoryList = new ArrayList<>();
 		result.stream().forEach(item -> {
@@ -63,22 +63,22 @@ public class CategoryServiceImp implements CategoryService {
 		});
 
 		if (categoryList != null){
-			return new CommonResponse().getCommonResponse(page, size, categoryList);
+			return new CommonResponsePayload().getCommonResponse(page, size, categoryList);
 		}
 		return null;
 	}
 
 	@Override
-	public CommonResponse getCategoryByKeyword(int page, int size, String keyword) {
+	public CommonResponsePayload getCategoryByKeyword(int page, int size, String keyword) {
 		List result = categoryRepository.findAll(new CategorySpecification(keyword));
 		if (result != null){
-			return new CommonResponse().getCommonResponse(page, size, result);
+			return new CommonResponsePayload().getCommonResponse(page, size, result);
 		}
 		return getAllCategory(page, size);
 	}
 
 	@Override
-	public CategoryResponse updateCategory(int id, CategoryRequest categoryRequest, CustomUserDetail customUserDetail) {
+	public CategoryResponse updateCategory(Long id, CategoryRequest categoryRequest, CustomUserDetail customUserDetail) {
 		if (update(id, categoryRequest, customUserDetail)){
 			Optional<Category> category = categoryRepository.findById(id);
 			Category result = category.get();
@@ -92,12 +92,12 @@ public class CategoryServiceImp implements CategoryService {
 	}
 
 	@Override
-	public boolean deleteCategory(int id) {
+	public boolean deleteCategory(Long id) {
 		Optional<Category> category = categoryRepository.findById(id);
 		if (category.isPresent()){
 			List<Product> products = productRepository.findAllByCategoryIdAndIsDeletedFalse(id);
 			if (products != null && !products.isEmpty()){
-				products.stream().forEach(items -> {
+				products.forEach(items -> {
 					items.setCategory(null);
 					productRepository.save(items);
 				});
@@ -113,7 +113,7 @@ public class CategoryServiceImp implements CategoryService {
 		return !categoryRepository.findAll(new CategorySpecification(categoryName)).isEmpty();
 	}
 
-	private boolean update(int id, CategoryRequest categoryRequest, CustomUserDetail customUserDetail){
+	private boolean update(Long id, CategoryRequest categoryRequest, CustomUserDetail customUserDetail){
 		Optional<Category> category = categoryRepository.findById(id);
 		if (categoryRequest != null && category.isPresent()){
 			Category update = category.get();

@@ -9,10 +9,10 @@ import java.util.Date;
 @Document(collection = "News")
 @Data
 public class News {
-	private int id;
+	private Long id;
 
 	@Field(value = "userCreateId")
-	private int userCreateId;
+	private Long userCreateId;
 
 	@Field(value = "userCreateName")
 	private String userCreateName;

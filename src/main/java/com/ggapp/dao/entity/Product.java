@@ -26,7 +26,7 @@ public class Product implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private int id;
+	private Long id;
 
 	@Version
 	private int version;
@@ -62,6 +62,9 @@ public class Product implements Serializable {
 
 	@OneToMany(fetch = FetchType.LAZY ,mappedBy = "product")
 	private List<ProductVoucher> productVoucherList;
+
+	@OneToMany(fetch = FetchType.LAZY ,mappedBy = "product")
+	private List<ProductStore> productStoreList;
 
 	@OneToMany(fetch = FetchType.LAZY ,mappedBy = "product")
 	private List<ProductImage> imagesPath;

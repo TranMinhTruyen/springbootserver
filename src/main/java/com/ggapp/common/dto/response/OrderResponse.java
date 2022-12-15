@@ -12,10 +12,11 @@ import java.util.List;
  */
 @Data
 public class OrderResponse{
-	private int id;
-	private int customerId;
+	private long id;
+	private int version;
+	private long customerId;
 	private String customerName;
-	private int employeeId;
+	private long employeeId;
 	private String employeeName;
 	private Date createDate;
 	private List<ListProduct> listProducts;

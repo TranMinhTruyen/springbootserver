@@ -40,7 +40,7 @@ public class CartResource {
 	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
 			security = {@SecurityRequirement(name = "Authorization")})
 	@PostMapping(value = "createCartAndAddProductToCart")
-	public BaseResponse createCartAndAddProductToCart(@RequestParam int productId,
+	public BaseResponse createCartAndAddProductToCart(@RequestParam long productId,
 														   @RequestParam(required = false, defaultValue = "1") long productAmount)
 			throws Exception {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -80,7 +80,7 @@ public class CartResource {
 	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
 			security = {@SecurityRequirement(name = "Authorization")})
 	@PutMapping(value = "updateProductAmount")
-	public BaseResponse updateProductAmount(@RequestParam int productId,
+	public BaseResponse updateProductAmount(@RequestParam long productId,
 												@RequestParam long amount) throws Exception {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
@@ -95,7 +95,7 @@ public class CartResource {
 	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
 			security = {@SecurityRequirement(name = "Authorization")})
 	@DeleteMapping(value = "removeProductFromCart")
-	public BaseResponse updateProductList(@RequestParam int productId) {
+	public BaseResponse updateProductList(@RequestParam long productId) {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
 		CartResponse cartResponse = cartService.removeProductFromCart(customUserDetail.getAccountDetail().getOwnerId(), productId);

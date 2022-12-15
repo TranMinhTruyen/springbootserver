@@ -29,7 +29,7 @@ public class JWTTokenProvider {
 		if (!isRemember)
 			expiryDate = new Date(now + Constant.EXPIRATIONTIME);
 		else expiryDate = new Date(now + Constant.EXPIRATIONTIME_FOR_REMEMBER);
-		Claims claims = Jwts.claims().setSubject(Integer.toString(userDetail.getAccountDetail().getOwnerId()));
+		Claims claims = Jwts.claims().setSubject(Long.toString(userDetail.getAccountDetail().getOwnerId()));
 		return Jwts.builder()
 				.setClaims(claims)
 				.setExpiration(expiryDate)

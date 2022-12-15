@@ -1,11 +1,12 @@
 package com.ggapp.services.implement;
 
+import com.ggapp.common.exception.ApplicationException;
 import com.ggapp.dao.document.AutoIncrement;
 import com.ggapp.dao.document.News;
 import com.ggapp.dao.document.User;
 import com.ggapp.common.dto.request.NewsRequest;
 import com.ggapp.common.dto.response.BaseResponse;
-import com.ggapp.common.dto.response.CommonResponse;
+import com.ggapp.common.dto.response.CommonResponsePayload;
 import com.ggapp.common.dto.response.NewsResponse;
 import com.ggapp.dao.repository.mongo.NewsRepository;
 import com.ggapp.dao.repository.mongo.UserRepository;
@@ -24,8 +25,6 @@ import java.util.Optional;
 @Service
 public class NewsServiceImp implements NewsService {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(NewsServiceImp.class);
-
 	@Autowired
 	private NewsRepository newsRepository;
 
@@ -33,14 +32,14 @@ public class NewsServiceImp implements NewsService {
 	private UserRepository userRepository;
 
 	@Override
-	public NewsResponse createNews(int userCreateId, NewsRequest newsRequest) throws Exception {
+	public NewsResponse createNews(Long userCreateId, NewsRequest newsRequest) throws ApplicationException {
 		Optional<User> user = userRepository.findById(userCreateId);
 		List<User> last = new AutoIncrement(newsRepository).getLastOfCollection();
 		if (user.isPresent() && newsRequest != null) {
 			News news = new News();
 			if (last != null)
 				news.setId(last.get(0).getId() + 1);
-			else news.setId(1);
+			else news.setId(1L);
 			news.setUserCreateId(user.get().getId());
 			news.setUserCreateName(user.get().getFirstName() + user.get().getLastName());
 			news.setCreateDate(new Date());
@@ -50,34 +49,34 @@ public class NewsServiceImp implements NewsService {
 			if (result != null) {
 				return getNewsAfterCreateOrUpdate(result);
 			} else {
-				throw new Exception("Error while created news");
+				throw new ApplicationException("Error while created news");
 			}
 		} else {
-			throw new Exception("Not found userId");
+			throw new ApplicationException("Not found userId");
 		}
 	}
 
 
 	@Override
-	public CommonResponse getAllNews (int page, int size) throws Exception {
+	public CommonResponsePayload getAllNews (int page, int size) throws ApplicationException {
 		List result = newsRepository.findAll();
 		if (result != null){
-			return new CommonResponse().getCommonResponse(page, size, result);
-		} else throw new Exception("Not found");
+			return new CommonResponsePayload().getCommonResponse(page, size, result);
+		} else throw new ApplicationException("Not found");
 	}
 
 	@Override
-	public CommonResponse getNewsByKeyWord(int page, int size, int userCreateId, String userCreateName, String title) throws Exception {
+	public CommonResponsePayload getNewsByKeyWord(int page, int size, Long userCreateId, String userCreateName, String title) throws ApplicationException {
 		List<NewsResponse> newsResponseList = filterNews(userCreateId, userCreateName, title);
 		if (!newsResponseList.isEmpty() && newsResponseList != null) {
-			return new CommonResponse().getCommonResponse(page, size, newsResponseList);
+			return new CommonResponsePayload().getCommonResponse(page, size, newsResponseList);
 		}
 		else return getAllNews(page, size);
 	}
 
 
 	@Override
-	public NewsResponse updateNews(int newsId, NewsRequest newsRequest) throws Exception {
+	public NewsResponse updateNews(Long newsId, NewsRequest newsRequest) throws ApplicationException {
 		Optional<News> news = newsRepository.findById(newsId);
 		if (news.isPresent()){
 			News update = news.get();
@@ -90,12 +89,12 @@ public class NewsServiceImp implements NewsService {
 			News result = newsRepository.save(update);
 			if (result != null) {
 				return getNewsAfterCreateOrUpdate(result);
-			} else throw new Exception("Error while update news");
-		} else throw new Exception("Not found newsId");
+			} else throw new ApplicationException("Error while update news");
+		} else throw new ApplicationException("Not found newsId");
 	}
 
 	@Override
-	public BaseResponse deleteNews(int newsId) throws Exception {
+	public BaseResponse deleteNews(Long newsId) throws ApplicationException {
 		Optional<News> news = newsRepository.findById(newsId);
 		BaseResponse baseResponse = new BaseResponse();
 		if (news.isPresent()) {
@@ -104,7 +103,7 @@ public class NewsServiceImp implements NewsService {
 			baseResponse.setMessage("News is deleted");
 			baseResponse.setPayload(news);
 			return baseResponse;
-		} else throw new Exception("Not found newsId");
+		} else throw new ApplicationException("Not found newsId");
 	}
 
 	private NewsResponse getNewsAfterCreateOrUpdate (News news) {
@@ -118,9 +117,9 @@ public class NewsServiceImp implements NewsService {
 		return newsResponse;
 	}
 
-	private List<NewsResponse> filterNews (@Nullable int userCreateId,
+	private List<NewsResponse> filterNews (@Nullable Long userCreateId,
 										   @Nullable String userCreateName,
-										   @Nullable String title) throws Exception {
+										   @Nullable String title) throws ApplicationException {
 		List<News> newsList = newsRepository.findAll();
 		Optional<User> user = userRepository.findById(userCreateId);
 		List<News> filter = new ArrayList<>();
@@ -186,6 +185,6 @@ public class NewsServiceImp implements NewsService {
 
 		if (!newsResponseList.isEmpty()) {
 			return newsResponseList;
-		} else throw new Exception("Not found");
+		} else throw new ApplicationException("Not found");
 	}
 }

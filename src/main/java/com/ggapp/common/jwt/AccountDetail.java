@@ -13,11 +13,13 @@ import lombok.Data;
  */
 @Data
 public class AccountDetail {
-    private int ownerId;
+    private Long ownerId;
     private String account;
     private String password;
     private String firstName;
     private String lastName;
     private String role;
+    private String position;
+    private String departmentName;
     private boolean isActive;
 }

@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 @Document(collection = "Account")
 @Data
 public class Account {
-    private int id;
+    private Long id;
 
     @Version
     private int version;
@@ -36,7 +36,7 @@ public class Account {
     private String password;
 
     @Field(value = "ownerId")
-    private int ownerId;
+    private Long ownerId;
 
     @Field(value = "accountType")
     private String accountType;

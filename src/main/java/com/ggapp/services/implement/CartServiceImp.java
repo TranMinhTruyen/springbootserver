@@ -54,7 +54,7 @@ public class CartServiceImp implements CartService {
     private CommonUtils commonUtils;
 
     @Override
-    public CartResponse createCart(int customerId, int productId, long productAmount) throws ApplicationException {
+    public CartResponse createCart(Long customerId, Long productId, long productAmount) throws ApplicationException {
         Optional<Product> productResult = productRepository.findById(productId);
         Optional<User> userResult = userRepository.findById(customerId);
         productResult.orElseThrow(() -> new ApplicationException(PRODUCT_NOT_FOUND));
@@ -87,7 +87,7 @@ public class CartServiceImp implements CartService {
     }
 
     @Override
-    public CartResponse getCartById(int id) throws ApplicationException {
+    public CartResponse getCartById(Long id) throws ApplicationException {
         Optional<Cart> cartResult = cartRepository.findById(id);
         if (cartResult.isPresent()) {
             long totalAmount = 0;
@@ -105,7 +105,7 @@ public class CartServiceImp implements CartService {
     }
 
     @Override
-    public CartResponse updateProductAmountInCart(int customerId, int productId, long amount) throws ApplicationException {
+    public CartResponse updateProductAmountInCart(Long customerId, Long productId, long amount) throws ApplicationException {
         Optional<Cart> cartResult = cartRepository.findById(customerId);
         Optional<User> userResult = userRepository.findById(customerId);
         Optional<Product> productResult = productRepository.findById(productId);
@@ -140,7 +140,7 @@ public class CartServiceImp implements CartService {
     }
 
     @Override
-    public CartResponse addProductToCart(int customerId, int productId, long productAmount) throws ApplicationException {
+    public CartResponse addProductToCart(Long customerId, Long productId, long productAmount) throws ApplicationException {
         Optional<Cart> cartResult = cartRepository.findById(customerId);
         Optional<Product> productResult = productRepository.findById(productId);
         Optional<User> userResult = userRepository.findById(customerId);
@@ -176,7 +176,7 @@ public class CartServiceImp implements CartService {
     }
 
     @Override
-    public CartResponse removeProductFromCart(int customerId, int productId) {
+    public CartResponse removeProductFromCart(Long customerId, Long productId) {
         Optional<Cart> cartResult = cartRepository.findById(customerId);
         if (cartResult.isPresent() && !cartResult.get().getProductList().isEmpty()) {
             Cart update = cartResult.get();
@@ -199,12 +199,12 @@ public class CartServiceImp implements CartService {
     }
 
     @Override
-    public boolean isCartExists(int customerId) {
+    public boolean isCartExists(Long customerId) {
         return cartRepository.findById(customerId).isPresent();
     }
 
     @Override
-    public CartResponse deleteCart(int id) {
+    public CartResponse deleteCart(Long id) {
         Optional<Cart> cartResult = cartRepository.findById(id);
         if (cartResult.isPresent()) {
             if (!cartResult.get().getProductList().isEmpty()) {
@@ -219,14 +219,14 @@ public class CartServiceImp implements CartService {
         } else return null;
     }
 
-    private void returnProductFromCart(int productId, long amount) {
+    private void returnProductFromCart(Long productId, long amount) {
         Optional<Product> update = productRepository.findById(productId);
         update.get().setUnitInStock(update.get().getUnitInStock() + amount);
         productRepository.save(update.get());
     }
 
     @Override
-    public boolean deleteCartAfterCreateOrder(int id) {
+    public boolean deleteCartAfterCreateOrder(Long id) {
         Optional<Cart> cartResult = cartRepository.findById(id);
         if (cartResult.isPresent()) {
             cartRepository.deleteById(id);

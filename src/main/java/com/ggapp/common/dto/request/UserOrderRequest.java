@@ -12,5 +12,7 @@ UserOrderRequest implements Serializable {
 	@NotBlank(message = "address is mandatory")
 	private String address;
 
+	private int version;
+
 	private int [] productId;
 }

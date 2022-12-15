@@ -18,16 +18,16 @@ import java.util.List;
 		"totalPage"
 })
 @Data
-public class CommonResponse implements Serializable {
+public class CommonResponsePayload implements Serializable {
 	private Object[] data;
 	private int totalRecord;
 	private int page;
 	private int size;
 	private int totalPage;
 
-	public CommonResponse() {}
+	public CommonResponsePayload() {}
 
-	public CommonResponse(Object[] data, int totalRecord, int page, int size, int totalPage) {
+	public CommonResponsePayload(Object[] data, int totalRecord, int page, int size, int totalPage) {
 		this.data = data;
 		this.totalRecord = totalRecord;
 		this.page = page;
@@ -35,11 +35,11 @@ public class CommonResponse implements Serializable {
 		this.totalPage = totalPage;
 	}
 
-	public CommonResponse getCommonResponse(int page, int size, List result){
+	public CommonResponsePayload getCommonResponse(int page, int size, List result){
 		int offset = (page - 1) * size;
 		int total = result.size();
 		int totalPage = (total % size) == 0 ? (int)(total / size) : (int)((total / size) + 1);
 		Object[] data = result.stream().skip(offset).limit(size).toArray();
-		return new CommonResponse(data, total, page, size, totalPage);
+		return new CommonResponsePayload(data, total, page, size, totalPage);
 	}
 }

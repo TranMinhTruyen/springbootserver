@@ -12,6 +12,8 @@ import java.util.Date;
 @Data
 public class UserRequest implements Serializable {
 
+    private int version;
+
     @NotBlank(message = "account is mandatory")
     private String account;
 
