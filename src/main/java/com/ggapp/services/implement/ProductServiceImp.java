@@ -194,7 +194,6 @@ public class ProductServiceImp implements ProductService {
         update.setName(productRequest.getName());
         update.setType(productRequest.getType());
         update.setPrice(productRequest.getPrice());
-        update.setUnitInStock(productRequest.getUnitInStock());
         update.setUpdateDate(LocalDateTime.now());
         update.setUpdateBy(customUserDetail.getAccountDetail().getFirstName() + customUserDetail.getAccountDetail().getLastName());
         if (productRequest.getImage() != null && !productRequest.getImage().isEmpty())

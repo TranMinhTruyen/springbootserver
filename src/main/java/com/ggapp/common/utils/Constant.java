@@ -2,6 +2,7 @@ package com.ggapp.common.utils;
 
 public class Constant {
     public static final String DATE_TIME_FORMAT_PATTERN = "dd-MM-yyyy HH:mm:ss z";
+    public static final String DATE_TIME_FORMAT_PATTERN_BIRTHDAY = "dd-MM-yyyy";
 
     public static final String LOGIN_TYPE = "LOGIN_TYPE";
     public static final String REGISTER_TYPE = "REGISTER_TYPE";

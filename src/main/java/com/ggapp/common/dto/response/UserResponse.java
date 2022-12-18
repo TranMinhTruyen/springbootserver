@@ -2,6 +2,7 @@ package com.ggapp.common.dto.response;
 
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 /**
@@ -10,11 +11,10 @@ import java.util.Date;
 @Data
 public class UserResponse {
 	private int version;
-	private String firstName;
-	private String lastName;
+	private String fullName;
 	private String email;
 	private String phoneNumber;
-	private Date birthDay;
+	private String birthDay;
 	private String address;
 	private String district;
 	private String city;

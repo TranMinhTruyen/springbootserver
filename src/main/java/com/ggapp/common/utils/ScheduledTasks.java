@@ -79,7 +79,6 @@ public class ScheduledTasks {
 			Month checkMonth = product.getCreatedDate().getMonth();
 			if (LocalDateTime.now().getYear() == checkYear &&
 					LocalDateTime.now().getMonth().getValue() - checkMonth.getValue() > 1) {
-				product.setNew(false);
 				productRepository.save(product);
 			}
 		}

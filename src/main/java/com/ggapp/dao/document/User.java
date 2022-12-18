@@ -23,14 +23,11 @@ public class User {
     @Version
     private int version;
 
-    @Field(value = "firstName")
-    private String firstName;
-
-    @Field(value = "lastName")
-    private String lastName;
+    @Field(value = "fullName")
+    private String fullName;
 
     @Field(value = "birthDay")
-    private Date birthDay;
+    private LocalDateTime birthDay;
 
     @Field(value = "address")
     private String address;
@@ -47,7 +44,7 @@ public class User {
     @Field(value = "citizenID")
     private String citizenId;
 
-    @Field(value = "mail")
+    @Field(value = "email")
     private String email;
 
     @Field(value = "phoneNumber")

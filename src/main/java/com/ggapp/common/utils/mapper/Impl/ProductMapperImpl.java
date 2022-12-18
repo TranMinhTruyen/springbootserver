@@ -21,8 +21,6 @@ public class ProductMapperImpl implements ProductMapper {
         product.setDiscount(productRequest.getDiscount());
         product.setPrice(productRequest.getPrice());
         product.setType(productRequest.getType());
-        product.setUnitInStock(productRequest.getUnitInStock());
-        product.setNew(productRequest.isNew());
         return product;
     }
 
@@ -40,14 +38,12 @@ public class ProductMapperImpl implements ProductMapper {
         productResponse.setDiscount(product.getDiscount());
         productResponse.setPrice(product.getPrice());
         productResponse.setType(product.getType());
-        productResponse.setUnitInStock(product.getUnitInStock());
         productResponse.setCreatedDate(product.getCreatedDate());
         productResponse.setCreatedBy(product.getCreatedBy());
         productResponse.setUpdateDate(product.getUpdateDate());
         productResponse.setUpdateBy(product.getUpdateBy());
         productResponse.setDeleteDate(product.getDeleteDate());
         productResponse.setDeleteBy(product.getDeleteBy());
-        productResponse.setNew(product.isNew());
         return productResponse;
     }
 

@@ -1,4 +1,5 @@
 package com.ggapp.controller;
+import com.ggapp.common.exception.ApplicationException;
 import com.ggapp.common.jwt.CustomUserDetail;
 import com.ggapp.common.dto.response.BaseResponse;
 import com.ggapp.common.dto.response.CartResponse;
@@ -40,21 +41,21 @@ public class CartResource {
 	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
 			security = {@SecurityRequirement(name = "Authorization")})
 	@PostMapping(value = "createCartAndAddProductToCart")
-	public BaseResponse createCartAndAddProductToCart(@RequestParam long productId,
+	public BaseResponse createCartAndAddProductToCart(@RequestParam long productId, @RequestParam long storeId,
 														   @RequestParam(required = false, defaultValue = "1") long productAmount)
 			throws Exception {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
 		BaseResponse baseResponse = new BaseResponse();
 		if (!cartService.isCartExists(customUserDetail.getAccountDetail().getOwnerId())) {
-			CartResponse cartResponse = cartService.createCart(customUserDetail.getAccountDetail().getOwnerId(), productId, productAmount);
+			CartResponse cartResponse = cartService.createCart(customUserDetail.getAccountDetail().getOwnerId(), productId, storeId, productAmount);
 			baseResponse.setStatus(HttpStatus.OK.value());
 			baseResponse.setStatusname(HttpStatus.OK.name());
 			baseResponse.setMessage("Cart is created");
 			baseResponse.setPayload(cartResponse);
 		}
 		else {
-			CartResponse cartResponse = cartService.addProductToCart(customUserDetail.getAccountDetail().getOwnerId(), productId, productAmount);
+			CartResponse cartResponse = cartService.addProductToCart(customUserDetail.getAccountDetail().getOwnerId(), productId, storeId, productAmount);
 			baseResponse.setStatus(HttpStatus.OK.value());
 			baseResponse.setStatusname(HttpStatus.OK.name());
 			baseResponse.setMessage("Product is added");
@@ -81,10 +82,11 @@ public class CartResource {
 			security = {@SecurityRequirement(name = "Authorization")})
 	@PutMapping(value = "updateProductAmount")
 	public BaseResponse updateProductAmount(@RequestParam long productId,
-												@RequestParam long amount) throws Exception {
+											@RequestParam long storeId,
+											@RequestParam long amount) throws Exception {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
-		CartResponse cartResponse = cartService.updateProductAmountInCart(customUserDetail.getAccountDetail().getOwnerId(), productId, amount);
+		CartResponse cartResponse = cartService.updateProductAmountInCart(customUserDetail.getAccountDetail().getOwnerId(), productId, storeId, amount);
 		BaseResponse baseResponse = new BaseResponse();
 		baseResponse.setStatus(200);
 		baseResponse.setMessage("Product amount is updated");
@@ -109,10 +111,10 @@ public class CartResource {
 	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
 			security = {@SecurityRequirement(name = "Authorization")})
 	@DeleteMapping(value = "deleteCart")
-	public BaseResponse deleteCart(){
+	public BaseResponse deleteCart(@RequestParam long storeId) throws ApplicationException {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
-		cartService.deleteCart(customUserDetail.getAccountDetail().getOwnerId());
+		cartService.deleteCart(customUserDetail.getAccountDetail().getOwnerId(), storeId);
 		BaseResponse baseResponse = new BaseResponse();
 		baseResponse.setStatus(200);
 		baseResponse.setMessage("Cart is deleted");

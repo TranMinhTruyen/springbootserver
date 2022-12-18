@@ -6,7 +6,6 @@ import lombok.EqualsAndHashCode;
 
 import java.time.LocalDateTime;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
 public class CategoryResponse extends CategoryRequest {
 	private long id;

@@ -2,12 +2,15 @@ package com.ggapp.common.utils.mapper.Impl;
 
 import com.ggapp.common.dto.request.UserRequest;
 import com.ggapp.common.dto.response.UserResponse;
+import com.ggapp.common.utils.Constant;
 import com.ggapp.common.utils.mapper.UserMapper;
 import com.ggapp.dao.document.User;
 import com.google.common.hash.Hashing;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,9 +21,8 @@ public class UserMapperImpl implements UserMapper {
         if (userRequest == null)
             return null;
         User user = new User();
-        user.setFirstName(userRequest.getFirstName());
-        user.setLastName(userRequest.getLastName());
-        user.setBirthDay(userRequest.getBirthDay());
+        user.setFullName(userRequest.getFullName());
+        user.setBirthDay(LocalDateTime.parse(userRequest.getBirthDay(), DateTimeFormatter.ofPattern(Constant.DATE_TIME_FORMAT_PATTERN_BIRTHDAY)));
         user.setEmail(userRequest.getEmail());
         user.setPhoneNumber(userRequest.getPhoneNumber());
         user.setCitizenId(userRequest.getCitizenID());
@@ -37,9 +39,8 @@ public class UserMapperImpl implements UserMapper {
         if (user == null)
             return null;
         UserResponse userResponse = new UserResponse();
-        userResponse.setFirstName(user.getFirstName());
-        userResponse.setLastName(user.getLastName());
-        userResponse.setBirthDay(user.getBirthDay());
+        userResponse.setFullName(user.getFullName());
+        userResponse.setBirthDay(user.getBirthDay().format(DateTimeFormatter.ofPattern(Constant.DATE_TIME_FORMAT_PATTERN_BIRTHDAY)));
         userResponse.setEmail(user.getEmail());
         userResponse.setPhoneNumber(user.getPhoneNumber());
         userResponse.setCitizenID(user.getCitizenId());

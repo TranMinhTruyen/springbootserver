@@ -1,14 +1,11 @@
 package com.ggapp.controller;
 
-import com.ggapp.common.dto.request.ChangePasswordRequest;
 import com.ggapp.common.dto.request.CheckEmailRequest;
 import com.ggapp.common.dto.request.DeviceInfoRequest;
 import com.ggapp.common.dto.request.LoginRequest;
 import com.ggapp.common.dto.response.BaseResponse;
 import com.ggapp.common.dto.response.JwtResponse;
-import com.ggapp.common.dto.response.UserResponse;
 import com.ggapp.common.exception.ApplicationException;
-import com.ggapp.dao.document.ResetPassword;
 import com.ggapp.services.AccountService;
 import com.ggapp.services.SessionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -111,29 +108,6 @@ public class AccountResource extends CommonResource {
         } else throw new ApplicationException(ACCESS_DENIED);
         sessionService.logoutDevice(this.customUserDetail, deviceInfoRequest, bearerToken);
         return this.returnBaseReponse(null, LOGOUT_USER_SUCCESS);
-    }
-
-    @Operation(responses = {
-            @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class))}),
-            @ApiResponse(responseCode = "400", description = "Bad request"),
-            @ApiResponse(responseCode = "403", description = "Forbidden")
-    },
-            summary = "This is API to reset password, a new password will be sent to email")
-    @PostMapping(value = "resetPassword", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public BaseResponse resetPassword(@Valid @RequestBody ResetPassword resetPassword) throws ApplicationException {
-        UserResponse userResponse = accountService.resetPassword(resetPassword.getEmail());
-        return this.returnBaseReponse(userResponse, EMAIL_SEND_SUCCESS);
-    }
-
-    @Operation(responses = {
-            @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class))}),
-            @ApiResponse(responseCode = "400", description = "Bad request"),
-            @ApiResponse(responseCode = "403", description = "Forbidden")
-    },
-            summary = "This is API to reset password, a new password will be sent to email")
-    @PostMapping(value = "changePassword", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public BaseResponse changePassword(@Valid @RequestBody ChangePasswordRequest changePasswordRequest) throws ApplicationException {
-        return this.returnBaseReponse(null, EMAIL_SEND_SUCCESS);
     }
 
     @Operation(responses = {

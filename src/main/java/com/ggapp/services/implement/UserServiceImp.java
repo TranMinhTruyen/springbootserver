@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -64,9 +65,8 @@ public class UserServiceImp implements UserService {
                 checkConfirmKey(userRequest.getEmail(), confirmKey)) {
             List<User> last = new AutoIncrement(userRepository).getLastOfCollection();
             User newUser = new User();
-            newUser.setFirstName(userRequest.getFirstName());
-            newUser.setLastName(userRequest.getLastName());
-            newUser.setBirthDay(userRequest.getBirthDay());
+            newUser.setFullName(userRequest.getFullName());
+            newUser.setBirthDay(LocalDateTime.parse(userRequest.getBirthDay(), DateTimeFormatter.ofPattern(Constant.DATE_TIME_FORMAT_PATTERN_BIRTHDAY)));
             if (last != null)
                 newUser.setId(last.get(0).getId() + 1);
             else newUser.setId(1L);
@@ -80,7 +80,7 @@ public class UserServiceImp implements UserService {
                     userRequest.getImageFileData(), USER_FILE_PATH + userRequest.getAccount()));
             newUser.setActive(true);
             newUser.setDeleted(false);
-            newUser.setCreatedBy(userRequest.getFirstName() + userRequest.getLastName());
+            newUser.setCreatedBy(userRequest.getFullName());
             newUser.setCreatedDate(LocalDateTime.now());
             User result = userRepository.save(newUser);
             confirmKeyRepository.deleteByEmailEqualsAndTypeEquals(result.getEmail(), Constant.REGISTER_TYPE);
@@ -114,10 +114,8 @@ public class UserServiceImp implements UserService {
         Optional<User> user = userRepository.findById(id);
         user.orElseThrow(() -> new ApplicationException(USER_NOT_FOUND));
         User update = user.get();
-        if (request.getFirstName() != null)
-            update.setFirstName(request.getFirstName());
-        if (request.getLastName() != null)
-            update.setLastName(request.getLastName());
+        if (request.getFullName() != null)
+            update.setFullName(request.getFullName());
         if (request.getAddress() != null)
             update.setAddress(request.getAddress());
         if (request.getDistrict() != null)
@@ -127,7 +125,7 @@ public class UserServiceImp implements UserService {
         if (request.getPostCode() != null)
             update.setPostCode(request.getPostCode());
         if (request.getBirthDay() != null)
-            update.setBirthDay(request.getBirthDay());
+            update.setBirthDay(LocalDateTime.parse(request.getBirthDay(), DateTimeFormatter.ofPattern(Constant.DATE_TIME_FORMAT_PATTERN_BIRTHDAY)));
         if (request.getCitizenID() != null)
             update.setCitizenId(request.getCitizenID());
         if (request.getEmail() != null)
@@ -159,9 +157,8 @@ public class UserServiceImp implements UserService {
         UserResponse userResponse = new UserResponse();
         Optional<User> user = userRepository.findById(id);
         if (user.isPresent()) {
-            userResponse.setFirstName(user.get().getFirstName());
-            userResponse.setLastName(user.get().getLastName());
-            userResponse.setBirthDay(user.get().getBirthDay());
+            userResponse.setFullName(user.get().getFullName());
+            userResponse.setBirthDay(user.get().getBirthDay().format(DateTimeFormatter.ofPattern(Constant.DATE_TIME_FORMAT_PATTERN_BIRTHDAY)));
             userResponse.setEmail(user.get().getEmail());
             userResponse.setPhoneNumber(user.get().getPhoneNumber());
             userResponse.setCitizenID(user.get().getCitizenId());

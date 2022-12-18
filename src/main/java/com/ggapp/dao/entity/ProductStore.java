@@ -10,6 +10,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Version;
+import java.time.LocalDateTime;
 
 /**
  * @author Tran Minh Truyen on 11/12/2022
@@ -28,6 +30,9 @@ public class ProductStore {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Version
+    private int version;
+
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
@@ -36,6 +41,27 @@ public class ProductStore {
     @JoinColumn(name = "store_id")
     private Store store;
 
-    @Column(name = "is_active")
-    private boolean isActive;
+    @Column(name = "unit_in_stock")
+    private long unitInStock;
+
+    @Column(name = "is_new")
+    private boolean isNew;
+
+    @Column(name = "created_date")
+    private LocalDateTime createdDate;
+
+    @Column(name = "created_by")
+    private String createdBy;
+
+    @Column(name = "update_date")
+    private LocalDateTime updateDate;
+
+    @Column(name = "update_by")
+    private String updateBy;
+
+    @Column(name = "delete_date")
+    private LocalDateTime deleteDate;
+
+    @Column(name = "delete_by")
+    private String deleteBy;
 }

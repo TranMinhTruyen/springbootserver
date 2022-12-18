@@ -46,9 +46,6 @@ public class Product implements Serializable {
 	@Column
 	private float discount;
 
-	@Column(name = "unit_in_stock")
-	private long unitInStock;
-
 	@ManyToOne
 	@JoinColumn(name = "id_brand")
 	private Brand brand;
@@ -89,7 +86,4 @@ public class Product implements Serializable {
 
 	@Column(name = "delete_by")
 	private String deleteBy;
-
-	@Column(name = "is_new")
-	private boolean isNew;
 }

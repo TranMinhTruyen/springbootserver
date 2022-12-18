@@ -18,6 +18,15 @@ public enum MessageResponse {
     DELETE_PRODUCT_SUCCESSFUL("Delete product successful", HttpStatus.OK),
     //endregion
 
+    //region Store message
+    STORE_NOT_FOUND("Store not found", HttpStatus.NOT_FOUND),
+    //endregion
+
+    //region ProductStore message
+    PRODUCT_IN_STORE_NOT_FOUND("Product in store not found", HttpStatus.NOT_FOUND),
+    PRODUCT_IS_OUT_OF_STOCK("Product is out of stock", HttpStatus.NOT_FOUND),
+    //endregion
+
     //region Brand message
     BRAND_NOT_FOUND("Brand not found", HttpStatus.NOT_FOUND),
     BRAND_IS_EXIST("Brand is exists", HttpStatus.FORBIDDEN),

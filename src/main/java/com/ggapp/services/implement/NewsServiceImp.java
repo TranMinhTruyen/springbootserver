@@ -41,7 +41,7 @@ public class NewsServiceImp implements NewsService {
 				news.setId(last.get(0).getId() + 1);
 			else news.setId(1L);
 			news.setUserCreateId(user.get().getId());
-			news.setUserCreateName(user.get().getFirstName() + user.get().getLastName());
+			news.setUserCreateName(user.get().getFullName());
 			news.setCreateDate(new Date());
 			news.setNewsTitle(newsRequest.getTitle());
 			news.setContent(newsRequest.getContent());

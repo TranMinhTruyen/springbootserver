@@ -1,18 +1,14 @@
 package com.ggapp.common.dto.request;
-import lombok.Builder;
-import lombok.Data;
+
 import org.hibernate.validator.constraints.Length;
+import org.springframework.data.mongodb.core.mapping.Field;
+
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
-import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Date;
 
-/**
- * @author Tran Minh Truyen
- */
-@Data
-public class UserRequest implements Serializable {
-
+public class EmployeeRequest {
     private int version;
 
     @NotBlank(message = "account is mandatory")
@@ -21,8 +17,11 @@ public class UserRequest implements Serializable {
     @NotBlank(message = "password is mandatory")
     private String password;
 
-    @NotBlank(message = "full name is mandatory")
-    private String fullName;
+    @NotBlank(message = "firstName is mandatory")
+    private String firstName;
+
+    @NotBlank(message = "lastName is mandatory")
+    private String lastName;
 
     @NotBlank(message = "email is mandatory")
     @Pattern(regexp = "^(.+)@(.+)$")
@@ -53,6 +52,19 @@ public class UserRequest implements Serializable {
 
     @NotBlank(message = "role is mandatory")
     private String role;
+
+    @NotBlank(message = "position is mandatory")
+    private String position;
+
+    @NotBlank(message = "department name is mandatory")
+    private String departmentName;
+
+    @NotBlank(message = "level is mandatory")
+    private String level;
+
+    private LocalDateTime hireDate;
+
+    private LocalDateTime retiredDate;
 
     private boolean isActive;
 }

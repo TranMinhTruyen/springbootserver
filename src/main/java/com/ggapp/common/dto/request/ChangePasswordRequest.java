@@ -1,6 +1,7 @@
 package com.ggapp.common.dto.request;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import javax.validation.constraints.NotBlank;
 
@@ -14,7 +15,7 @@ import javax.validation.constraints.NotBlank;
  * TOTAL_HOURS_WASTED_HERE =
  */
 @Data
-public class ChangePasswordRequest {
+public class ChangePasswordRequest extends ResetPasswordRequest{
     @NotBlank(message = "Current password is mandatory")
     private String currentPassword;
 

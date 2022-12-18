@@ -181,7 +181,6 @@ public class OrderServiceImp implements OrderService {
 
     private void returnProductFromOrder(Long productId, long amount) {
         Optional<Product> update = productRepository.findById(productId);
-        update.get().setUnitInStock(update.get().getUnitInStock() + amount);
         productRepository.save(update.get());
     }
 }
