@@ -97,10 +97,10 @@ public class CartResource {
 	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
 			security = {@SecurityRequirement(name = "Authorization")})
 	@DeleteMapping(value = "removeProductFromCart")
-	public BaseResponse updateProductList(@RequestParam long productId) {
+	public BaseResponse updateProductList(@RequestParam long productId, @RequestParam long storeId) throws ApplicationException {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
-		CartResponse cartResponse = cartService.removeProductFromCart(customUserDetail.getAccountDetail().getOwnerId(), productId);
+		CartResponse cartResponse = cartService.removeProductFromCart(customUserDetail.getAccountDetail().getOwnerId(), productId, storeId);
 		BaseResponse baseResponse = new BaseResponse();
 		baseResponse.setStatus(200);
 		baseResponse.setMessage("Product is removed");
