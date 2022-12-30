@@ -39,7 +39,6 @@ import java.util.List;
 @RequestMapping("api/product")
 @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMP')")
 public class ProductResource extends CommonResource{
-	private static final Logger LOGGER = LoggerFactory.getLogger(ProductResource.class);
 
 	@Autowired
 	private ProductService productService;
@@ -47,28 +46,18 @@ public class ProductResource extends CommonResource{
 	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
 			security = {@SecurityRequirement(name = "Authorization")})
 	@PostMapping(value = "createProduct", consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<BaseResponse> createProduct(@RequestBody ProductRequest productRequest) throws Exception {
+	public BaseResponse createProduct(@RequestBody ProductRequest productRequest) throws Exception {
 		this.getAuthentication();
 		ProductResponse productResponse = productService.createProduct(productRequest, this.customUserDetail);
-		BaseResponse baseResponse = new BaseResponse();
-		baseResponse.setStatus(HttpStatus.OK.value());
-		baseResponse.setStatusname(HttpStatus.OK.name());
-		baseResponse.setMessage("Create product successfully");
-		baseResponse.setPayload(productResponse);
-		return new ResponseEntity<BaseResponse>(baseResponse, HttpStatus.OK);
+		return this.returnBaseReponse(productResponse, "Create product successfully", HttpStatus.OK);
 	}
 
 	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))))
 	@GetMapping(value = "getProductById")
 	@PreAuthorize("permitAll()")
-	public ResponseEntity<BaseResponse> getProductById(@RequestParam long id) throws Exception {
+	public BaseResponse getProductById(@RequestParam long id) throws Exception {
 		ProductResponse productResponse = productService.getProductById(id);
-		BaseResponse baseResponse = new BaseResponse();
-		baseResponse.setStatus(HttpStatus.OK.value());
-		baseResponse.setStatusname(HttpStatus.OK.name());
-		baseResponse.setMessage("Get product successfully");
-		baseResponse.setPayload(productResponse);
-		return new ResponseEntity<BaseResponse>(baseResponse, HttpStatus.OK);
+		return this.returnBaseReponse(productResponse, "Get product successfully", HttpStatus.OK);
 	}
 
 	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))))

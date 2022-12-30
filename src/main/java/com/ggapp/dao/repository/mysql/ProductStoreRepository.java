@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -18,4 +19,10 @@ public interface ProductStoreRepository extends JpaRepository<ProductStore, Long
             "and ps.product.id = :productId " +
             "and ps.product.isDeleted = false and ps.store.isActive = true")
     Optional<ProductStore> findProductStoreByStoreIdAndProductId(@Param(value = "storeId") Long storeId, @Param(value = "productId") Long productId);
+
+    @Query(value = "select ps from ProductStore ps " +
+            "where ps.isNew = true " +
+            "and ps.product.isDeleted = false " +
+            "and ps.store.isActive = true")
+    Optional<List<ProductStore>> findAllByProductIsNew();
 }

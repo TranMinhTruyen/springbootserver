@@ -18,26 +18,26 @@ import java.util.Map;
 public class ApiExceptionHandler {
 
     @ExceptionHandler({ApplicationException.class})
-    public ResponseEntity<BaseResponse> handleApplicationException(ApplicationException exception) {
+    public BaseResponse handleApplicationException(ApplicationException exception) {
         BaseResponse baseResponse = new BaseResponse();
         baseResponse.setStatus(exception.getErrorCode().value());
         baseResponse.setStatusname(exception.getErrorCode().name());
         baseResponse.setMessage(exception.getMessage());
-        return new ResponseEntity<>(baseResponse, HttpStatus.OK);
+        return baseResponse;
     }
 
     @ExceptionHandler({Exception.class})
-    public ResponseEntity<BaseResponse> handleAllException(Exception exception) {
+    public BaseResponse handleAllException(Exception exception) {
         BaseResponse baseResponse = new BaseResponse();
         baseResponse.setStatus(HttpStatus.FORBIDDEN.value());
         baseResponse.setStatusname(HttpStatus.FORBIDDEN.name());
         baseResponse.setMessage(exception.getMessage());
-        return new ResponseEntity<>(baseResponse, HttpStatus.OK);
+        return baseResponse;
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<BaseResponse> handleValidationExceptions(MethodArgumentNotValidException exception) {
+    public BaseResponse handleValidationExceptions(MethodArgumentNotValidException exception) {
         BaseResponse baseResponse = new BaseResponse();
         Map<String, String> errors = new HashMap<>();
         exception.getBindingResult().getAllErrors().forEach((error) -> {
@@ -49,6 +49,6 @@ public class ApiExceptionHandler {
         baseResponse.setStatusname(HttpStatus.BAD_REQUEST.name());
         baseResponse.setMessage("Validation failed");
         baseResponse.setPayload(errors);
-        return new ResponseEntity<>(baseResponse, HttpStatus.OK);
+        return baseResponse;
     }
 }

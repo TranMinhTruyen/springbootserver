@@ -2,12 +2,13 @@ package com.ggapp.common.utils;
 
 import com.ggapp.dao.document.DeviceInfo;
 import com.ggapp.dao.document.Session;
-import com.ggapp.dao.entity.Product;
 import com.ggapp.dao.document.ConfirmKey;
 import com.ggapp.common.jwt.JWTTokenProvider;
+import com.ggapp.dao.entity.ProductStore;
 import com.ggapp.dao.repository.mongo.ConfirmKeyRepository;
 import com.ggapp.dao.repository.mongo.SessionRepository;
 import com.ggapp.dao.repository.mysql.ProductRepository;
+import com.ggapp.dao.repository.mysql.ProductStoreRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.List;
+import java.util.Optional;
 
 import static com.ggapp.common.utils.Constant.LOGOUT;
 
@@ -28,16 +30,19 @@ public class ScheduledTasks {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledTasks.class);
 
 	@Autowired
-	ConfirmKeyRepository confirmKeyRepository;
+	private ConfirmKeyRepository confirmKeyRepository;
 
 	@Autowired
-	ProductRepository productRepository;
+	private ProductRepository productRepository;
 
 	@Autowired
-	SessionRepository sessionRepository;
+	private SessionRepository sessionRepository;
 
 	@Autowired
-	JWTTokenProvider jwtTokenProvider;
+	private JWTTokenProvider jwtTokenProvider;
+
+	@Autowired
+	private ProductStoreRepository productStoreRepository;
 
 	@Scheduled(fixedDelay = 300000)
 	private void clearConfirmKey() {
@@ -73,13 +78,16 @@ public class ScheduledTasks {
 	@Scheduled(cron = "0 0 23 * * ?")
 	private void checkProductIsNew() {
 		LOGGER.info("Start check product is new");
-		List<Product> getAllProduct = productRepository.findAllByNewIsTrue();
-		for (Product product: getAllProduct) {
-			int checkYear = product.getCreatedDate().getYear();
-			Month checkMonth = product.getCreatedDate().getMonth();
-			if (LocalDateTime.now().getYear() == checkYear &&
-					LocalDateTime.now().getMonth().getValue() - checkMonth.getValue() > 1) {
-				productRepository.save(product);
+		Optional<List<ProductStore>> productStoreList = productStoreRepository.findAllByProductIsNew();
+		if (productStoreList.isPresent()) {
+			for (ProductStore product: productStoreList.get()) {
+				int checkYear = product.getCreatedDate().getYear();
+				Month checkMonth = product.getCreatedDate().getMonth();
+				if (LocalDateTime.now().getYear() == checkYear &&
+						LocalDateTime.now().getMonth().getValue() - checkMonth.getValue() > 1) {
+					product.setNew(false);
+					productStoreRepository.save(product);
+				}
 			}
 		}
 	}
