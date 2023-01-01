@@ -41,21 +41,31 @@ public enum MessageResponse {
     CATEGORY_IS_EXIST("Category is exists", HttpStatus.FORBIDDEN),
     //endregion
 
+    //region Account message
+    ACCESS_DENIED("Access denied", HttpStatus.UNAUTHORIZED),
+    LOGIN_VALID("Login successful", HttpStatus.OK),
+    LOGOUT_SUCCESS("Logout successful", HttpStatus.OK),
+    //endregion
+
     //region User message
     USER_NOT_FOUND_GET_ALL("Error while get all user: No user in database", HttpStatus.NOT_FOUND),
     USER_NOT_MATCH("Error while get user: No user match condition search", HttpStatus.NOT_FOUND),
     USER_NOT_FOUND("Not found user", HttpStatus.NOT_FOUND),
     USER_IS_EXIST("User account is exists", HttpStatus.FORBIDDEN),
     USER_IS_DISABLE("User is disable", HttpStatus.UNAUTHORIZED),
-    ACCESS_DENIED("Access denied", HttpStatus.UNAUTHORIZED),
     USER_CREATED_SUCCESS("User is added", HttpStatus.OK),
-    LOGIN_VALID("Login successful", HttpStatus.OK),
     GET_USER_SUCCESS("Get user success", HttpStatus.OK),
     GET_PROFILE_USER_SUCCESS("Get profile user success", HttpStatus.OK),
     UPDATE_USER_SUCCESS("User update success", HttpStatus.OK),
     DELETED_USER_SUCCESS("User delete success", HttpStatus.OK),
     LOGIC_DELETED_USER_SUCCESS("User logic delete success", HttpStatus.OK),
-    LOGOUT_USER_SUCCESS("Logout successful", HttpStatus.OK),
+    //endregion
+
+    //region Employee message
+    EMPLOYEE_NOT_MATCH("Error while get employee: No employee match condition search", HttpStatus.NOT_FOUND),
+    EMPLOYEE_NOT_FOUND("Not found employee", HttpStatus.NOT_FOUND),
+    EMPLOYEE_CREATED_SUCCESS("Employee is added", HttpStatus.OK),
+    EMPLOYEE_IS_EXIST("Employee account is exists", HttpStatus.FORBIDDEN),
     //endregion
 
     //region ComfirmKey message

@@ -1,5 +1,6 @@
 package com.ggapp.services.implement;
 
+import com.ggapp.common.dto.request.EmployeeRequest;
 import com.ggapp.common.dto.request.LoginRequest;
 import com.ggapp.common.dto.request.UserRequest;
 import com.ggapp.common.dto.response.JwtResponse;
@@ -81,7 +82,7 @@ public class AccountServiceImp implements AccountService, UserDetailsService {
         List<User> last = new AutoIncrement(accountRepository).getLastOfCollection();
         if (last != null)
             account.setId(last.get(0).getId() + 1);
-        else account.setId(1L);
+        else account.setId(1);
         account.setAccount(userRequest.getAccount());
         account.setPassword(Hashing.sha512().hashString(userRequest.getPassword(), StandardCharsets.UTF_8).toString());
         account.setEmail(user.getEmail());
@@ -94,12 +95,14 @@ public class AccountServiceImp implements AccountService, UserDetailsService {
     }
 
     @Override
-    public void createEmployeeAccount(Employee employee) {
+    public void createEmployeeAccount(Employee employee, EmployeeRequest employeeRequest) {
         Account account = new Account();
         List<User> last = new AutoIncrement(accountRepository).getLastOfCollection();
         if (last != null)
             account.setId(last.get(0).getId() + 1);
-        else account.setId(1L);
+        else account.setId(1);
+        account.setAccount(employeeRequest.getAccount());
+        account.setPassword(Hashing.sha512().hashString(employeeRequest.getPassword(), StandardCharsets.UTF_8).toString());
         account.setEmail(employee.getEmail());
         account.setOwnerId(employee.getId());
         account.setActive(employee.isActive());
@@ -128,7 +131,10 @@ public class AccountServiceImp implements AccountService, UserDetailsService {
             sessionService.checkSessionAndDeviceInfo(accountDetail, loginRequest);
             jwt = sessionService.getJWTFromSession(accountDetail, loginRequest);
         }
-        return new JwtResponse(jwt);
+        JwtResponse jwtResponse = new JwtResponse(jwt);
+        jwtResponse.setRole(accountDetail.getRole());
+        jwtResponse.setAuthorities(accountDetail.getAuthorities());
+        return jwtResponse;
     }
 
     @Override
@@ -157,7 +163,7 @@ public class AccountServiceImp implements AccountService, UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserById(Long id) throws ApplicationException {
+    public UserDetails loadUserById(int id) throws ApplicationException {
         Optional<Account> result = accountRepository.findById(id);
         if (result.isPresent()) {
             AccountDetail accountDetail = commonUtils.accountToAccountDetail(result.get());

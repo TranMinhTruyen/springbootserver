@@ -21,6 +21,9 @@ import org.springframework.stereotype.Component;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -119,7 +122,7 @@ public class CommonUtils {
         return totalPrice.setScale(0, RoundingMode.HALF_EVEN);
     }
 
-    public List<ProductImageResponse> getProductImage(Long productId) throws ApplicationException {
+    public List<ProductImageResponse> getProductImage(int productId) throws ApplicationException {
         Optional<List<ProductImage>> productImageList = productImageRepository.findByProductId(productId);
         if (productImageList.isPresent()) {
             List<ProductImageResponse> productImageResponseList = new ArrayList<>();
@@ -134,6 +137,15 @@ public class CommonUtils {
         } else return null;
     }
 
+    public LocalDateTime convertDateStringToLocalDateTime(String input, String format) {
+        LocalDate localDate = LocalDate.parse(input, DateTimeFormatter.ofPattern(format));
+        return LocalDateTime.of(localDate, LocalDateTime.now().toLocalTime());
+    }
+
+    public String convertLocalDateTimeToDateString(LocalDateTime input, String format) {
+        return input.format(DateTimeFormatter.ofPattern(format));
+    }
+
     public AccountDetail accountToAccountDetail (Account account) throws ApplicationException {
         AccountDetail accountDetail = new AccountDetail();
 
@@ -145,6 +157,7 @@ public class CommonUtils {
                 accountDetail.setAccount(account.getAccount());
                 accountDetail.setPassword(account.getPassword());
                 accountDetail.setRole(user.get().getRole());
+                accountDetail.setAuthorities(user.get().getAuthorities());
                 accountDetail.setActive(account.isActive());
                 break;
             case EMPLOYEE_TYPE:
@@ -154,6 +167,7 @@ public class CommonUtils {
                 accountDetail.setAccount(account.getAccount());
                 accountDetail.setPassword(account.getPassword());
                 accountDetail.setRole(employee.get().getRole());
+                accountDetail.setAuthorities(employee.get().getAuthorities());
                 accountDetail.setPosition(employee.get().getPosition());
                 accountDetail.setDepartmentName(employee.get().getDepartmentName());
                 accountDetail.setActive(account.isActive());

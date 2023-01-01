@@ -54,7 +54,7 @@ public class CategoryServiceImp implements CategoryService {
 	public CommonResponsePayload getAllCategory(int page, int size) {
 		List<Category> result = categoryRepository.findAll();
 		List<CategoryResponse> categoryList = new ArrayList<>();
-		result.stream().forEach(item -> {
+		result.forEach(item -> {
 			CategoryResponse categoryResponse = new CategoryResponse();
 			categoryResponse.setId(item.getId());
 			categoryResponse.setName(item.getName());
@@ -62,7 +62,7 @@ public class CategoryServiceImp implements CategoryService {
 			categoryList.add(categoryResponse);
 		});
 
-		if (categoryList != null){
+		if (!categoryList.isEmpty()){
 			return new CommonResponsePayload().getCommonResponse(page, size, categoryList);
 		}
 		return null;
@@ -70,15 +70,12 @@ public class CategoryServiceImp implements CategoryService {
 
 	@Override
 	public CommonResponsePayload getCategoryByKeyword(int page, int size, String keyword) {
-		List result = categoryRepository.findAll(new CategorySpecification(keyword));
-		if (result != null){
-			return new CommonResponsePayload().getCommonResponse(page, size, result);
-		}
-		return getAllCategory(page, size);
+		List<Category> result = categoryRepository.findAll(new CategorySpecification(keyword));
+		return new CommonResponsePayload().getCommonResponse(page, size, result);
 	}
 
 	@Override
-	public CategoryResponse updateCategory(Long id, CategoryRequest categoryRequest, CustomUserDetail customUserDetail) {
+	public CategoryResponse updateCategory(int id, CategoryRequest categoryRequest, CustomUserDetail customUserDetail) {
 		if (update(id, categoryRequest, customUserDetail)){
 			Optional<Category> category = categoryRepository.findById(id);
 			Category result = category.get();
@@ -92,7 +89,7 @@ public class CategoryServiceImp implements CategoryService {
 	}
 
 	@Override
-	public boolean deleteCategory(Long id) {
+	public boolean deleteCategory(int id) {
 		Optional<Category> category = categoryRepository.findById(id);
 		if (category.isPresent()){
 			List<Product> products = productRepository.findAllByCategoryIdAndIsDeletedFalse(id);
@@ -113,7 +110,7 @@ public class CategoryServiceImp implements CategoryService {
 		return !categoryRepository.findAll(new CategorySpecification(categoryName)).isEmpty();
 	}
 
-	private boolean update(Long id, CategoryRequest categoryRequest, CustomUserDetail customUserDetail){
+	private boolean update(int id, CategoryRequest categoryRequest, CustomUserDetail customUserDetail){
 		Optional<Category> category = categoryRepository.findById(id);
 		if (categoryRequest != null && category.isPresent()){
 			Category update = category.get();

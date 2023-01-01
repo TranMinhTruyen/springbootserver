@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 import javax.persistence.Column;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author Tran Minh Truyen on 04/12/2022
@@ -23,7 +24,7 @@ import java.util.Date;
 @Data
 public class Employee {
 
-    private Long id;
+    private int id;
 
     @Version
     private int version;
@@ -54,6 +55,9 @@ public class Employee {
 
     @Field(value = "role")
     private String role;
+
+    @Field(value = "authorities")
+    private List<String> authorities;
 
     @Field(value = "position")
     private String position;

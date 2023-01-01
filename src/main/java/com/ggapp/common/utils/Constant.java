@@ -2,7 +2,7 @@ package com.ggapp.common.utils;
 
 public class Constant {
     public static final String DATE_TIME_FORMAT_PATTERN = "dd-MM-yyyy HH:mm:ss z";
-    public static final String DATE_TIME_FORMAT_PATTERN_BIRTHDAY = "dd-MM-yyyy";
+    public static final String DATE_FORMAT_PATTERN = "dd-MM-yyyy";
 
     public static final String LOGIN_TYPE = "LOGIN_TYPE";
     public static final String REGISTER_TYPE = "REGISTER_TYPE";
@@ -38,4 +38,11 @@ public class Constant {
     public static final String USER_TYPE = "USER";
     public static final String EMPLOYEE_TYPE = "EMPLOYEE";
     public static final String ADMIN_TYPE = "ADMIN";
+
+    //AUTHORITY TYPE
+    public static final String ALL_PERMISSION = "ALL";
+    public static final String CREATED_PERMISSION = "CREATED";
+    public static final String UPDATE_PERMISSION = "UPDATE";
+    public static final String GET_PERMISSION= "GET";
+    public static final String DELETED_PERMISSION = "DELETED";
 }

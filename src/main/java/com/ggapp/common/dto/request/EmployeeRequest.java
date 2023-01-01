@@ -1,13 +1,15 @@
 package com.ggapp.common.dto.request;
 
+import lombok.Data;
 import org.hibernate.validator.constraints.Length;
-import org.springframework.data.mongodb.core.mapping.Field;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Pattern;
 import java.time.LocalDateTime;
-import java.util.Date;
+import java.util.List;
 
+@Data
 public class EmployeeRequest {
     private int version;
 
@@ -17,11 +19,8 @@ public class EmployeeRequest {
     @NotBlank(message = "password is mandatory")
     private String password;
 
-    @NotBlank(message = "firstName is mandatory")
-    private String firstName;
-
     @NotBlank(message = "lastName is mandatory")
-    private String lastName;
+    private String fullName;
 
     @NotBlank(message = "email is mandatory")
     @Pattern(regexp = "^(.+)@(.+)$")
@@ -53,6 +52,9 @@ public class EmployeeRequest {
     @NotBlank(message = "role is mandatory")
     private String role;
 
+    @NotEmpty(message = "authorities is mandatory")
+    private List<String> authorities;
+
     @NotBlank(message = "position is mandatory")
     private String position;
 
@@ -62,9 +64,9 @@ public class EmployeeRequest {
     @NotBlank(message = "level is mandatory")
     private String level;
 
-    private LocalDateTime hireDate;
+    private String hireDate;
 
-    private LocalDateTime retiredDate;
+    private String retiredDate;
 
     private boolean isActive;
 }

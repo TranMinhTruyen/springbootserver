@@ -14,10 +14,10 @@ import java.util.List;
  */
 
 @Repository
-public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
+public interface ProductRepository extends JpaRepository<Product, Integer>, JpaSpecificationExecutor<Product> {
 
 	@Query("select p from Product p where p.isDeleted = false and p.brand.id = :brandId")
-	List<Product> findAllByBrandIdAndIsDeletedFalse(@Param("brandId") Long brandId);
+	List<Product> findAllByBrandIdAndIsDeletedFalse(@Param("brandId") int brandId);
 
 	@Query("select p from Product p " +
 			"left join p.brand b " +
@@ -25,7 +25,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 	List<Product> findAllByBrandNameAndIsDeletedFalse(@Param("brandName") String brandName);
 
 	@Query("select p from Product p where p.isDeleted = false and p.category.id = :categoryId")
-	List<Product> findAllByCategoryIdAndIsDeletedFalse(@Param("categoryId") Long categoryId);
+	List<Product> findAllByCategoryIdAndIsDeletedFalse(@Param("categoryId") int categoryId);
 
 	@Query("select p from Product p " +
 			"left join p.category c " +
@@ -48,6 +48,9 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 	@Query("select p from Product p where p.isDeleted = false")
 	List<Product> findAllByIsDeletedFalse();
 
-	@Query("select p from Product p where p.isNew = true and p.deleteBy is null and p.deleteDate is null")
+	@Query("select p from Product p where p.deleteBy is null and p.deleteDate is null")
 	List<Product> findAllByNewIsTrue();
+
+	@Query("select p from Product p where p.id in :id and p.deleteBy is null and p.deleteDate is null")
+	List<Product> findAllByIdIn(@Param("id") int[] id);
 }

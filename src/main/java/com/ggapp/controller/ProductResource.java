@@ -55,7 +55,7 @@ public class ProductResource extends CommonResource{
 	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))))
 	@GetMapping(value = "getProductById")
 	@PreAuthorize("permitAll()")
-	public BaseResponse getProductById(@RequestParam long id) throws Exception {
+	public BaseResponse getProductById(@RequestParam int id) throws Exception {
 		ProductResponse productResponse = productService.getProductById(id);
 		return this.returnBaseReponse(productResponse, "Get product successfully", HttpStatus.OK);
 	}
@@ -98,7 +98,7 @@ public class ProductResource extends CommonResource{
 	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
 			security = {@SecurityRequirement(name = "Authorization")})
 	@PutMapping(value = "updateProduct", consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<BaseResponse> updateProduct(@RequestParam long id, @RequestBody ProductRequest productRequest) throws Exception {
+	public ResponseEntity<BaseResponse> updateProduct(@RequestParam int id, @RequestBody ProductRequest productRequest) throws Exception {
 		ProductResponse productResponse = productService.updateProduct(id, productRequest);
 		BaseResponse baseResponse = new BaseResponse();
 		baseResponse.setStatus(HttpStatus.OK.value());
@@ -111,7 +111,7 @@ public class ProductResource extends CommonResource{
 	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
 			security = {@SecurityRequirement(name = "Authorization")})
 	@DeleteMapping(value = "deleteImageOfProduct")
-	public ResponseEntity<BaseResponse> deleteImageOfProduct(@RequestParam long productId, @RequestParam List<Long> imageId) throws Exception {
+	public ResponseEntity<BaseResponse> deleteImageOfProduct(@RequestParam int productId, @RequestParam int[] imageId) throws Exception {
 		productService.deleteLogicImageOfProduct(productId, imageId);
 		BaseResponse baseResponse = new BaseResponse();
 		baseResponse.setStatus(HttpStatus.OK.value());
@@ -124,7 +124,7 @@ public class ProductResource extends CommonResource{
 	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
 			security = {@SecurityRequirement(name = "Authorization")})
 	@DeleteMapping(value = "deleteProduct")
-	public ResponseEntity<?>deleteProduct(@RequestParam List<Long> id) throws Exception {
+	public ResponseEntity<?>deleteProduct(@RequestParam int[] id) throws Exception {
 		productService.deleteProduct(id);
 		BaseResponse baseResponse = new BaseResponse();
 		baseResponse.setStatus(HttpStatus.OK.value());

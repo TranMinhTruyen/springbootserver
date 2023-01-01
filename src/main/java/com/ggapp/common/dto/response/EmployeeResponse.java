@@ -1,12 +1,13 @@
 package com.ggapp.common.dto.response;
 
-import java.time.LocalDateTime;
-import java.util.Date;
+import lombok.Data;
 
+import java.util.List;
+
+@Data
 public class EmployeeResponse {
     private int version;
-    private String firstName;
-    private String lastName;
+    private String fullName;
     private String email;
     private String phoneNumber;
     private String birthDay;
@@ -17,6 +18,7 @@ public class EmployeeResponse {
     private String citizenID;
     private String imageFilePath;
     private String role;
+    private List<String> authorities;
     private String position;
     private String departmentName;
     private String level;

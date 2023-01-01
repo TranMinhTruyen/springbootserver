@@ -47,7 +47,8 @@ public class UserResource extends CommonResource {
     private UserService userService;
 
     @Operation(responses = {
-            @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class))}),
+            @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json",
+                    schema = @Schema(implementation = UserResponse.class))}),
             @ApiResponse(responseCode = "400", description = "Bad request"),
             @ApiResponse(responseCode = "403", description = "Forbidden")
     },
@@ -59,7 +60,8 @@ public class UserResource extends CommonResource {
     }
 
     @Operation(responses = {
-            @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = UserSucessResponse.class))}),
+            @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json",
+                    schema = @Schema(implementation = UserSucessResponse.class))}),
             @ApiResponse(responseCode = "400", description = "Bad request"),
             @ApiResponse(responseCode = "403", description = "Forbidden")
     })
@@ -92,7 +94,7 @@ public class UserResource extends CommonResource {
             security = {@SecurityRequirement(name = "Authorization")})
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping(value = "deleteUser")
-    public BaseResponse deleteUser(@RequestParam long id) throws ApplicationException {
+    public BaseResponse deleteUser(@RequestParam int id) throws ApplicationException {
         userService.deleteUser(id);
         return this.returnBaseReponse(null, DELETED_USER_SUCCESS);
     }

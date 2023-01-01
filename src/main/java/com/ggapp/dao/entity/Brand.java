@@ -23,7 +23,7 @@ import java.util.List;
 public class Brand implements Serializable {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+	private int id;
 
 	@Version
 	private int version;

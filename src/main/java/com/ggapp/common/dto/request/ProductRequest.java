@@ -32,10 +32,10 @@ public class ProductRequest {
 	private long unitInStock;
 
 	@NotBlank(message = "id_brand is mandatory")
-	private Long idBrand;
+	private int idBrand;
 
 	@NotBlank(message = "id_category is mandatory")
-	private Long idCategory;
+	private int idCategory;
 
 	@NotBlank(message = "isNew is mandatory")
 	private boolean isNew;

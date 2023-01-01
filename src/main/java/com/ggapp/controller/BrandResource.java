@@ -33,7 +33,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = "BrandResource")
 @CrossOrigin("*")
 @RequestMapping("api/brand")
-@PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMP')")
+@PreAuthorize("hasRole('ADMIN') or hasRole('EMP')")
 public class BrandResource {
 
 	@Autowired
@@ -86,7 +86,7 @@ public class BrandResource {
 	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
 			security = {@SecurityRequirement(name = "Authorization")})
 	@PutMapping(value = "updateBrand", consumes = MediaType.APPLICATION_JSON_VALUE)
-	public BaseResponse updateBrand(@RequestParam long id, @RequestBody BrandRequest brandRequest) throws ApplicationException {
+	public BaseResponse updateBrand(@RequestParam int id, @RequestBody BrandRequest brandRequest) throws ApplicationException {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
 		BrandResponse brandResponse = brandService.updateBrand(id, brandRequest, customUserDetail);
@@ -101,7 +101,7 @@ public class BrandResource {
 	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
 			security = {@SecurityRequirement(name = "Authorization")})
 	@DeleteMapping(value = "logicDeleteBrand")
-	public BaseResponse logicDeleteBrand(@RequestParam long id) throws ApplicationException {
+	public BaseResponse logicDeleteBrand(@RequestParam int id) throws ApplicationException {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
 		BrandResponse brandResponse = brandService.logicDeleteBrand(id, customUserDetail);
@@ -117,7 +117,7 @@ public class BrandResource {
 			security = {@SecurityRequirement(name = "Authorization")})
 	@DeleteMapping(value = "physicalDeleteBrand")
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
-	public BaseResponse physicalDeleteBrand(@RequestParam long id) throws ApplicationException {
+	public BaseResponse physicalDeleteBrand(@RequestParam int id) throws ApplicationException {
 		brandService.physicalDeleteBrand(id);
 		BaseResponse baseResponse = new BaseResponse();
 		baseResponse.setStatus(HttpStatus.OK.value());

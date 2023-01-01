@@ -11,10 +11,12 @@ import com.ggapp.dao.document.ListProduct;
 import com.ggapp.dao.document.Order;
 import com.ggapp.dao.document.User;
 import com.ggapp.dao.entity.Product;
+import com.ggapp.dao.entity.Store;
 import com.ggapp.dao.repository.mongo.CartRepository;
 import com.ggapp.dao.repository.mongo.OrderRepository;
 import com.ggapp.dao.repository.mongo.UserRepository;
 import com.ggapp.dao.repository.mysql.ProductRepository;
+import com.ggapp.dao.repository.mysql.StoreRepository;
 import com.ggapp.services.CartService;
 import com.ggapp.services.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +32,8 @@ import java.util.Optional;
 import static com.ggapp.common.enums.MessageResponse.CART_NOT_FOUND;
 import static com.ggapp.common.enums.MessageResponse.ORDER_NOT_FOUND;
 import static com.ggapp.common.enums.MessageResponse.ORDER_NOT_FOUND_PRODUCT;
+import static com.ggapp.common.enums.MessageResponse.PRODUCT_NOT_FOUND;
+import static com.ggapp.common.enums.MessageResponse.STORE_NOT_FOUND;
 import static com.ggapp.common.enums.MessageResponse.USER_NOT_FOUND;
 
 /**
@@ -60,8 +64,11 @@ public class OrderServiceImp implements OrderService {
     @Autowired
     private CartService cartService;
 
+    @Autowired
+    private StoreRepository storeRepository;
+
     @Override
-    public OrderResponse createOrderByCart(Long customerId) throws ApplicationException {
+    public OrderResponse createOrderByCart(int customerId) throws ApplicationException {
         List<Order> last = new AutoIncrement(orderRepository).getLastOfCollection();
         Optional<Cart> cartResult = cartRepository.findById(customerId);
         Optional<User> userResult = userRepository.findById(customerId);
@@ -71,7 +78,7 @@ public class OrderServiceImp implements OrderService {
             Order newOrder = new Order();
             if (last != null)
                 newOrder.setId(last.get(0).getId() + 1);
-            else newOrder.setId(1L);
+            else newOrder.setId(1);
             newOrder.setCustomerId(userResult.get().getId());
             newOrder.setCreateDate(new Date());
             newOrder.setListProducts(cartResult.get().getProductList());
@@ -90,10 +97,18 @@ public class OrderServiceImp implements OrderService {
     }
 
     @Override
-    public OrderResponse createOrderByProductId(Long customerId, int[] productId) throws ApplicationException {
+    public OrderResponse createOrderByProductId(int customerId, int[] productId, int storeId) throws ApplicationException {
+
         List<Order> last = new AutoIncrement(orderRepository).getLastOfCollection();
+
         Optional<Cart> cartResult = cartRepository.findById(customerId);
         Optional<User> userResult = userRepository.findById(customerId);
+        Optional<Store> storeResult = storeRepository.findById(storeId);
+
+        User user = userResult.orElseThrow(() -> new ApplicationException(USER_NOT_FOUND));
+        Cart cart = cartResult.orElseThrow(() -> new ApplicationException(CART_NOT_FOUND));
+        Store store = storeResult.orElseThrow(() -> new ApplicationException(STORE_NOT_FOUND));
+
         if (userResult.isPresent() && cartResult.isPresent() && productId != null) {
             Order newOrder = new Order();
             BigDecimal totalPrice = new BigDecimal(0);
@@ -104,14 +119,14 @@ public class OrderServiceImp implements OrderService {
                         productList.add(product);
                         totalPrice = totalPrice.add(product.getPriceAfterDiscount()
                                 .multiply(BigDecimal.valueOf(product.getProductAmount())));
-                        cartService.removeProductFromCart(customerId, product.getId());
+                        cartService.removeProductFromCart(user.getId(), product.getId(), store.getId());
                     }
                 }
             }
             if (!productList.isEmpty()) {
                 if (last != null)
                     newOrder.setId(last.get(0).getId() + 1);
-                else newOrder.setId(1L);
+                else newOrder.setId(1);
                 newOrder.setCustomerId(userResult.get().getId());
                 newOrder.setCreateDate(new Date());
                 newOrder.setListProducts(productList);
@@ -146,7 +161,7 @@ public class OrderServiceImp implements OrderService {
     }
 
     @Override
-    public CommonResponsePayload getOrderByCustomerId(int page, int size, Long id) {
+    public CommonResponsePayload getOrderByCustomerId(int page, int size, int id) {
         List<Order> result = orderRepository.findOrderByCustomerId(id);
         if (result != null) {
             return new CommonResponsePayload().getCommonResponse(page, size, result);
@@ -155,7 +170,7 @@ public class OrderServiceImp implements OrderService {
 
     @Override
     @Transactional
-    public boolean updateOrder(Long id, OrderRequest orderRequest) throws ApplicationException {
+    public boolean updateOrder(int id, OrderRequest orderRequest) throws ApplicationException {
         Optional<Order> order = orderRepository.findById(id);
         order.orElseThrow(() -> new ApplicationException(ORDER_NOT_FOUND));
         if (order.isPresent()) {
@@ -169,7 +184,7 @@ public class OrderServiceImp implements OrderService {
     }
 
     @Override
-    public boolean deleteOrder(Long id, Long customerId) throws ApplicationException {
+    public boolean deleteOrder(int id, int customerId) throws ApplicationException {
         Optional<Order> order = orderRepository.findOrderByIdAndCustomerId(id, customerId);
         order.orElseThrow(() -> new ApplicationException(ORDER_NOT_FOUND));
         for (ListProduct listProduct : order.get().getListProducts()) {
@@ -179,7 +194,7 @@ public class OrderServiceImp implements OrderService {
         return true;
     }
 
-    private void returnProductFromOrder(Long productId, long amount) {
+    private void returnProductFromOrder(int productId, long amount) {
         Optional<Product> update = productRepository.findById(productId);
         productRepository.save(update.get());
     }

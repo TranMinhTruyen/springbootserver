@@ -19,7 +19,7 @@ import java.util.List;
 public class ListProduct {
 
 	@Field(value = "productId")
-	private Long id;
+	private int id;
 
 	@Field(value = "productName")
 	private String productName;
@@ -37,5 +37,5 @@ public class ListProduct {
 	private float discount;
 
 	@Field(value = "productAmount")
-	private long productAmount;
+	private int productAmount;
 }

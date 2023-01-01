@@ -13,7 +13,7 @@ import java.util.Optional;
  * @author Tran Minh Truyen
  */
 @Repository
-public interface UserRepository extends MongoRepository<User, Long> {
-    Optional<List<User>> findUserByFirstNameContainingOrLastNameContaining(String firstName, String lastName);
+public interface UserRepository extends MongoRepository<User, Integer> {
+    Optional<List<User>> findUserByFullNameContaining(String fullName);
     Optional<User> findByEmailEqualsIgnoreCase(String email);
 }

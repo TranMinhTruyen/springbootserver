@@ -13,7 +13,7 @@ import java.util.List;
 public class CartRequest {
 
 	@NotBlank(message = "customerId is mandatory")
-	private long customerId;
+	private int customerId;
 
 	private int version;
 

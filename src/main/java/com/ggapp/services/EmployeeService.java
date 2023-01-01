@@ -9,8 +9,8 @@ public interface EmployeeService {
     EmployeeResponse createEmployee(EmployeeRequest employeeRequest, String confirmKey) throws ApplicationException;
     CommonResponsePayload getAllEmployee(int page, int size) throws ApplicationException;
     CommonResponsePayload getEmployeeByKeyWord(int page, int size, String keyword) throws ApplicationException;
-    EmployeeResponse getProfileEmployee(Long id) throws ApplicationException;
-    EmployeeResponse updateEmployee(Long id, EmployeeRequest employeeRequest) throws ApplicationException;
-    boolean logicDeletedEmployee(Long id) throws ApplicationException;
-    boolean physicDeletedEmployee(Long id) throws ApplicationException;
+    EmployeeResponse getProfileEmployee(int id) throws ApplicationException;
+    EmployeeResponse updateEmployee(int id, EmployeeRequest employeeRequest) throws ApplicationException;
+    boolean logicDeletedEmployee(int id) throws ApplicationException;
+    boolean physicDeletedEmployee(int id) throws ApplicationException;
 }

@@ -35,6 +35,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             "/api/account/loginAnotherDevice",
             "/api/account/loginAnotherDeviceSendConfirmKey",
             "/api/user/createUser",
+            "/api/employee/**",
             "/api/account/resetPassword",
             "/api/account/sendConfirmKey",
             "/api/account/checkConfirmKey",

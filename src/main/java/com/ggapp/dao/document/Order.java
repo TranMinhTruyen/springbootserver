@@ -18,16 +18,16 @@ import java.util.List;
 @Data
 public class Order {
 
-	private Long id;
+	private int id;
 
 	@Version
 	private int version;
 
 	@Field(value = "customerId")
-	private Long customerId;
+	private int customerId;
 
 	@Field(value = "employeeId")
-	private Long employeeId;
+	private int employeeId;
 
 	@Field(value = "createDate")
 	private Date createDate;

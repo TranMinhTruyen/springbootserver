@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 import javax.persistence.Column;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 
 
 /**
@@ -18,7 +19,7 @@ import java.util.Date;
 @Data
 public class User {
 
-    private Long id;
+    private int id;
 
     @Version
     private int version;
@@ -52,6 +53,9 @@ public class User {
 
     @Field(value = "role")
     private String role;
+
+    @Field(value = "authorities")
+    private List<String> authorities;
 
     @Field(value = "imageFilePath")
     private String imageFilePath;

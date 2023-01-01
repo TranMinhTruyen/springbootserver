@@ -89,15 +89,16 @@ public class ProductServiceImp implements ProductService {
 
     @Override
     public ProductResponse createProduct(ProductRequest productRequest, CustomUserDetail customUserDetail) throws ApplicationException {
+
         Optional<Brand> brand = brandRepository.findById(productRequest.getIdBrand());
         Optional<Category> category = categoryRepository.findById(productRequest.getIdCategory());
         List<Product> product = productRepository.findAllByNameEqualsIgnoreCaseAndIsDeletedFalse(productRequest.getName());
+
         if (!product.isEmpty()) throw new ApplicationException(PRODUCT_IS_EXIST);
-        brand.orElseThrow(() -> new ApplicationException(BRAND_NOT_FOUND));
-        category.orElseThrow(() -> new ApplicationException(CATEGORY_NOT_FOUND));
+
         Product newProduct = productMapper.requestToEntity(productRequest);
-        newProduct.setBrand(brand.get());
-        newProduct.setCategory(category.get());
+        newProduct.setBrand(brand.orElse(null));
+        newProduct.setCategory(category.orElse(null));
         newProduct.setCreatedDate(LocalDateTime.now());
         newProduct.setCreatedBy(customUserDetail.getAccountDetail().getFirstName() + customUserDetail.getAccountDetail().getLastName());
         newProduct.setDeleted(false);
@@ -153,14 +154,15 @@ public class ProductServiceImp implements ProductService {
     }
 
     @Override
-    public ProductResponse getProductById(Long id) throws ApplicationException {
+    public ProductResponse getProductById(int id) throws ApplicationException {
         Optional<Product> product = productRepository.findById(id);
         product.orElseThrow(() -> new ApplicationException(PRODUCT_NOT_FOUND));
         return getProductAfterUpdateOrCreate(product.get());
     }
 
     @Override
-    public CommonResponsePayload getProductByKeyWord(int page, int size, String name, String brand, String category, float fromPrice, float toPrice) throws ApplicationException {
+    public CommonResponsePayload getProductByKeyWord(int page, int size, String name, String brand, String category,
+                                                     float fromPrice, float toPrice) throws ApplicationException {
         List<Product> productList = new ArrayList<>();
 
         if (StringUtils.hasText(name)) {
@@ -185,7 +187,7 @@ public class ProductServiceImp implements ProductService {
     }
 
     @Override
-    public ProductResponse updateProduct(Long id, ProductRequest productRequest) throws ApplicationException {
+    public ProductResponse updateProduct(int id, ProductRequest productRequest) throws ApplicationException {
         Optional<Product> product = productRepository.findById(id);
         product.orElseThrow(() -> new ApplicationException(PRODUCT_IS_EXIST));
         SecurityContext securityContext = SecurityContextHolder.getContext();
@@ -205,8 +207,8 @@ public class ProductServiceImp implements ProductService {
     }
 
     @Override
-    public boolean deleteLogicProduct(List<Long> id) throws ApplicationException {
-        List<Product> product = productRepository.findAllById(id);
+    public boolean deleteLogicProduct(int[] id) throws ApplicationException {
+        List<Product> product = productRepository.findAllByIdIn(id);
         if (!product.isEmpty()) {
             for (long i : id) {
                 for (Product p : product) {
@@ -222,18 +224,18 @@ public class ProductServiceImp implements ProductService {
     }
 
     @Override
-    public void deleteProduct(List<Long> id) throws ApplicationException {
-        List<Product> product = productRepository.findAllById(id);
+    public void deleteProduct(int[] id) throws ApplicationException {
+        List<Product> product = productRepository.findAllByIdIn(id);
         if (!product.isEmpty()) {
-            for (long i : id) {
+            for (int i : id) {
                 deleteProductFromCart(i);
+                productRepository.deleteById(i);
+                productImageRepository.deleteById(i);
             }
-            productRepository.deleteAllById(id);
-            productImageRepository.deleteAllById(id);
         } else throw new ApplicationException(PRODUCT_NOT_FOUND);
     }
 
-    public void updateProductFromCart(long productId, Product product) {
+    public void updateProductFromCart(int productId, Product product) {
         List<Cart> cartResult = cartRepository.findAll();
         for (Cart cart : cartResult) {
             for (ListProduct listProduct : cart.getProductList()) {
@@ -269,13 +271,13 @@ public class ProductServiceImp implements ProductService {
     }
 
     @Override
-    public void deleteLogicImageOfProduct(Long productId, List<Long> imageId) throws ApplicationException {
+    public void deleteLogicImageOfProduct(int productId, int[] imageId) throws ApplicationException {
         Optional<List<ProductImage>> result = productImageRepository.findByProductId(productId);
         if (result.isPresent()) {
             List<ProductImage> imageList = result.get();
-            for (Long i : imageId) {
+            for (int i : imageId) {
                 for (ProductImage productImage : imageList) {
-                    if (productImage.getId().longValue() == i) {
+                    if (productImage.getId() == i) {
                         productImage.setDeleted(true);
                         break;
                     }

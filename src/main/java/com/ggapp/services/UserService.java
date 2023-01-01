@@ -12,7 +12,7 @@ public interface UserService {
 	UserResponse createUser(UserRequest userRequest, String confirmKey) throws ApplicationException;
 	CommonResponsePayload getAllUser(int page, int size) throws ApplicationException;
 	CommonResponsePayload getUserByKeyWord(int page, int size, String keyword) throws ApplicationException;
-	UserResponse getProfileUser(Long id) throws ApplicationException;
-	UserResponse updateUser(Long id, UserRequest request) throws ApplicationException;
-	boolean deleteUser(Long id) throws ApplicationException;
+	UserResponse getProfileUser(int id) throws ApplicationException;
+	UserResponse updateUser(int id, UserRequest request) throws ApplicationException;
+	boolean deleteUser(int id) throws ApplicationException;
 }

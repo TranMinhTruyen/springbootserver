@@ -3,6 +3,8 @@ package com.ggapp.dao.repository.mongo;
 import com.ggapp.dao.document.Employee;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
+import java.util.Optional;
+
 /**
  * @author Tran Minh Truyen on 09/12/2022
  * Dear maintainer.
@@ -12,5 +14,6 @@ import org.springframework.data.mongodb.repository.MongoRepository;
  * following counter as a warning to the next guy
  * TOTAL_HOURS_WASTED_HERE =
  */
-public interface EmployeeRepository extends MongoRepository<Employee, Long> {
+public interface EmployeeRepository extends MongoRepository<Employee, Integer> {
+    Optional<Employee> findByEmailEqualsIgnoreCase(String email);
 }

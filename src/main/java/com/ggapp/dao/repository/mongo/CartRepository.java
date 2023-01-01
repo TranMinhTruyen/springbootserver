@@ -8,5 +8,5 @@ import org.springframework.stereotype.Repository;
  * @author Tran Minh Truyen
  */
 @Repository
-public interface CartRepository extends MongoRepository<Cart, Long> {
+public interface CartRepository extends MongoRepository<Cart, Integer> {
 }

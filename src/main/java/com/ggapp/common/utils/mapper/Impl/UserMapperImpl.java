@@ -2,27 +2,34 @@ package com.ggapp.common.utils.mapper.Impl;
 
 import com.ggapp.common.dto.request.UserRequest;
 import com.ggapp.common.dto.response.UserResponse;
+import com.ggapp.common.utils.CommonUtils;
 import com.ggapp.common.utils.Constant;
 import com.ggapp.common.utils.mapper.UserMapper;
 import com.ggapp.dao.document.User;
-import com.google.common.hash.Hashing;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.ggapp.common.utils.Constant.DATE_FORMAT_PATTERN;
+
 @Component
 public class UserMapperImpl implements UserMapper {
+
+    @Autowired
+    private CommonUtils commonUtils;
+
     @Override
     public User requestToEntity(UserRequest userRequest) {
         if (userRequest == null)
             return null;
         User user = new User();
         user.setFullName(userRequest.getFullName());
-        user.setBirthDay(LocalDateTime.parse(userRequest.getBirthDay(), DateTimeFormatter.ofPattern(Constant.DATE_TIME_FORMAT_PATTERN_BIRTHDAY)));
+        user.setBirthDay(commonUtils.convertDateStringToLocalDateTime(userRequest.getBirthDay(),
+                DATE_FORMAT_PATTERN));
         user.setEmail(userRequest.getEmail());
         user.setPhoneNumber(userRequest.getPhoneNumber());
         user.setCitizenId(userRequest.getCitizenID());
@@ -40,7 +47,7 @@ public class UserMapperImpl implements UserMapper {
             return null;
         UserResponse userResponse = new UserResponse();
         userResponse.setFullName(user.getFullName());
-        userResponse.setBirthDay(user.getBirthDay().format(DateTimeFormatter.ofPattern(Constant.DATE_TIME_FORMAT_PATTERN_BIRTHDAY)));
+        userResponse.setBirthDay(commonUtils.convertLocalDateTimeToDateString(user.getBirthDay(), DATE_FORMAT_PATTERN));
         userResponse.setEmail(user.getEmail());
         userResponse.setPhoneNumber(user.getPhoneNumber());
         userResponse.setCitizenID(user.getCitizenId());

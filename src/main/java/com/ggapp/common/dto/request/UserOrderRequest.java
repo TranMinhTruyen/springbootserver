@@ -14,5 +14,7 @@ UserOrderRequest implements Serializable {
 
 	private int version;
 
-	private int [] productId;
+	private int[] productId;
+
+	private int storeId;
 }

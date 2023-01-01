@@ -45,7 +45,7 @@ public class BrandServiceImp implements BrandService {
 
 	@Override
 	public BrandResponse createBrand(BrandRequest brandRequest, CustomUserDetail customUserDetail) throws ApplicationException {
-		if (!isExists(brandRequest.getName())){
+		if (isExists(brandRequest.getName())){
 			Brand newBrand = new Brand();
 			newBrand.setName(brandRequest.getName());
 			newBrand.setDescription(brandRequest.getDescription());
@@ -76,7 +76,7 @@ public class BrandServiceImp implements BrandService {
 	}
 
 	@Override
-	public BrandResponse updateBrand(Long id, BrandRequest brandRequest, CustomUserDetail customUserDetail) throws ApplicationException {
+	public BrandResponse updateBrand(int id, BrandRequest brandRequest, CustomUserDetail customUserDetail) throws ApplicationException {
 		Optional<Brand> brand = brandRepository.findById(id);
 		brand.orElseThrow(() -> new ApplicationException(BRAND_NOT_FOUND));
 		Brand update = brand.get();
@@ -89,7 +89,7 @@ public class BrandServiceImp implements BrandService {
 	}
 
 	@Override
-	public BrandResponse logicDeleteBrand(Long id, CustomUserDetail customUserDetail) throws ApplicationException {
+	public BrandResponse logicDeleteBrand(int id, CustomUserDetail customUserDetail) throws ApplicationException {
 		Optional<Brand> brand = brandRepository.findById(id);
 		brand.orElseThrow(() -> new ApplicationException(BRAND_NOT_FOUND));
 		List<Product> products = productRepository.findAllByBrandIdAndIsDeletedFalse(id);
@@ -107,7 +107,7 @@ public class BrandServiceImp implements BrandService {
 	}
 
 	@Override
-	public boolean physicalDeleteBrand(Long id) throws ApplicationException {
+	public boolean physicalDeleteBrand(int id) throws ApplicationException {
 		Optional<Brand> brand = brandRepository.findById(id);
 		brand.orElseThrow(() -> new ApplicationException(BRAND_NOT_FOUND));
 		List<Product> products = productRepository.findAllByBrandIdAndIsDeletedFalse(id);
@@ -123,6 +123,6 @@ public class BrandServiceImp implements BrandService {
 
 	@Override
 	public boolean isExists(String brandName) {
-		return !brandRepository.findAll(new BrandSpecification().nameLike(brandName)).isEmpty();
+		return brandRepository.findAll(new BrandSpecification().nameLike(brandName)).isEmpty();
 	}
 }

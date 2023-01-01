@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 @CrossOrigin("*")
 @RequestMapping("api/cart")
 @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
-public class CartResource {
+public class CartResource extends CommonResource{
 
 	@Autowired
 	private CartService cartService;
@@ -41,8 +41,9 @@ public class CartResource {
 	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
 			security = {@SecurityRequirement(name = "Authorization")})
 	@PostMapping(value = "createCartAndAddProductToCart")
-	public BaseResponse createCartAndAddProductToCart(@RequestParam long productId, @RequestParam long storeId,
-														   @RequestParam(required = false, defaultValue = "1") long productAmount)
+	public BaseResponse createCartAndAddProductToCart(@RequestParam int productId,
+													  @RequestParam int storeId,
+													  @RequestParam(required = false, defaultValue = "1") int productAmount)
 			throws Exception {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
@@ -81,9 +82,9 @@ public class CartResource {
 	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
 			security = {@SecurityRequirement(name = "Authorization")})
 	@PutMapping(value = "updateProductAmount")
-	public BaseResponse updateProductAmount(@RequestParam long productId,
-											@RequestParam long storeId,
-											@RequestParam long amount) throws Exception {
+	public BaseResponse updateProductAmount(@RequestParam int productId,
+											@RequestParam int storeId,
+											@RequestParam int amount) throws Exception {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
 		CartResponse cartResponse = cartService.updateProductAmountInCart(customUserDetail.getAccountDetail().getOwnerId(), productId, storeId, amount);
@@ -97,7 +98,7 @@ public class CartResource {
 	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
 			security = {@SecurityRequirement(name = "Authorization")})
 	@DeleteMapping(value = "removeProductFromCart")
-	public BaseResponse updateProductList(@RequestParam long productId, @RequestParam long storeId) throws ApplicationException {
+	public BaseResponse updateProductList(@RequestParam int productId, @RequestParam int storeId) throws ApplicationException {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
 		CartResponse cartResponse = cartService.removeProductFromCart(customUserDetail.getAccountDetail().getOwnerId(), productId, storeId);
@@ -111,7 +112,7 @@ public class CartResource {
 	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
 			security = {@SecurityRequirement(name = "Authorization")})
 	@DeleteMapping(value = "deleteCart")
-	public BaseResponse deleteCart(@RequestParam long storeId) throws ApplicationException {
+	public BaseResponse deleteCart(@RequestParam int storeId) throws ApplicationException {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
 		cartService.deleteCart(customUserDetail.getAccountDetail().getOwnerId(), storeId);

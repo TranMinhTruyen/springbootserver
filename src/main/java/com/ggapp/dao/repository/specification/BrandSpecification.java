@@ -13,15 +13,16 @@ public final class BrandSpecification {
 		return (root, query, criteriaBuilder) ->  {
 			List<Predicate> predicates = new ArrayList<>();
 			if (name != null){
-				predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("name").as(String.class)), "%" + name + "%"));
+				predicates.add(criteriaBuilder.like(root.get("name").as(String.class), name));
 				predicates.add(criteriaBuilder.equal(criteriaBuilder.lower(root.get("id").as(String.class)), name));
-				predicates.add(criteriaBuilder.equal(root.get("isDeleted").as(Boolean.class), false));
 			}
-			Predicate search = null;
+			Predicate finalPredicate = null;
 			if (!predicates.isEmpty()){
-				search = criteriaBuilder.or(predicates.toArray(new Predicate[] {}));
+				Predicate isDeleted = criteriaBuilder.equal(root.get("isDeleted").as(Boolean.class), false);
+				Predicate search = criteriaBuilder.or(predicates.toArray(new Predicate[] {}));
+				finalPredicate = criteriaBuilder.and(search, isDeleted);
 			}
-			return search;
+			return finalPredicate;
 		};
 	};
 }

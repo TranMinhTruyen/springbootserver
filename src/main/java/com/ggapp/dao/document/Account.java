@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 @Document(collection = "Account")
 @Data
 public class Account {
-    private Long id;
+    private int id;
 
     @Version
     private int version;
@@ -36,7 +36,7 @@ public class Account {
     private String password;
 
     @Field(value = "ownerId")
-    private Long ownerId;
+    private int ownerId;
 
     @Field(value = "accountType")
     private String accountType;
@@ -64,4 +64,5 @@ public class Account {
 
     @Field(name = "deleteBy")
     private String deleteBy;
+
 }

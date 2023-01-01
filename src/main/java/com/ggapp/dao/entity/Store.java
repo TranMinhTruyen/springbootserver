@@ -27,7 +27,7 @@ import java.util.List;
 public class Store implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private int id;
 
     @Column(name = "store_code")
     private String storeCode;

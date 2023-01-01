@@ -9,7 +9,7 @@ public interface CategoryService {
 	boolean createCategory(CategoryRequest categoryRequest, CustomUserDetail customUserDetail);
 	CommonResponsePayload getAllCategory(int page, int size);
 	CommonResponsePayload getCategoryByKeyword(int page, int size, String keyword);
-	CategoryResponse updateCategory(Long id, CategoryRequest categoryRequest, CustomUserDetail customUserDetail);
-	boolean deleteCategory(Long id);
+	CategoryResponse updateCategory(int id, CategoryRequest categoryRequest, CustomUserDetail customUserDetail);
+	boolean deleteCategory(int id);
 	boolean isExists(String categoryName);
 }

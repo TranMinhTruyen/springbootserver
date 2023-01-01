@@ -20,7 +20,7 @@ import javax.persistence.Table;
 public class ProductReview {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private int id;
 
     @Column
     private int star;

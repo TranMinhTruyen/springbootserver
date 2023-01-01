@@ -136,6 +136,8 @@ public class SessionServiceImp implements SessionService {
             DeviceInfo deviceInfo = setDeviceInfo(loginRequest, jwt);
             deviceInfoList.add(deviceInfo);
             newSession.setId(customUserDetail.getAccountDetail().getOwnerId());
+            newSession.setRole(customUserDetail.getAccountDetail().getRole());
+            newSession.setAuthorities(customUserDetail.getAccountDetail().getAuthorities());
             newSession.setDeviceInfoList(deviceInfoList);
             newSession.setCreatedDate(new Date());
             sessionRepository.save(newSession);

@@ -87,7 +87,7 @@ public class CategoryResource {
     @Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
             security = {@SecurityRequirement(name = "Authorization")})
     @PutMapping(value = "updateCategory", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> updateCategory(@RequestParam long id, @RequestBody CategoryRequest categoryRequest) {
+    public ResponseEntity<?> updateCategory(@RequestParam int id, @RequestBody CategoryRequest categoryRequest) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
         if (authentication != null && (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")))) {
@@ -103,7 +103,7 @@ public class CategoryResource {
     @Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
             security = {@SecurityRequirement(name = "Authorization")})
     @DeleteMapping(value = "deleteCategory")
-    public ResponseEntity<?> deleteBrand(@RequestParam long id) {
+    public ResponseEntity<?> deleteBrand(@RequestParam int id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")))) {
             if (categoryService.deleteCategory(id)) {

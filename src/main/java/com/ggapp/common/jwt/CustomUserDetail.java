@@ -31,6 +31,11 @@ public class CustomUserDetail implements UserDetails {
 		if (StringUtils.hasText(accountDetail.getPosition())) {
 			authorities.add(new SimpleGrantedAuthority(accountDetail.getPosition()));
 		}
+		if (accountDetail.getAuthorities() != null && !accountDetail.getAuthorities().isEmpty()) {
+			for (String authority: accountDetail.getAuthorities()) {
+				authorities.add(new SimpleGrantedAuthority(authority));
+			}
+		}
 		return authorities;
 	}
 

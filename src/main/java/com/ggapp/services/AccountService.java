@@ -1,5 +1,6 @@
 package com.ggapp.services;
 
+import com.ggapp.common.dto.request.EmployeeRequest;
 import com.ggapp.common.dto.request.LoginRequest;
 import com.ggapp.common.dto.request.UserRequest;
 import com.ggapp.common.dto.response.JwtResponse;
@@ -20,11 +21,11 @@ import org.springframework.security.core.userdetails.UserDetails;
  */
 public interface AccountService {
     void createUserAccount(User user, UserRequest userRequest);
-    void createEmployeeAccount(Employee employee);
+    void createEmployeeAccount(Employee employee, EmployeeRequest employeeRequest);
     JwtResponse loginAnotherDevice(LoginRequest loginRequest, String confirmKey) throws ApplicationException;
     UserResponse resetPassword(String email) throws ApplicationException;
     boolean accountIsExists(String account);
-    UserDetails loadUserById(Long id) throws ApplicationException;
+    UserDetails loadUserById(int id) throws ApplicationException;
     void sendEmailRegisterConfirmKey(String email) throws ApplicationException;
     void sendEmailLoginConfirmKey(LoginRequest loginRequest) throws ApplicationException;
     void activateAccount(String key, String email) throws ApplicationException;

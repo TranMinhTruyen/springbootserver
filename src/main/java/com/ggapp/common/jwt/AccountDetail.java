@@ -2,6 +2,8 @@ package com.ggapp.common.jwt;
 
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * @author Tran Minh Truyen on 04/12/2022
  * Dear maintainer.
@@ -13,12 +15,13 @@ import lombok.Data;
  */
 @Data
 public class AccountDetail {
-    private Long ownerId;
+    private int ownerId;
     private String account;
     private String password;
     private String firstName;
     private String lastName;
     private String role;
+    private List<String> authorities;
     private String position;
     private String departmentName;
     private boolean isActive;

@@ -4,6 +4,7 @@ import com.ggapp.common.dto.request.UserRequest;
 import com.ggapp.common.dto.response.CommonResponsePayload;
 import com.ggapp.common.dto.response.UserResponse;
 import com.ggapp.common.exception.ApplicationException;
+import com.ggapp.common.utils.CommonUtils;
 import com.ggapp.common.utils.Constant;
 import com.ggapp.common.utils.FileUtils;
 import com.ggapp.common.utils.mapper.UserMapper;
@@ -28,6 +29,7 @@ import static com.ggapp.common.enums.MessageResponse.USER_IS_EXIST;
 import static com.ggapp.common.enums.MessageResponse.USER_NOT_FOUND;
 import static com.ggapp.common.enums.MessageResponse.USER_NOT_FOUND_GET_ALL;
 import static com.ggapp.common.enums.MessageResponse.USER_NOT_MATCH;
+import static com.ggapp.common.utils.Constant.DATE_FORMAT_PATTERN;
 import static com.ggapp.common.utils.Constant.USER_FILE_PATH;
 
 
@@ -38,7 +40,7 @@ import static com.ggapp.common.utils.Constant.USER_FILE_PATH;
  * Now, only God knows!
  * So if you are done trying to 'optimize' this routine (and failed), please increment the
  * following counter as a warning to the next guy
- * TOTAL_HOURS_WASTED_HERE = 205
+ * TOTAL_HOURS_WASTED_HERE = 206
  */
 
 @Service
@@ -59,6 +61,9 @@ public class UserServiceImp implements UserService {
     @Autowired
     private FileUtils fileUtils;
 
+    @Autowired
+    private CommonUtils commonUtils;
+
     @Override
     public UserResponse createUser(UserRequest userRequest, String confirmKey) throws ApplicationException {
         if (!accountService.accountIsExists(userRequest.getAccount()) && emailIsExists(userRequest.getEmail()) &&
@@ -66,16 +71,23 @@ public class UserServiceImp implements UserService {
             List<User> last = new AutoIncrement(userRepository).getLastOfCollection();
             User newUser = new User();
             newUser.setFullName(userRequest.getFullName());
-            newUser.setBirthDay(LocalDateTime.parse(userRequest.getBirthDay(), DateTimeFormatter.ofPattern(Constant.DATE_TIME_FORMAT_PATTERN_BIRTHDAY)));
+            newUser.setBirthDay(commonUtils.convertDateStringToLocalDateTime(userRequest.getBirthDay(),
+                    DATE_FORMAT_PATTERN));
             if (last != null)
                 newUser.setId(last.get(0).getId() + 1);
-            else newUser.setId(1L);
+            else newUser.setId(1);
             newUser.setAddress(userRequest.getAddress());
             newUser.setDistrict(userRequest.getDistrict());
             newUser.setCity(userRequest.getCity());
             newUser.setPostCode(userRequest.getPostCode());
             newUser.setEmail(userRequest.getEmail());
-            newUser.setRole(userRequest.getRole());
+
+            if (!userRequest.getRole().contains("ROLE_")) {
+                newUser.setRole("ROLE_" + userRequest.getRole());
+            } else {
+                newUser.setRole(userRequest.getRole());
+            }
+
             newUser.setImageFilePath(fileUtils.saveFile(userRequest.getAccount() + "_" + newUser.getId(),
                     userRequest.getImageFileData(), USER_FILE_PATH + userRequest.getAccount()));
             newUser.setActive(true);
@@ -103,14 +115,14 @@ public class UserServiceImp implements UserService {
 
     @Override
     public CommonResponsePayload getUserByKeyWord(int page, int size, String keyword) throws ApplicationException {
-        Optional<List<User>> result = userRepository.findUserByFirstNameContainingOrLastNameContaining(keyword, keyword);
+        Optional<List<User>> result = userRepository.findUserByFullNameContaining(keyword);
         result.orElseThrow(() -> new ApplicationException(USER_NOT_MATCH));
         List<UserResponse> userResponseList = userMapper.entityToResponse(result.get());
         return new CommonResponsePayload().getCommonResponse(page, size, userResponseList);
     }
 
     @Override
-    public UserResponse updateUser(Long id, UserRequest request) throws ApplicationException {
+    public UserResponse updateUser(int id, UserRequest request) throws ApplicationException {
         Optional<User> user = userRepository.findById(id);
         user.orElseThrow(() -> new ApplicationException(USER_NOT_FOUND));
         User update = user.get();
@@ -125,7 +137,7 @@ public class UserServiceImp implements UserService {
         if (request.getPostCode() != null)
             update.setPostCode(request.getPostCode());
         if (request.getBirthDay() != null)
-            update.setBirthDay(LocalDateTime.parse(request.getBirthDay(), DateTimeFormatter.ofPattern(Constant.DATE_TIME_FORMAT_PATTERN_BIRTHDAY)));
+            update.setBirthDay(LocalDateTime.parse(request.getBirthDay(), DateTimeFormatter.ofPattern(Constant.DATE_FORMAT_PATTERN)));
         if (request.getCitizenID() != null)
             update.setCitizenId(request.getCitizenID());
         if (request.getEmail() != null)
@@ -139,7 +151,7 @@ public class UserServiceImp implements UserService {
     }
 
     @Override
-    public boolean deleteUser(Long id) throws ApplicationException {
+    public boolean deleteUser(int id) throws ApplicationException {
         Optional<User> user = userRepository.findById(id);
         if (user.isPresent()) {
             userRepository.deleteById(id);
@@ -153,12 +165,12 @@ public class UserServiceImp implements UserService {
     }
 
     @Override
-    public UserResponse getProfileUser(Long id) throws ApplicationException {
+    public UserResponse getProfileUser(int id) throws ApplicationException {
         UserResponse userResponse = new UserResponse();
         Optional<User> user = userRepository.findById(id);
         if (user.isPresent()) {
             userResponse.setFullName(user.get().getFullName());
-            userResponse.setBirthDay(user.get().getBirthDay().format(DateTimeFormatter.ofPattern(Constant.DATE_TIME_FORMAT_PATTERN_BIRTHDAY)));
+            userResponse.setBirthDay(user.get().getBirthDay().format(DateTimeFormatter.ofPattern(Constant.DATE_FORMAT_PATTERN)));
             userResponse.setEmail(user.get().getEmail());
             userResponse.setPhoneNumber(user.get().getPhoneNumber());
             userResponse.setCitizenID(user.get().getCitizenId());

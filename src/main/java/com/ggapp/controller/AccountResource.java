@@ -32,7 +32,7 @@ import static com.ggapp.common.enums.MessageResponse.ACCESS_DENIED;
 import static com.ggapp.common.enums.MessageResponse.DEVICE_INFO_INVALID;
 import static com.ggapp.common.enums.MessageResponse.EMAIL_SEND_SUCCESS;
 import static com.ggapp.common.enums.MessageResponse.LOGIN_VALID;
-import static com.ggapp.common.enums.MessageResponse.LOGOUT_USER_SUCCESS;
+import static com.ggapp.common.enums.MessageResponse.LOGOUT_SUCCESS;
 
 /**
  * @author Tran Minh Truyen on 04/12/2022
@@ -57,7 +57,8 @@ public class AccountResource extends CommonResource {
     private SessionService sessionService;
 
     @Operation(responses = {
-            @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json", schema = @Schema(implementation = JwtResponse.class))}),
+            @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json",
+                    schema = @Schema(implementation = JwtResponse.class))}),
             @ApiResponse(responseCode = "400", description = "Bad request"),
             @ApiResponse(responseCode = "403", description = "Forbidden")
     })
@@ -107,7 +108,7 @@ public class AccountResource extends CommonResource {
             bearerToken = bearerToken.substring(7);
         } else throw new ApplicationException(ACCESS_DENIED);
         sessionService.logoutDevice(this.customUserDetail, deviceInfoRequest, bearerToken);
-        return this.returnBaseReponse(null, LOGOUT_USER_SUCCESS);
+        return this.returnBaseReponse(null, LOGOUT_SUCCESS);
     }
 
     @Operation(responses = {

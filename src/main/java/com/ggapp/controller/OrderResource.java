@@ -52,7 +52,7 @@ public class OrderResource {
 		OrderResponse orderResponse;
 		BaseResponse baseResponse = new BaseResponse();
 		if (userOrderRequest.getProductId() != null && userOrderRequest.getProductId().length > 0) {
-			orderResponse = orderService.createOrderByProductId(customUserDetail.getAccountDetail().getOwnerId(), userOrderRequest.getProductId());
+			orderResponse = orderService.createOrderByProductId(customUserDetail.getAccountDetail().getOwnerId(), userOrderRequest.getProductId(), userOrderRequest.getStoreId());
 		}
 		else {
 			orderResponse = orderService.createOrderByCart(customUserDetail.getAccountDetail().getOwnerId());

@@ -11,14 +11,14 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ProductStoreRepository extends JpaRepository<ProductStore, Long> {
+public interface ProductStoreRepository extends JpaRepository<ProductStore, Integer> {
 
     @Query(value = "select ps " +
             "from ProductStore ps " +
             "where ps.store.id = :storeId " +
             "and ps.product.id = :productId " +
             "and ps.product.isDeleted = false and ps.store.isActive = true")
-    Optional<ProductStore> findProductStoreByStoreIdAndProductId(@Param(value = "storeId") Long storeId, @Param(value = "productId") Long productId);
+    Optional<ProductStore> findProductStoreByStoreIdAndProductId(@Param(value = "storeId") int storeId, @Param(value = "productId") int productId);
 
     @Query(value = "select ps from ProductStore ps " +
             "where ps.isNew = true " +

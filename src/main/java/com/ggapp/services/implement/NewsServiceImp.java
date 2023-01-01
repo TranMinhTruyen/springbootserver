@@ -11,8 +11,6 @@ import com.ggapp.common.dto.response.NewsResponse;
 import com.ggapp.dao.repository.mongo.NewsRepository;
 import com.ggapp.dao.repository.mongo.UserRepository;
 import com.ggapp.services.NewsService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,14 +30,14 @@ public class NewsServiceImp implements NewsService {
 	private UserRepository userRepository;
 
 	@Override
-	public NewsResponse createNews(Long userCreateId, NewsRequest newsRequest) throws ApplicationException {
+	public NewsResponse createNews(int userCreateId, NewsRequest newsRequest) throws ApplicationException {
 		Optional<User> user = userRepository.findById(userCreateId);
 		List<User> last = new AutoIncrement(newsRepository).getLastOfCollection();
 		if (user.isPresent() && newsRequest != null) {
 			News news = new News();
 			if (last != null)
 				news.setId(last.get(0).getId() + 1);
-			else news.setId(1L);
+			else news.setId(1);
 			news.setUserCreateId(user.get().getId());
 			news.setUserCreateName(user.get().getFullName());
 			news.setCreateDate(new Date());
@@ -59,16 +57,14 @@ public class NewsServiceImp implements NewsService {
 
 	@Override
 	public CommonResponsePayload getAllNews (int page, int size) throws ApplicationException {
-		List result = newsRepository.findAll();
-		if (result != null){
-			return new CommonResponsePayload().getCommonResponse(page, size, result);
-		} else throw new ApplicationException("Not found");
+		List<News> result = newsRepository.findAll();
+		return new CommonResponsePayload().getCommonResponse(page, size, result);
 	}
 
 	@Override
-	public CommonResponsePayload getNewsByKeyWord(int page, int size, Long userCreateId, String userCreateName, String title) throws ApplicationException {
+	public CommonResponsePayload getNewsByKeyWord(int page, int size, int userCreateId, String userCreateName, String title) throws ApplicationException {
 		List<NewsResponse> newsResponseList = filterNews(userCreateId, userCreateName, title);
-		if (!newsResponseList.isEmpty() && newsResponseList != null) {
+		if (!newsResponseList.isEmpty()) {
 			return new CommonResponsePayload().getCommonResponse(page, size, newsResponseList);
 		}
 		else return getAllNews(page, size);
@@ -76,7 +72,7 @@ public class NewsServiceImp implements NewsService {
 
 
 	@Override
-	public NewsResponse updateNews(Long newsId, NewsRequest newsRequest) throws ApplicationException {
+	public NewsResponse updateNews(int newsId, NewsRequest newsRequest) throws ApplicationException {
 		Optional<News> news = newsRepository.findById(newsId);
 		if (news.isPresent()){
 			News update = news.get();
@@ -87,14 +83,12 @@ public class NewsServiceImp implements NewsService {
 				update.setContent(newsRequest.getContent());
 			}
 			News result = newsRepository.save(update);
-			if (result != null) {
-				return getNewsAfterCreateOrUpdate(result);
-			} else throw new ApplicationException("Error while update news");
+			return getNewsAfterCreateOrUpdate(result);
 		} else throw new ApplicationException("Not found newsId");
 	}
 
 	@Override
-	public BaseResponse deleteNews(Long newsId) throws ApplicationException {
+	public BaseResponse deleteNews(int newsId) throws ApplicationException {
 		Optional<News> news = newsRepository.findById(newsId);
 		BaseResponse baseResponse = new BaseResponse();
 		if (news.isPresent()) {
@@ -117,7 +111,7 @@ public class NewsServiceImp implements NewsService {
 		return newsResponse;
 	}
 
-	private List<NewsResponse> filterNews (@Nullable Long userCreateId,
+	private List<NewsResponse> filterNews (int userCreateId,
 										   @Nullable String userCreateName,
 										   @Nullable String title) throws ApplicationException {
 		List<News> newsList = newsRepository.findAll();

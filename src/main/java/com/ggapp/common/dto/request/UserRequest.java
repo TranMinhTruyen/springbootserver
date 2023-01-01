@@ -3,9 +3,11 @@ import lombok.Builder;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Pattern;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author Tran Minh Truyen
@@ -53,6 +55,9 @@ public class UserRequest implements Serializable {
 
     @NotBlank(message = "role is mandatory")
     private String role;
+
+    @NotEmpty(message = "authorities is mandatory")
+    private List<String> authorities;
 
     private boolean isActive;
 }

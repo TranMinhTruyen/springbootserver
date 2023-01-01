@@ -10,7 +10,11 @@ import java.util.List;
 @Document(collection = "Session")
 @Data
 public class Session {
-    private Long id;
+    private int id;
+
+    private String role;
+
+    private List<String> authorities;
 
     @Field(value = "CreatedDate")
     private Date createdDate;

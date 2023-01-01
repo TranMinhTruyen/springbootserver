@@ -19,13 +19,13 @@ import java.util.Optional;
  * TOTAL_HOURS_WASTED_HERE = 4
  */
 @Repository
-public interface VoucherRepository extends JpaRepository<Voucher, Long> {
+public interface VoucherRepository extends JpaRepository<Voucher, Integer> {
     @Query(value = "select v from Voucher v " +
             "left join v.productVoucherList pvc " +
             "left join pvc.product p " +
             "where v.code = :code " +
             "and p.id = :productId and v.isDeleted = false and p.isDeleted = false")
-    Optional<Voucher> findByCodeAndProductId(@Param(value = "code") String code, @Param(value = "productId") Long productId);
+    Optional<Voucher> findByCodeAndProductId(@Param(value = "code") String code, @Param(value = "productId") int productId);
 
     @Query(value = "select v from Voucher v " +
             "left join v.productVoucherList pvc " +
