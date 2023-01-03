@@ -100,7 +100,7 @@ public class ProductServiceImp implements ProductService {
         newProduct.setBrand(brand.orElse(null));
         newProduct.setCategory(category.orElse(null));
         newProduct.setCreatedDate(LocalDateTime.now());
-        newProduct.setCreatedBy(customUserDetail.getAccountDetail().getFirstName() + customUserDetail.getAccountDetail().getLastName());
+        newProduct.setCreatedBy(customUserDetail.getAccountDetail().getFullName());
         newProduct.setDeleted(false);
         addOrUpdateProductImage(newProduct, productRequest.getImage(), false);
         Product result = productRepository.save(newProduct);
@@ -197,7 +197,7 @@ public class ProductServiceImp implements ProductService {
         update.setType(productRequest.getType());
         update.setPrice(productRequest.getPrice());
         update.setUpdateDate(LocalDateTime.now());
-        update.setUpdateBy(customUserDetail.getAccountDetail().getFirstName() + customUserDetail.getAccountDetail().getLastName());
+        update.setUpdateBy(customUserDetail.getAccountDetail().getFullName());
         if (productRequest.getImage() != null && !productRequest.getImage().isEmpty())
             addOrUpdateProductImage(update, productRequest.getImage(), true);
         update.setDiscount(productRequest.getDiscount());

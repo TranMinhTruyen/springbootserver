@@ -18,8 +18,7 @@ public class AccountDetail {
     private int ownerId;
     private String account;
     private String password;
-    private String firstName;
-    private String lastName;
+    private String fullName;
     private String role;
     private List<String> authorities;
     private String position;

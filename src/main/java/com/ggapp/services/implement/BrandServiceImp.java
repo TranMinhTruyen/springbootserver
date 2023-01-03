@@ -51,7 +51,7 @@ public class BrandServiceImp implements BrandService {
 			newBrand.setDescription(brandRequest.getDescription());
 			newBrand.setDeleted(false);
 			newBrand.setCreatedDate(LocalDateTime.now());
-			newBrand.setCreatedBy(customUserDetail.getAccountDetail().getFirstName() + customUserDetail.getAccountDetail().getLastName());
+			newBrand.setCreatedBy(customUserDetail.getAccountDetail().getFullName());
 			Brand result = brandRepository.save(newBrand);
 			return brandMapper.entityToResponse(result);
 		} else throw new ApplicationException(BRAND_IS_EXIST);
@@ -83,7 +83,7 @@ public class BrandServiceImp implements BrandService {
 		update.setName(brandRequest.getName());
 		update.setDescription(brandRequest.getDescription());
 		update.setUpdateDate(LocalDateTime.now());
-		update.setUpdateBy(customUserDetail.getAccountDetail().getFirstName() + customUserDetail.getAccountDetail().getLastName());
+		update.setUpdateBy(customUserDetail.getAccountDetail().getFullName());
 		Brand result = brandRepository.save(update);
 		return brandMapper.entityToResponse(result);
 	}
@@ -101,7 +101,7 @@ public class BrandServiceImp implements BrandService {
 		}
 		brand.get().setDeleted(true);
 		brand.get().setCreatedDate(LocalDateTime.now());
-		brand.get().setCreatedBy(customUserDetail.getAccountDetail().getFirstName() + customUserDetail.getAccountDetail().getLastName());
+		brand.get().setCreatedBy(customUserDetail.getAccountDetail().getFullName());
 		Brand result = brandRepository.save(brand.get());
 		return brandMapper.entityToResponse(result);
 	}
@@ -109,15 +109,15 @@ public class BrandServiceImp implements BrandService {
 	@Override
 	public boolean physicalDeleteBrand(int id) throws ApplicationException {
 		Optional<Brand> brand = brandRepository.findById(id);
-		brand.orElseThrow(() -> new ApplicationException(BRAND_NOT_FOUND));
-		List<Product> products = productRepository.findAllByBrandIdAndIsDeletedFalse(id);
+		Brand result = brand.orElseThrow(() -> new ApplicationException(BRAND_NOT_FOUND));
+		List<Product> products = productRepository.findAllByBrandIdAndIsDeletedFalse(result.getId());
 		if (products != null && !products.isEmpty()){
 			products.forEach(items -> {
 				items.setBrand(null);
 			});
 			productRepository.saveAll(products);
 		}
-		brandRepository.deleteById(brand.get().getId());
+		brandRepository.deleteById(result.getId());
 		return true;
 	}
 

@@ -56,12 +56,21 @@ public class AccountResource extends CommonResource {
     @Autowired
     private SessionService sessionService;
 
+
+    /**
+     *
+     * @param loginRequest
+     * @param confirmKey
+     * @return BaseResponse
+     * @throws ApplicationException
+     */
     @Operation(responses = {
-            @ApiResponse(responseCode = "200", content = {@Content(mediaType = "application/json",
-                    schema = @Schema(implementation = JwtResponse.class))}),
+            @ApiResponse(responseCode = "200", description = "OK",
+                    content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = JwtResponse.class))}),
             @ApiResponse(responseCode = "400", description = "Bad request"),
-            @ApiResponse(responseCode = "403", description = "Forbidden")
-    })
+            @ApiResponse(responseCode = "500", description = "Server error"),
+            @ApiResponse(responseCode = "403", description = "Forbidden")}
+    )
     @PostMapping(value = "login", consumes = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse login(@Valid @RequestBody LoginRequest loginRequest,
                               @RequestParam(required = false) String confirmKey)
@@ -70,36 +79,64 @@ public class AccountResource extends CommonResource {
         return this.returnBaseReponse(jwtResponse, LOGIN_VALID);
     }
 
+
+    /**
+     *
+     * @param loginRequest
+     * @return BaseResponse
+     * @throws ApplicationException
+     */
     @Operation(responses = {
-            @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "200", description = "OK",
+                    content = {@Content(mediaType = "application/json", schema = @Schema(hidden = true))}),
             @ApiResponse(responseCode = "400", description = "Bad request"),
-            @ApiResponse(responseCode = "403", description = "Forbidden")
-    })
+            @ApiResponse(responseCode = "500", description = "Server error"),
+            @ApiResponse(responseCode = "403", description = "Forbidden")}
+    )
     @PostMapping(value = "loginAnotherDeviceSendConfirmKey", consumes = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse loginAnotherDeviceSendConfirmKey(@Valid @RequestBody LoginRequest loginRequest) throws ApplicationException {
         accountService.sendEmailLoginConfirmKey(loginRequest);
         return this.returnBaseReponse(null, EMAIL_SEND_SUCCESS);
     }
 
+
+    /**
+     *
+     * @param deviceInfoRequest
+     * @return BaseResponse
+     * @throws ApplicationException
+     */
     @Operation(responses = {
-            @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "200", description = "OK",
+                    content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))}),
             @ApiResponse(responseCode = "400", description = "Bad request"),
-            @ApiResponse(responseCode = "403", description = "Forbidden")
-    },
-            security = {@SecurityRequirement(name = "Authorization")})
-    @PostMapping(value = "checkLoginStatus")
+            @ApiResponse(responseCode = "500", description = "Server error"),
+            @ApiResponse(responseCode = "403", description = "Forbidden")},
+            security = {@SecurityRequirement(name = "Authorization")
+    })
+    @PostMapping(value = "checkLoginStatus", consumes = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse checkLoginStatus(@Valid @RequestBody DeviceInfoRequest deviceInfoRequest) throws ApplicationException {
         sessionService.checkSession(this.customUserDetail, deviceInfoRequest);
         return this.returnBaseReponse(null, DEVICE_INFO_INVALID);
     }
 
+
+    /**
+     *
+     * @param deviceInfoRequest
+     * @param request
+     * @return BaseResponse
+     * @throws ApplicationException
+     */
     @Operation(responses = {
-            @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "200", description = "OK",
+                    content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))}),
             @ApiResponse(responseCode = "400", description = "Bad request"),
+            @ApiResponse(responseCode = "500", description = "Server error"),
             @ApiResponse(responseCode = "403", description = "Forbidden")
     },
             security = {@SecurityRequirement(name = "Authorization")})
-    @PostMapping(value = "logout")
+    @PostMapping(value = "logout", consumes = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse logout(@Valid @RequestBody DeviceInfoRequest deviceInfoRequest,
                                HttpServletRequest request) throws ApplicationException {
         this.getAuthentication();
@@ -111,22 +148,41 @@ public class AccountResource extends CommonResource {
         return this.returnBaseReponse(null, LOGOUT_SUCCESS);
     }
 
+
+    /**
+     *
+     * @param checkEmailRequest
+     * @return BaseResponse
+     * @throws ApplicationException
+     */
     @Operation(responses = {
-            @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "200", description = "OK",
+                    content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))}),
             @ApiResponse(responseCode = "400", description = "Bad request"),
-            @ApiResponse(responseCode = "403", description = "Forbidden")
-    })
-    @PostMapping(value = "sendConfirmKey")
+            @ApiResponse(responseCode = "500", description = "Server error"),
+            @ApiResponse(responseCode = "403", description = "Forbidden")}
+    )
+    @PostMapping(value = "sendConfirmKey", consumes = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse sendConfirmKey(@RequestBody CheckEmailRequest checkEmailRequest) throws ApplicationException {
         accountService.sendEmailRegisterConfirmKey(checkEmailRequest.getEmail());
         return this.returnBaseReponse(null, EMAIL_SEND_SUCCESS);
     }
 
+
+    /**
+     *
+     * @param key
+     * @param email
+     * @return BaseResponse
+     * @throws ApplicationException
+     */
     @Operation(responses = {
-            @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "200", description = "OK",
+                    content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))}),
             @ApiResponse(responseCode = "400", description = "Bad request"),
-            @ApiResponse(responseCode = "403", description = "Forbidden")
-    })
+            @ApiResponse(responseCode = "500", description = "Server error"),
+            @ApiResponse(responseCode = "403", description = "Forbidden")}
+    )
     @PostMapping(value = "activateAccount")
     public BaseResponse activateAccount(@RequestParam String key, @RequestParam String email) throws ApplicationException {
         accountService.activateAccount(key, email);

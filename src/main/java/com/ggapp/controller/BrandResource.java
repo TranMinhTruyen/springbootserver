@@ -39,8 +39,21 @@ public class BrandResource {
 	@Autowired
 	private BrandService brandService;
 
-	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
-			security = {@SecurityRequirement(name = "Authorization")})
+
+	/**
+	 *
+	 * @param brandRequest
+	 * @return BaseResponse
+	 * @throws ApplicationException
+	 */
+	@Operation(responses = {
+			@ApiResponse(responseCode = "200", description = "OK",
+					content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "400", description = "Bad request"),
+			@ApiResponse(responseCode = "500", description = "Server error"),
+			@ApiResponse(responseCode = "403", description = "Forbidden")},
+			security = {@SecurityRequirement(name = "Authorization")}
+	)
 	@PostMapping(value = "createBrand", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public BaseResponse createBrand(@RequestBody BrandRequest brandRequest) throws ApplicationException {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -54,7 +67,21 @@ public class BrandResource {
 		return baseResponse;
 	}
 
-	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))))
+
+	/**
+	 *
+	 * @param page
+	 * @param size
+	 * @param keyword
+	 * @return BaseResponse
+	 */
+	@Operation(responses = {
+			@ApiResponse(responseCode = "200", description = "OK",
+					content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "400", description = "Bad request"),
+			@ApiResponse(responseCode = "500", description = "Server error"),
+			@ApiResponse(responseCode = "403", description = "Forbidden")}
+	)
 	@GetMapping(value="getBrandByKeyword")
 	@PreAuthorize("permitAll()")
 	public BaseResponse getBrandByKeyword(@RequestParam int page,
@@ -69,7 +96,20 @@ public class BrandResource {
 		return baseResponse;
 	}
 
-	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))))
+
+	/**
+	 *
+	 * @param page
+	 * @param size
+	 * @return BaseResponse
+	 */
+	@Operation(responses = {
+			@ApiResponse(responseCode = "200", description = "OK",
+					content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "400", description = "Bad request"),
+			@ApiResponse(responseCode = "500", description = "Server error"),
+			@ApiResponse(responseCode = "403", description = "Forbidden")}
+	)
 	@GetMapping(value="getAllBrand")
 	@PreAuthorize("permitAll()")
 	public BaseResponse getAllBrand(@RequestParam int page,
@@ -83,8 +123,22 @@ public class BrandResource {
 		return baseResponse;
 	}
 
-	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
-			security = {@SecurityRequirement(name = "Authorization")})
+
+	/**
+	 *
+	 * @param id
+	 * @param brandRequest
+	 * @return BaseResponse
+	 * @throws ApplicationException
+	 */
+	@Operation(responses = {
+			@ApiResponse(responseCode = "200", description = "OK",
+					content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "400", description = "Bad request"),
+			@ApiResponse(responseCode = "500", description = "Server error"),
+			@ApiResponse(responseCode = "403", description = "Forbidden")},
+			security = {@SecurityRequirement(name = "Authorization")}
+	)
 	@PutMapping(value = "updateBrand", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public BaseResponse updateBrand(@RequestParam int id, @RequestBody BrandRequest brandRequest) throws ApplicationException {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -98,8 +152,21 @@ public class BrandResource {
 		return baseResponse;
 	}
 
-	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
-			security = {@SecurityRequirement(name = "Authorization")})
+
+	/**
+	 *
+	 * @param id
+	 * @return BaseResponse
+	 * @throws ApplicationException
+	 */
+	@Operation(responses = {
+			@ApiResponse(responseCode = "200", description = "OK",
+					content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "400", description = "Bad request"),
+			@ApiResponse(responseCode = "500", description = "Server error"),
+			@ApiResponse(responseCode = "403", description = "Forbidden")},
+			security = {@SecurityRequirement(name = "Authorization")}
+	)
 	@DeleteMapping(value = "logicDeleteBrand")
 	public BaseResponse logicDeleteBrand(@RequestParam int id) throws ApplicationException {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -113,8 +180,21 @@ public class BrandResource {
 		return baseResponse;
 	}
 
-	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
-			security = {@SecurityRequirement(name = "Authorization")})
+
+	/**
+	 *
+	 * @param id
+	 * @return BaseResponse
+	 * @throws ApplicationException
+	 */
+	@Operation(responses = {
+			@ApiResponse(responseCode = "200", description = "OK",
+					content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "400", description = "Bad request"),
+			@ApiResponse(responseCode = "500", description = "Server error"),
+			@ApiResponse(responseCode = "403", description = "Forbidden")},
+			security = {@SecurityRequirement(name = "Authorization")}
+	)
 	@DeleteMapping(value = "physicalDeleteBrand")
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	public BaseResponse physicalDeleteBrand(@RequestParam int id) throws ApplicationException {

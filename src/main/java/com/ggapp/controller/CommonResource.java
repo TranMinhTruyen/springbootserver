@@ -28,6 +28,13 @@ public abstract class CommonResource {
         this.customUserDetail = (CustomUserDetail) authentication.getPrincipal();
     }
 
+    /**
+     *
+     * @param payload
+     * @param message
+     * @param httpStatus
+     * @return BaseResponse
+     */
     protected BaseResponse returnBaseReponse (@Nullable Object payload, @Nullable String message, @NonNull HttpStatus httpStatus) {
         BaseResponse baseResponse = new BaseResponse();
         baseResponse.setStatus(httpStatus.value());
@@ -37,6 +44,12 @@ public abstract class CommonResource {
         return baseResponse;
     }
 
+    /**
+     *
+     * @param payload
+     * @param message
+     * @return BaseResponse
+     */
     protected BaseResponse returnBaseReponse (@Nullable Object payload, MessageResponse message) {
         BaseResponse baseResponse = new BaseResponse();
         baseResponse.setStatus(message.getHttpStatus().value());

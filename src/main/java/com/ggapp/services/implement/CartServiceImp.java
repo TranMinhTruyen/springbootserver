@@ -2,6 +2,7 @@ package com.ggapp.services.implement;
 
 import com.ggapp.common.dto.response.CartResponse;
 import com.ggapp.common.exception.ApplicationException;
+import com.ggapp.common.jwt.CustomUserDetail;
 import com.ggapp.common.utils.CommonUtils;
 import com.ggapp.common.utils.mapper.CartMapper;
 import com.ggapp.dao.document.Cart;
@@ -67,7 +68,16 @@ public class CartServiceImp implements CartService {
     private CommonUtils commonUtils;
 
     @Override
-    public CartResponse createCart(int customerId, int productId, int storeId, int productAmount) throws ApplicationException {
+    public CartResponse createCartAndAddProductToCart(CustomUserDetail customUserDetail, int productId, int storeId, int productAmount)
+            throws ApplicationException {
+        if (!isCartExists(customUserDetail.getAccountDetail().getOwnerId())) {
+            return createCart(customUserDetail.getAccountDetail().getOwnerId(), productId, storeId, productAmount);
+        }else {
+            return addProductToCart(customUserDetail.getAccountDetail().getOwnerId(), productId, storeId, productAmount);
+        }
+    }
+
+    private CartResponse createCart(int customerId, int productId, int storeId, int productAmount) throws ApplicationException {
         Optional<Product> productResult = productRepository.findById(productId);
         Optional<Store> storeResult = storeRepository.findById(storeId);
         Optional<User> userResult = userRepository.findById(customerId);
@@ -159,8 +169,7 @@ public class CartServiceImp implements CartService {
         return null;
     }
 
-    @Override
-    public CartResponse addProductToCart(int customerId, int productId, int storeId, int productAmount) throws ApplicationException {
+    private CartResponse addProductToCart(int customerId, int productId, int storeId, int productAmount) throws ApplicationException {
         Optional<Cart> cartResult = cartRepository.findById(customerId);
         Optional<Product> productResult = productRepository.findById(productId);
         Optional<User> userResult = userRepository.findById(customerId);
@@ -230,8 +239,7 @@ public class CartServiceImp implements CartService {
         return null;
     }
 
-    @Override
-    public boolean isCartExists(int customerId) {
+    private boolean isCartExists(int customerId) {
         return cartRepository.findById(customerId).isPresent();
     }
 

@@ -156,6 +156,7 @@ public class CommonUtils {
                 accountDetail.setOwnerId(user.get().getId());
                 accountDetail.setAccount(account.getAccount());
                 accountDetail.setPassword(account.getPassword());
+                accountDetail.setFullName(user.get().getFullName());
                 accountDetail.setRole(user.get().getRole());
                 accountDetail.setAuthorities(user.get().getAuthorities());
                 accountDetail.setActive(account.isActive());
@@ -166,6 +167,7 @@ public class CommonUtils {
                 accountDetail.setOwnerId(employee.get().getId());
                 accountDetail.setAccount(account.getAccount());
                 accountDetail.setPassword(account.getPassword());
+                accountDetail.setFullName(employee.get().getFullName());
                 accountDetail.setRole(employee.get().getRole());
                 accountDetail.setAuthorities(employee.get().getAuthorities());
                 accountDetail.setPosition(employee.get().getPosition());

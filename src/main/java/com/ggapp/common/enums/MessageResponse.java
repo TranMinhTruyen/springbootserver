@@ -16,6 +16,7 @@ public enum MessageResponse {
     GET_PRODUCT_SUCCESSFUL("Get product successful", HttpStatus.OK),
     DELETE_PRODUCT_IMAGE_SUCCESSFUL("Delete image successful", HttpStatus.OK),
     DELETE_PRODUCT_SUCCESSFUL("Delete product successful", HttpStatus.OK),
+    UPDATE_PRODUCT_SUCCESSFUL("Update product successful", HttpStatus.OK),
     //endregion
 
     //region Store message
@@ -39,6 +40,11 @@ public enum MessageResponse {
     //region Category message
     CATEGORY_NOT_FOUND("Category not found", HttpStatus.NOT_FOUND),
     CATEGORY_IS_EXIST("Category is exists", HttpStatus.FORBIDDEN),
+    CREATED_CATEGORY_SUCCESSFUL("Created category successful", HttpStatus.OK),
+    UPDATE_CATEGORY_SUCCESSFUL("Updated category successful", HttpStatus.OK),
+    LOGIC_DELETED_CATEGORY_SUCCESSFUL("Logic deleted category successful", HttpStatus.OK),
+    PHYSIC_DELETED_CATEGORY_SUCCESSFUL("Physic deleted category successful", HttpStatus.OK),
+    GET_CATEGORY_SUCCESSFUL("Get category successful", HttpStatus.OK),
     //endregion
 
     //region Account message
@@ -86,6 +92,10 @@ public enum MessageResponse {
 
     //region Cart message
     CART_CREATED_ERROR("Error while created cart", HttpStatus.INTERNAL_SERVER_ERROR),
+    CREATED_CART_SUCCESSFUL("Created cart successful", HttpStatus.OK),
+    UPDATED_CART_SUCCESSFUL("Updated cart successful", HttpStatus.OK),
+    GET_CART_SUCCESSFUL("Get cart successful", HttpStatus.OK),
+    DELETED_CART_SUCCESSFUL("Deleted cart successful", HttpStatus.OK),
     CART_NOT_FOUND("Not found cart", HttpStatus.NOT_FOUND);
     //endregion
 

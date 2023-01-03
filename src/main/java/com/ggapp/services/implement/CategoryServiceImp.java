@@ -1,5 +1,7 @@
 package com.ggapp.services.implement;
+import com.ggapp.common.exception.ApplicationException;
 import com.ggapp.common.jwt.CustomUserDetail;
+import com.ggapp.common.utils.mapper.CategoryMapper;
 import com.ggapp.dao.entity.Category;
 import com.ggapp.dao.entity.Product;
 import com.ggapp.common.dto.request.CategoryRequest;
@@ -16,6 +18,10 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static com.ggapp.common.enums.MessageResponse.BRAND_NOT_FOUND;
+import static com.ggapp.common.enums.MessageResponse.CATEGORY_IS_EXIST;
+import static com.ggapp.common.enums.MessageResponse.CATEGORY_NOT_FOUND;
 
 /**
  * @author Tran Minh Truyen
@@ -36,18 +42,20 @@ public class CategoryServiceImp implements CategoryService {
 	@Autowired
 	private ProductRepository productRepository;
 
+	@Autowired
+	private CategoryMapper categoryMapper;
+
 	@Override
-	public boolean createCategory(CategoryRequest categoryRequest, CustomUserDetail customUserDetail) {
+	public CategoryResponse createCategory(CategoryRequest categoryRequest, CustomUserDetail customUserDetail) throws ApplicationException{
 		if (categoryRequest != null && !isExists(categoryRequest.getName())){
 			Category newCategory = new Category();
 			newCategory.setName(categoryRequest.getName());
 			newCategory.setDescription(categoryRequest.getDescription());
 			newCategory.setCreatedDate(LocalDateTime.now());
-			newCategory.setCreatedBy(customUserDetail.getAccountDetail().getFirstName() + customUserDetail.getAccountDetail().getLastName());
-			categoryRepository.save(newCategory);
-			return true;
-		}
-		return false;
+			newCategory.setCreatedBy(customUserDetail.getAccountDetail().getFullName());
+			Category result = categoryRepository.save(newCategory);
+			return categoryMapper.entityToResponse(result);
+		} else throw new ApplicationException(CATEGORY_IS_EXIST);
 	}
 
 	@Override
@@ -75,52 +83,53 @@ public class CategoryServiceImp implements CategoryService {
 	}
 
 	@Override
-	public CategoryResponse updateCategory(int id, CategoryRequest categoryRequest, CustomUserDetail customUserDetail) {
-		if (update(id, categoryRequest, customUserDetail)){
-			Optional<Category> category = categoryRepository.findById(id);
-			Category result = category.get();
-			CategoryResponse categoryResponse = new CategoryResponse();
-			categoryResponse.setId(result.getId());
-			categoryResponse.setName(result.getName());
-			categoryResponse.setDescription(result.getDescription());
-			return categoryResponse;
-		}
-		return null;
-	}
-
-	@Override
-	public boolean deleteCategory(int id) {
+	public CategoryResponse updateCategory(int id, CategoryRequest categoryRequest, CustomUserDetail customUserDetail)
+			throws ApplicationException {
 		Optional<Category> category = categoryRepository.findById(id);
-		if (category.isPresent()){
-			List<Product> products = productRepository.findAllByCategoryIdAndIsDeletedFalse(id);
-			if (products != null && !products.isEmpty()){
-				products.forEach(items -> {
-					items.setCategory(null);
-					productRepository.save(items);
-				});
-			}
-			categoryRepository.deleteById(id);
-			return true;
-		}
-		return false;
+		Category update = category.orElseThrow(() -> new ApplicationException(CATEGORY_NOT_FOUND));
+		update.setName(categoryRequest.getName());
+		update.setDescription(categoryRequest.getDescription());
+		update.setUpdateDate(LocalDateTime.now());
+		update.setUpdateBy(customUserDetail.getAccountDetail().getFullName());
+		Category result = categoryRepository.save(update);
+		return categoryMapper.entityToResponse(result);
 	}
 
 	@Override
-	public boolean isExists(String categoryName) {
+	public CategoryResponse logicDeleteCategory(int id, CustomUserDetail customUserDetail) throws ApplicationException {
+		Optional<Category> category = categoryRepository.findById(id);
+		Category update = category.orElseThrow(() -> new ApplicationException(CATEGORY_NOT_FOUND));
+		List<Product> products = productRepository.findAllByCategoryIdAndIsDeletedFalse(update.getId());
+		if (products != null && !products.isEmpty()){
+			products.forEach(items -> {
+				items.setCategory(null);
+				productRepository.save(items);
+			});
+		}
+		update.setDeleted(true);
+		update.setDeleteBy(customUserDetail.getAccountDetail().getFullName());
+		update.setDeleteDate(LocalDateTime.now());
+		Category result = categoryRepository.save(update);
+		return categoryMapper.entityToResponse(result);
+	}
+
+	@Override
+	public boolean physicalDeleteBrand(int id) throws ApplicationException {
+		Optional<Category> category = categoryRepository.findById(id);
+		Category result = category.orElseThrow(() -> new ApplicationException(CATEGORY_NOT_FOUND));
+		List<Product> products = productRepository.findAllByCategoryIdAndIsDeletedFalse(result.getId());
+		if (products != null && !products.isEmpty()){
+			products.forEach(items -> {
+				items.setCategory(null);
+			});
+			productRepository.saveAll(products);
+		}
+		categoryRepository.deleteById(result.getId());
+		return true;
+	}
+
+	@Override
+	public boolean isExists(String categoryName) throws ApplicationException {
 		return !categoryRepository.findAll(new CategorySpecification(categoryName)).isEmpty();
-	}
-
-	private boolean update(int id, CategoryRequest categoryRequest, CustomUserDetail customUserDetail){
-		Optional<Category> category = categoryRepository.findById(id);
-		if (categoryRequest != null && category.isPresent()){
-			Category update = category.get();
-			update.setName(categoryRequest.getName());
-			update.setDescription(categoryRequest.getDescription());
-			update.setUpdateDate(LocalDateTime.now());
-			update.setUpdateBy(customUserDetail.getAccountDetail().getFirstName() + customUserDetail.getAccountDetail().getLastName());
-			categoryRepository.save(update);
-			return true;
-		}
-		return false;
 	}
 }

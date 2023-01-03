@@ -4,7 +4,7 @@ import com.ggapp.common.dto.request.CategoryRequest;
 import com.ggapp.common.dto.response.BaseResponse;
 import com.ggapp.common.dto.response.CategoryResponse;
 import com.ggapp.common.dto.response.CommonResponsePayload;
-import com.ggapp.common.jwt.CustomUserDetail;
+import com.ggapp.common.exception.ApplicationException;
 import com.ggapp.services.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -13,12 +13,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,88 +25,155 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import static com.ggapp.common.enums.MessageResponse.CREATED_CATEGORY_SUCCESSFUL;
+import static com.ggapp.common.enums.MessageResponse.GET_CATEGORY_SUCCESSFUL;
+import static com.ggapp.common.enums.MessageResponse.LOGIC_DELETED_CATEGORY_SUCCESSFUL;
+import static com.ggapp.common.enums.MessageResponse.PHYSIC_DELETED_CATEGORY_SUCCESSFUL;
+import static com.ggapp.common.enums.MessageResponse.UPDATE_CATEGORY_SUCCESSFUL;
+
 @Tag(name = "CategoryResource")
 @RestController(value = "CategoryResource")
 @CrossOrigin("*")
 @RequestMapping("api/category")
-@PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMP')")
-public class CategoryResource {
+public class CategoryResource extends CommonResource{
 
     @Autowired
     private CategoryService categoryService;
 
-    @Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
-            security = {@SecurityRequirement(name = "Authorization")})
+
+    /**
+     *
+     * @param categoryRequest
+     * @return BaseResponse
+     * @throws ApplicationException
+     */
+    @Operation(responses = {
+            @ApiResponse(responseCode = "200", description = "OK",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "400", description = "Bad request"),
+            @ApiResponse(responseCode = "500", description = "Server error"),
+            @ApiResponse(responseCode = "403", description = "Forbidden")},
+            security = {@SecurityRequirement(name = "Authorization")}
+    )
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping(value = "createCategory", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> createCategory(@RequestBody CategoryRequest categoryRequest) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
-        if (categoryService.isExists(categoryRequest.getName())) {
-            return new ResponseEntity<>("Category is exists", HttpStatus.UNAUTHORIZED);
-        }
-        if (categoryService.createCategory(categoryRequest, customUserDetail))
-            return new ResponseEntity<>(categoryRequest, HttpStatus.OK);
-        else
-            return new ResponseEntity<>("Error", HttpStatus.BAD_REQUEST);
+    public BaseResponse createCategory(@RequestBody CategoryRequest categoryRequest) throws ApplicationException {
+        this.getAuthentication();
+        CategoryResponse categoryResponse = categoryService.createCategory(categoryRequest, this.customUserDetail);
+        return this.returnBaseReponse(categoryResponse, CREATED_CATEGORY_SUCCESSFUL);
     }
 
-    @Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))))
+
+    /**
+     *
+     * @param page
+     * @param size
+     * @param keyword
+     * @return BaseResponse
+     */
+    @Operation(responses = {
+            @ApiResponse(responseCode = "200", description = "OK",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "400", description = "Bad request"),
+            @ApiResponse(responseCode = "500", description = "Server error"),
+            @ApiResponse(responseCode = "403", description = "Forbidden")}
+    )
     @GetMapping(value = "getCategoryByKeyword")
     @PreAuthorize("permitAll()")
-    public ResponseEntity<BaseResponse> getCategoryByKeyword(@RequestParam int page,
-                                                             @RequestParam int size,
-                                                             @RequestParam(required = false) String keyword) {
-
-
+    public BaseResponse getCategoryByKeyword(@RequestParam int page,
+                                             @RequestParam int size,
+                                             @RequestParam(required = false) String keyword) {
         CommonResponsePayload commonResponsePayload = categoryService.getCategoryByKeyword(page, size, keyword);
-        BaseResponse baseResponse = new BaseResponse();
-        baseResponse.setStatus(HttpStatus.OK.value());
-        baseResponse.setStatusname(HttpStatus.OK.name());
-        baseResponse.setMessage("Get category successfully");
-        baseResponse.setPayload(commonResponsePayload);
-        return new ResponseEntity<BaseResponse>(baseResponse, HttpStatus.OK);
+        return this.returnBaseReponse(commonResponsePayload, GET_CATEGORY_SUCCESSFUL);
     }
 
-    @Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))))
+
+    /**
+     *
+     * @param page
+     * @param size
+     * @return BaseResponse
+     */
+    @Operation(responses = {
+            @ApiResponse(responseCode = "200", description = "OK",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "400", description = "Bad request"),
+            @ApiResponse(responseCode = "500", description = "Server error"),
+            @ApiResponse(responseCode = "403", description = "Forbidden")}
+    )
     @GetMapping(value = "getAllCategory")
-    public ResponseEntity<BaseResponse> getAllCategory(@RequestParam int page,
-                                                       @RequestParam int size) {
+    public BaseResponse getAllCategory(@RequestParam int page, @RequestParam int size) {
         CommonResponsePayload commonResponsePayload = categoryService.getAllCategory(page, size);
-        BaseResponse baseResponse = new BaseResponse();
-        baseResponse.setStatus(HttpStatus.OK.value());
-        baseResponse.setStatusname(HttpStatus.OK.name());
-        baseResponse.setMessage("Get category successfully");
-        baseResponse.setPayload(commonResponsePayload);
-        return new ResponseEntity<BaseResponse>(baseResponse, HttpStatus.OK);
+        return this.returnBaseReponse(commonResponsePayload, GET_CATEGORY_SUCCESSFUL);
     }
 
-    @Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
-            security = {@SecurityRequirement(name = "Authorization")})
+
+    /**
+     *
+     * @param id
+     * @param categoryRequest
+     * @return BaseResponse
+     * @throws ApplicationException
+     */
+    @Operation(responses = {
+            @ApiResponse(responseCode = "200", description = "OK",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "400", description = "Bad request"),
+            @ApiResponse(responseCode = "500", description = "Server error"),
+            @ApiResponse(responseCode = "403", description = "Forbidden")},
+            security = {@SecurityRequirement(name = "Authorization")}
+    )
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PutMapping(value = "updateCategory", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> updateCategory(@RequestParam int id, @RequestBody CategoryRequest categoryRequest) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
-        if (authentication != null && (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")))) {
-            CategoryResponse categoryResponse = categoryService.updateCategory(id, categoryRequest, customUserDetail);
-            if (categoryResponse != null) {
-                return new ResponseEntity<>(categoryResponse, HttpStatus.OK);
-            } else return new ResponseEntity<>("Error", HttpStatus.BAD_REQUEST);
-        } else {
-            return new ResponseEntity<>("You don't have permission", HttpStatus.UNAUTHORIZED);
-        }
+    public BaseResponse updateCategory(@RequestParam int id, @RequestBody CategoryRequest categoryRequest) throws ApplicationException {
+        this.getAuthentication();
+        CategoryResponse categoryResponse = categoryService.updateCategory(id, categoryRequest, customUserDetail);
+        return this.returnBaseReponse(categoryResponse, UPDATE_CATEGORY_SUCCESSFUL);
     }
 
-    @Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
-            security = {@SecurityRequirement(name = "Authorization")})
-    @DeleteMapping(value = "deleteCategory")
-    public ResponseEntity<?> deleteBrand(@RequestParam int id) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")))) {
-            if (categoryService.deleteCategory(id)) {
-                return new ResponseEntity<>("category is deleted", HttpStatus.OK);
-            } else return new ResponseEntity<>("Error", HttpStatus.BAD_REQUEST);
-        } else {
-            return new ResponseEntity<>("You don't have permission", HttpStatus.UNAUTHORIZED);
-        }
+
+    /**
+     *
+     * @param id
+     * @return BaseResponse
+     * @throws ApplicationException
+     */
+    @Operation(responses = {
+            @ApiResponse(responseCode = "200", description = "OK",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "400", description = "Bad request"),
+            @ApiResponse(responseCode = "500", description = "Server error"),
+            @ApiResponse(responseCode = "403", description = "Forbidden")},
+            security = {@SecurityRequirement(name = "Authorization")}
+    )
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @DeleteMapping(value = "logicDeleteCategory")
+    public BaseResponse logicDeleteCategory(@RequestParam int id) throws ApplicationException {
+        this.getAuthentication();
+        CategoryResponse categoryResponse = categoryService.logicDeleteCategory(id, this.customUserDetail);
+        return this.returnBaseReponse(categoryResponse, LOGIC_DELETED_CATEGORY_SUCCESSFUL);
+    }
+
+
+    /**
+     *
+     * @param id
+     * @return BaseResponse
+     * @throws ApplicationException
+     */
+    @Operation(responses = {
+            @ApiResponse(responseCode = "200", description = "OK",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))),
+            @ApiResponse(responseCode = "400", description = "Bad request"),
+            @ApiResponse(responseCode = "500", description = "Server error"),
+            @ApiResponse(responseCode = "403", description = "Forbidden")},
+            security = {@SecurityRequirement(name = "Authorization")}
+    )
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @DeleteMapping(value = "physicDeleteCategory")
+    public BaseResponse physicDeleteCategory(@RequestParam int id) throws ApplicationException {
+        this.getAuthentication();
+        categoryService.physicalDeleteBrand(id);
+        return this.returnBaseReponse(null, PHYSIC_DELETED_CATEGORY_SUCCESSFUL);
     }
 }
