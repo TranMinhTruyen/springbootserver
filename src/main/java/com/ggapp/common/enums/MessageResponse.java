@@ -88,6 +88,10 @@ public enum MessageResponse {
     //region Order message
     ORDER_NOT_FOUND("Not found order", HttpStatus.NOT_FOUND),
     ORDER_NOT_FOUND_PRODUCT("Not found product in cart", HttpStatus.NOT_FOUND),
+    CREATED_ORDER_SUCCESSFUL("Order created successful", HttpStatus.OK),
+    GET_ORDER_SUCCESSFUL("Get order successful", HttpStatus.OK),
+    UPDATED_ORDER_SUCCESSFUL("Order updated successful", HttpStatus.OK),
+    DELETED_ORDER_SUCCESSFUL("Order deleted successful", HttpStatus.OK),
     //endregion
 
     //region Cart message
@@ -96,13 +100,15 @@ public enum MessageResponse {
     UPDATED_CART_SUCCESSFUL("Updated cart successful", HttpStatus.OK),
     GET_CART_SUCCESSFUL("Get cart successful", HttpStatus.OK),
     DELETED_CART_SUCCESSFUL("Deleted cart successful", HttpStatus.OK),
+    REMOVED_PRODUCT_FROM_CART_SUCCESSFUL("Product is removed successful", HttpStatus.OK),
+    UPDATED_PRODUCT_AMOUNT_SUCCESSFUL("Product amount updated successful", HttpStatus.OK),
     CART_NOT_FOUND("Not found cart", HttpStatus.NOT_FOUND);
     //endregion
 
     private String message;
     private HttpStatus httpStatus;
 
-    private MessageResponse(String message, HttpStatus httpStatus) {
+    MessageResponse(String message, HttpStatus httpStatus) {
         this.message = message;
         this.httpStatus = httpStatus;
     }

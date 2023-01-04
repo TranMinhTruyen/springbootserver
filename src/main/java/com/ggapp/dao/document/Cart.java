@@ -25,6 +25,9 @@ public class Cart {
 	@Field(value = "productList")
 	private List<ListProduct> productList;
 
+	@Field(value = "amountInCart")
+	private long amountInCart;
+
 	@Field(value = "totalPrice")
 	private BigDecimal totalPrice;
 

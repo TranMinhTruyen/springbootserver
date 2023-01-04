@@ -20,7 +20,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -28,6 +27,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import static com.ggapp.common.enums.MessageResponse.CREATED_ORDER_SUCCESSFUL;
+import static com.ggapp.common.enums.MessageResponse.GET_ORDER_SUCCESSFUL;
+import static com.ggapp.common.enums.MessageResponse.UPDATED_ORDER_SUCCESSFUL;
 
 /**
  * @author Tran Minh Truyen
@@ -38,41 +41,51 @@ import org.springframework.web.bind.annotation.RestController;
 @CrossOrigin("*")
 @RequestMapping("api/order")
 @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_EMP')")
-public class OrderResource {
+public class OrderResource extends CommonResource{
 
 	@Autowired
 	private OrderService orderService;
 
-	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
-			security = {@SecurityRequirement(name = "Authorization")})
+
+
+	@Operation(responses = {
+			@ApiResponse(responseCode = "200", description = "OK",
+					content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "400", description = "Bad request"),
+			@ApiResponse(responseCode = "500", description = "Server error"),
+			@ApiResponse(responseCode = "403", description = "Forbidden")},
+			security = {@SecurityRequirement(name = "Authorization")}
+	)
 	@PostMapping(value = "createOrder")
 	public BaseResponse createOrder(@RequestBody UserOrderRequest userOrderRequest) throws Exception {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
+		this.getAuthentication();
 		OrderResponse orderResponse;
-		BaseResponse baseResponse = new BaseResponse();
 		if (userOrderRequest.getProductId() != null && userOrderRequest.getProductId().length > 0) {
-			orderResponse = orderService.createOrderByProductId(customUserDetail.getAccountDetail().getOwnerId(), userOrderRequest.getProductId(), userOrderRequest.getStoreId());
+			orderResponse = orderService.createOrderByProductId(this.customUserDetail, userOrderRequest.getProductId(),
+					userOrderRequest.getStoreId());
 		}
 		else {
-			orderResponse = orderService.createOrderByCart(customUserDetail.getAccountDetail().getOwnerId());
+			orderResponse = orderService.createOrderByCart(this.customUserDetail);
 		}
-		baseResponse.setStatus(HttpStatus.OK.value());
-		baseResponse.setStatusname(HttpStatus.OK.name());
-		baseResponse.setMessage("Cart is created");
-		baseResponse.setPayload(orderResponse);
-		return baseResponse;
+		return this.returnBaseReponse(orderResponse, CREATED_ORDER_SUCCESSFUL);
 	}
 
 
-	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
-			security = {@SecurityRequirement(name = "Authorization")})
+
+	@Operation(responses = {
+			@ApiResponse(responseCode = "200", description = "OK",
+					content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "400", description = "Bad request"),
+			@ApiResponse(responseCode = "500", description = "Server error"),
+			@ApiResponse(responseCode = "403", description = "Forbidden")},
+			security = {@SecurityRequirement(name = "Authorization")}
+	)
 	@GetMapping(value="user/getOrder")
 	public BaseResponse getOrder(@RequestParam int page, @RequestParam int size){
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
 		BaseResponse baseResponse = new BaseResponse();
-		CommonResponsePayload commonResponsePayload = orderService.getOrderByCustomerId(page, size, customUserDetail.getAccountDetail().getOwnerId());
+		CommonResponsePayload commonResponsePayload = orderService.getOrderByCustomerId(this.customUserDetail, page, size);
 		baseResponse.setStatus(HttpStatus.OK.value());
 		baseResponse.setStatusname(HttpStatus.OK.name());
 		baseResponse.setMessage("Get order success");
@@ -81,66 +94,65 @@ public class OrderResource {
 	}
 
 
-	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
-			security = {@SecurityRequirement(name = "Authorization")})
+	@Operation(responses = {
+			@ApiResponse(responseCode = "200", description = "OK",
+					content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "400", description = "Bad request"),
+			@ApiResponse(responseCode = "500", description = "Server error"),
+			@ApiResponse(responseCode = "403", description = "Forbidden")},
+			security = {@SecurityRequirement(name = "Authorization")}
+	)
 	@GetMapping(value="emp/getOrderByCustomerId")
 	public BaseResponse getOrderByCustomerId(@RequestParam int page,
 												 @RequestParam int size) {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
-		BaseResponse baseResponse = new BaseResponse();
-		CommonResponsePayload commonResponsePayload = orderService.getOrderByCustomerId(page, size, customUserDetail.getAccountDetail().getOwnerId());
-		baseResponse.setStatus(HttpStatus.OK.value());
-		baseResponse.setStatusname(HttpStatus.OK.name());
-		baseResponse.setMessage("Get order success");
-		baseResponse.setPayload(commonResponsePayload);
-		return baseResponse;
+		this.getAuthentication();
+		CommonResponsePayload commonResponsePayload = orderService.getOrderByCustomerId(this.customUserDetail, page, size);
+		return this.returnBaseReponse(commonResponsePayload, GET_ORDER_SUCCESSFUL);
 	}
 
 
-	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
-			security = {@SecurityRequirement(name = "Authorization")})
+	@Operation(responses = {
+			@ApiResponse(responseCode = "200", description = "OK",
+					content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "400", description = "Bad request"),
+			@ApiResponse(responseCode = "500", description = "Server error"),
+			@ApiResponse(responseCode = "403", description = "Forbidden")},
+			security = {@SecurityRequirement(name = "Authorization")}
+	)
 	@PutMapping(value = "user/userUpdateOrder", consumes = MediaType.APPLICATION_JSON_VALUE)
 	public BaseResponse userUpdateOrder(@RequestBody UserOrderRequest userOrderRequest) throws ApplicationException {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
-		BaseResponse baseResponse = new BaseResponse();
-		OrderRequest orderRequest = new OrderRequest();
-		orderRequest.setAddress(userOrderRequest.getAddress());
-		orderService.updateOrder(customUserDetail.getAccountDetail().getOwnerId(), orderRequest);
-		baseResponse.setStatus(HttpStatus.OK.value());
-		baseResponse.setStatusname(HttpStatus.OK.name());
-		baseResponse.setMessage("Update order success");
-		baseResponse.setPayload(orderRequest);
-		return baseResponse;
+		this.getAuthentication();
+		OrderResponse orderResponse = orderService.updateOrderByUser(this.customUserDetail, userOrderRequest);
+		return this.returnBaseReponse(orderResponse, UPDATED_ORDER_SUCCESSFUL);
 	}
 
 
-	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
-			security = {@SecurityRequirement(name = "Authorization")})
+	@Operation(responses = {
+			@ApiResponse(responseCode = "200", description = "OK",
+					content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "400", description = "Bad request"),
+			@ApiResponse(responseCode = "500", description = "Server error"),
+			@ApiResponse(responseCode = "403", description = "Forbidden")},
+			security = {@SecurityRequirement(name = "Authorization")}
+	)
 	@PutMapping(value = "emp/empUpdateOrder", consumes = MediaType.APPLICATION_JSON_VALUE)
-	public BaseResponse empUpdateOrder(@RequestParam long id, @RequestBody OrderRequest orderRequest) throws ApplicationException {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
-		BaseResponse baseResponse = new BaseResponse();
-		OrderRequest order = new OrderRequest();
-		order.setAddress(orderRequest.getAddress());
-		orderService.updateOrder(customUserDetail.getAccountDetail().getOwnerId(), order);
-		baseResponse.setStatus(HttpStatus.OK.value());
-		baseResponse.setStatusname(HttpStatus.OK.name());
-		baseResponse.setMessage("Update order success");
-		baseResponse.setPayload(order);
-		return baseResponse;
+	public BaseResponse empUpdateOrder(@RequestParam int id, @RequestBody OrderRequest orderRequest) throws ApplicationException {
+		this.getAuthentication();
+		OrderResponse orderResponse = orderService.updateOrderByEmp(id, this.customUserDetail,orderRequest);
+		return this.returnBaseReponse(orderResponse, UPDATED_ORDER_SUCCESSFUL);
 	}
 
 
 
-	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
-			security = {@SecurityRequirement(name = "Authorization")})
-	@DeleteMapping(value = "deleteOrder")
-	public BaseResponse deleteOrder(@RequestParam long id) throws Exception {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
+	@Operation(responses = {
+			@ApiResponse(responseCode = "200", description = "OK",
+					content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "400", description = "Bad request"),
+			@ApiResponse(responseCode = "500", description = "Server error"),
+			@ApiResponse(responseCode = "403", description = "Forbidden")},
+			security = {@SecurityRequirement(name = "Authorization")}
+	)
+	public BaseResponse deleteOrder(@RequestParam long id) throws ApplicationException {
 		BaseResponse baseResponse = new BaseResponse();
 		baseResponse.setStatus(HttpStatus.OK.value());
 		baseResponse.setStatusname(HttpStatus.OK.name());

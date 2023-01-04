@@ -9,9 +9,10 @@ import com.ggapp.common.jwt.CustomUserDetail;
  */
 public interface CartService {
 	CartResponse createCartAndAddProductToCart(CustomUserDetail customUserDetail, int productId, int storeId, int productAmount) throws ApplicationException;
-	CartResponse getCartById(int id) throws ApplicationException;
-	CartResponse updateProductAmountInCart(int customerId, int productId, int storeId, int amount) throws ApplicationException;
-	CartResponse deleteCart(int id, int storeId) throws ApplicationException;
+	CartResponse getCartOwner(CustomUserDetail customUserDetail) throws ApplicationException;
+	CartResponse updateProductAmountInCart(CustomUserDetail customUserDetail, int productId, int storeId, int amount) throws ApplicationException;
+	CartResponse deleteCart(CustomUserDetail customUserDetail, int storeId) throws ApplicationException;
 	boolean deleteCartAfterCreateOrder(int id);
-	CartResponse removeProductFromCart(int customerId, int productId, int storeId) throws ApplicationException;
+	CartResponse removeProductFromCart(CustomUserDetail customUserDetail, int productId, int storeId) throws ApplicationException;
+	CartResponse removeSingleProductFromCart(CustomUserDetail customUserDetail, int productId) throws ApplicationException;
 }

@@ -27,8 +27,9 @@ public class CartMapperImpl implements CartMapper {
         CartResponse cartResponse = new CartResponse();
         cartResponse.setCustomerId(cart.getId());
         cartResponse.setProductList(cart.getProductList());
+        cartResponse.setAmountInCart(cart.getAmountInCart());
         cartResponse.setTotalPrice(cart.getTotalPrice());
-        return null;
+        return cartResponse;
     }
 
     @Override

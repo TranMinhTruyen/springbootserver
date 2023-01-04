@@ -10,9 +10,6 @@ import javax.validation.constraints.NotBlank;
 @Data
 public class OrderRequest {
 
-	@NotBlank(message = "employeeId is mandatory")
-	private int employeeId;
-
 	private int version;
 
 	@NotBlank(message = "address is mandatory")

@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class CartResponse extends CartRequest {
-	private long totalAmount;
+	private long productTotalAmount;
+	private long amountInCart;
 	private BigDecimal totalPrice;
 }

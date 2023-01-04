@@ -2,13 +2,13 @@ package com.ggapp.common.config;
 
 import com.ggapp.common.exception.CustomAuthenticationEntryPoint;
 import com.ggapp.common.jwt.JWTAuthenticationFilter;
-import com.ggapp.services.AccountService;
 import com.ggapp.services.implement.AccountServiceImp;
-import com.ggapp.services.implement.UserServiceImp;
+import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.BeanIds;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -21,6 +21,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.transaction.PlatformTransactionManager;
 
 /**
  * @author Tran Minh Truyen
@@ -51,6 +52,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public JWTAuthenticationFilter jwtAuthenticationFilter() {
         return new JWTAuthenticationFilter();
+    }
+
+    @Bean(name = "transactionManager")
+    public PlatformTransactionManager transactionManager(SessionFactory sessionFactory) {
+        JpaTransactionManager transactionManager = new JpaTransactionManager();
+        transactionManager.setEntityManagerFactory(sessionFactory);
+        return transactionManager;
     }
 
     @Bean(BeanIds.AUTHENTICATION_MANAGER)

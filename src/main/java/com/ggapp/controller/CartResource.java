@@ -1,5 +1,4 @@
 package com.ggapp.controller;
-import com.ggapp.common.enums.MessageResponse;
 import com.ggapp.common.exception.ApplicationException;
 import com.ggapp.common.jwt.CustomUserDetail;
 import com.ggapp.common.dto.response.BaseResponse;
@@ -12,7 +11,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -27,6 +25,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import static com.ggapp.common.enums.MessageResponse.CREATED_CART_SUCCESSFUL;
+import static com.ggapp.common.enums.MessageResponse.DELETED_CART_SUCCESSFUL;
+import static com.ggapp.common.enums.MessageResponse.GET_CART_SUCCESSFUL;
+import static com.ggapp.common.enums.MessageResponse.REMOVED_PRODUCT_FROM_CART_SUCCESSFUL;
+import static com.ggapp.common.enums.MessageResponse.UPDATED_PRODUCT_AMOUNT_SUCCESSFUL;
 
 /**
  * @author Tran Minh Truyen
@@ -42,6 +44,15 @@ public class CartResource extends CommonResource {
 	@Autowired
 	private CartService cartService;
 
+
+	/**
+	 *
+	 * @param productId
+	 * @param storeId
+	 * @param productAmount
+	 * @return BaseResponse
+	 * @throws ApplicationException
+	 */
 	@Operation(responses = {
 			@ApiResponse(responseCode = "200", description = "OK",
 					content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))),
@@ -60,6 +71,12 @@ public class CartResource extends CommonResource {
 		return this.returnBaseReponse(cartResponse, CREATED_CART_SUCCESSFUL);
 	}
 
+
+	/**
+	 *
+	 * @return BaseResponse
+	 * @throws ApplicationException
+	 */
 	@Operation(responses = {
 			@ApiResponse(responseCode = "200", description = "OK",
 					content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))),
@@ -69,57 +86,80 @@ public class CartResource extends CommonResource {
 			security = {@SecurityRequirement(name = "Authorization")}
 	)
 	@GetMapping(value="getCartById")
-	public BaseResponse getCartById() throws Exception {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
-		CartResponse cartResponse = cartService.getCartById(customUserDetail.getAccountDetail().getOwnerId());
-		BaseResponse baseResponse = new BaseResponse();
-		baseResponse.setStatus(200);
-		baseResponse.setMessage("Get cart success");
-		baseResponse.setPayload(cartResponse);
-		return baseResponse;
+	public BaseResponse getCartById() throws ApplicationException {
+		this.getAuthentication();
+		CartResponse cartResponse = cartService.getCartOwner(this.customUserDetail);
+		return this.returnBaseReponse(cartResponse, GET_CART_SUCCESSFUL);
 	}
 
-	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
-			security = {@SecurityRequirement(name = "Authorization")})
+
+	/**
+	 *
+	 * @param productId
+	 * @param storeId
+	 * @param amount
+	 * @return BaseResponse
+	 * @throws ApplicationException
+	 */
+	@Operation(responses = {
+			@ApiResponse(responseCode = "200", description = "OK",
+					content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "400", description = "Bad request"),
+			@ApiResponse(responseCode = "500", description = "Server error"),
+			@ApiResponse(responseCode = "403", description = "Forbidden")},
+			security = {@SecurityRequirement(name = "Authorization")}
+	)
 	@PutMapping(value = "updateProductAmount")
 	public BaseResponse updateProductAmount(@RequestParam int productId,
 											@RequestParam int storeId,
-											@RequestParam int amount) throws Exception {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
-		CartResponse cartResponse = cartService.updateProductAmountInCart(customUserDetail.getAccountDetail().getOwnerId(), productId, storeId, amount);
-		BaseResponse baseResponse = new BaseResponse();
-		baseResponse.setStatus(200);
-		baseResponse.setMessage("Product amount is updated");
-		baseResponse.setPayload(cartResponse);
-		return baseResponse;
+											@RequestParam int amount) throws ApplicationException {
+		this.getAuthentication();
+		CartResponse cartResponse = cartService.updateProductAmountInCart(this.customUserDetail, productId, storeId, amount);
+		return this.returnBaseReponse(cartResponse, UPDATED_PRODUCT_AMOUNT_SUCCESSFUL);
 	}
 
-	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
-			security = {@SecurityRequirement(name = "Authorization")})
+
+	/**
+	 *
+	 * @param productId
+	 * @param storeId
+	 * @return BaseResponse
+	 * @throws ApplicationException
+	 */
+	@Operation(responses = {
+			@ApiResponse(responseCode = "200", description = "OK",
+					content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "400", description = "Bad request"),
+			@ApiResponse(responseCode = "500", description = "Server error"),
+			@ApiResponse(responseCode = "403", description = "Forbidden")},
+			security = {@SecurityRequirement(name = "Authorization")}
+	)
 	@DeleteMapping(value = "removeProductFromCart")
 	public BaseResponse updateProductList(@RequestParam int productId, @RequestParam int storeId) throws ApplicationException {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
-		CartResponse cartResponse = cartService.removeProductFromCart(customUserDetail.getAccountDetail().getOwnerId(), productId, storeId);
-		BaseResponse baseResponse = new BaseResponse();
-		baseResponse.setStatus(200);
-		baseResponse.setMessage("Product is removed");
-		baseResponse.setPayload(cartResponse);
-		return baseResponse;
+		this.getAuthentication();
+		CartResponse cartResponse = cartService.removeProductFromCart(this.customUserDetail, productId, storeId);
+		return this.returnBaseReponse(cartResponse, REMOVED_PRODUCT_FROM_CART_SUCCESSFUL);
 	}
 
-	@Operation(responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
-			security = {@SecurityRequirement(name = "Authorization")})
+
+	/**
+	 *
+	 * @param storeId
+	 * @return BaseResponse
+	 * @throws ApplicationException
+	 */
+	@Operation(responses = {
+			@ApiResponse(responseCode = "200", description = "OK",
+					content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "400", description = "Bad request"),
+			@ApiResponse(responseCode = "500", description = "Server error"),
+			@ApiResponse(responseCode = "403", description = "Forbidden")},
+			security = {@SecurityRequirement(name = "Authorization")}
+	)
 	@DeleteMapping(value = "deleteCart")
 	public BaseResponse deleteCart(@RequestParam int storeId) throws ApplicationException {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
-		cartService.deleteCart(customUserDetail.getAccountDetail().getOwnerId(), storeId);
-		BaseResponse baseResponse = new BaseResponse();
-		baseResponse.setStatus(200);
-		baseResponse.setMessage("Cart is deleted");
-		return baseResponse;
+		this.getAuthentication();
+		cartService.deleteCart(this.customUserDetail, storeId);
+		return this.returnBaseReponse(null, DELETED_CART_SUCCESSFUL);
 	}
 }

@@ -1,10 +1,13 @@
 package com.ggapp.services.implement;
 
 import com.ggapp.common.dto.request.OrderRequest;
+import com.ggapp.common.dto.request.UserOrderRequest;
 import com.ggapp.common.dto.response.CommonResponsePayload;
 import com.ggapp.common.dto.response.OrderResponse;
 import com.ggapp.common.exception.ApplicationException;
+import com.ggapp.common.jwt.CustomUserDetail;
 import com.ggapp.common.utils.Constant;
+import com.ggapp.common.utils.mapper.OrderMapper;
 import com.ggapp.dao.document.AutoIncrement;
 import com.ggapp.dao.document.Cart;
 import com.ggapp.dao.document.ListProduct;
@@ -43,7 +46,7 @@ import static com.ggapp.common.enums.MessageResponse.USER_NOT_FOUND;
  * Now, only God knows!
  * So if you are done trying to 'optimize' this routine (and failed), please increment the
  * following counter as a warning to the next guy
- * TOTAL_HOURS_WASTED_HERE = 200
+ * TOTAL_HOURS_WASTED_HERE = 204
  */
 
 @Service
@@ -67,59 +70,60 @@ public class OrderServiceImp implements OrderService {
     @Autowired
     private StoreRepository storeRepository;
 
-    @Override
-    public OrderResponse createOrderByCart(int customerId) throws ApplicationException {
-        List<Order> last = new AutoIncrement(orderRepository).getLastOfCollection();
-        Optional<Cart> cartResult = cartRepository.findById(customerId);
-        Optional<User> userResult = userRepository.findById(customerId);
-        cartResult.orElseThrow(() -> new ApplicationException(CART_NOT_FOUND));
-        userResult.orElseThrow(() -> new ApplicationException(USER_NOT_FOUND));
-        if (userResult.isPresent() && cartResult.isPresent()) {
-            Order newOrder = new Order();
-            if (last != null)
-                newOrder.setId(last.get(0).getId() + 1);
-            else newOrder.setId(1);
-            newOrder.setCustomerId(userResult.get().getId());
-            newOrder.setCreateDate(new Date());
-            newOrder.setListProducts(cartResult.get().getProductList());
-            newOrder.setStatus(Constant.NEW);
-            newOrder.setTotalPrice(cartResult.get().getTotalPrice());
-            StringBuilder stringBuilder = new StringBuilder(userResult.get().getAddress());
-            stringBuilder.append(", ");
-            stringBuilder.append(userResult.get().getDistrict());
-            stringBuilder.append(", ");
-            stringBuilder.append(userResult.get().getCity());
-            newOrder.setAddress(stringBuilder.toString());
-            Order order = orderRepository.save(newOrder);
-            cartService.deleteCartAfterCreateOrder(cartResult.get().getId());
-            return getOrderAfterCreateOrUpdate(order);
-        } else return null;
-    }
+    @Autowired
+    private OrderMapper orderMapper;
 
     @Override
-    public OrderResponse createOrderByProductId(int customerId, int[] productId, int storeId) throws ApplicationException {
-
+    public OrderResponse createOrderByCart(CustomUserDetail customUserDetail) throws ApplicationException {
         List<Order> last = new AutoIncrement(orderRepository).getLastOfCollection();
-
-        Optional<Cart> cartResult = cartRepository.findById(customerId);
-        Optional<User> userResult = userRepository.findById(customerId);
-        Optional<Store> storeResult = storeRepository.findById(storeId);
+        Optional<Cart> cartResult = cartRepository.findById(customUserDetail.getAccountDetail().getOwnerId());
+        Optional<User> userResult = userRepository.findById(customUserDetail.getAccountDetail().getOwnerId());
 
         User user = userResult.orElseThrow(() -> new ApplicationException(USER_NOT_FOUND));
         Cart cart = cartResult.orElseThrow(() -> new ApplicationException(CART_NOT_FOUND));
-        Store store = storeResult.orElseThrow(() -> new ApplicationException(STORE_NOT_FOUND));
 
-        if (userResult.isPresent() && cartResult.isPresent() && productId != null) {
+        Order newOrder = new Order();
+        if (last != null)
+            newOrder.setId(last.get(0).getId() + 1);
+        else newOrder.setId(1);
+        newOrder.setCustomerId(user.getId());
+        newOrder.setCreateDate(new Date());
+        newOrder.setListProducts(cart.getProductList());
+        newOrder.setStatus(Constant.NEW);
+        newOrder.setTotalPrice(cart.getTotalPrice());
+        StringBuilder stringBuilder = new StringBuilder(user.getAddress());
+        stringBuilder.append(", ");
+        stringBuilder.append(user.getDistrict());
+        stringBuilder.append(", ");
+        stringBuilder.append(user.getCity());
+        newOrder.setAddress(stringBuilder.toString());
+        Order order = orderRepository.save(newOrder);
+        cartService.deleteCartAfterCreateOrder(cart.getId());
+        return getOrderAfterCreateOrUpdate(order);
+    }
+
+    @Override
+    public OrderResponse createOrderByProductId(CustomUserDetail customUserDetail, int[] productId, int storeId) throws ApplicationException {
+
+        List<Order> last = new AutoIncrement(orderRepository).getLastOfCollection();
+
+        Optional<Cart> cartResult = cartRepository.findById(customUserDetail.getAccountDetail().getOwnerId());
+        Optional<User> userResult = userRepository.findById(customUserDetail.getAccountDetail().getOwnerId());
+
+        User user = userResult.orElseThrow(() -> new ApplicationException(USER_NOT_FOUND));
+        Cart cart = cartResult.orElseThrow(() -> new ApplicationException(CART_NOT_FOUND));
+
+        if (productId != null && productId.length > 0) {
             Order newOrder = new Order();
             BigDecimal totalPrice = new BigDecimal(0);
             List<ListProduct> productList = new ArrayList<>();
-            for (ListProduct product : cartResult.get().getProductList()) {
+            for (ListProduct product : cart.getProductList()) {
                 for (int id : productId) {
                     if (product.getId() == id) {
                         productList.add(product);
                         totalPrice = totalPrice.add(product.getPriceAfterDiscount()
                                 .multiply(BigDecimal.valueOf(product.getProductAmount())));
-                        cartService.removeProductFromCart(user.getId(), product.getId(), store.getId());
+                        cartService.removeSingleProductFromCart(customUserDetail, product.getId());
                     }
                 }
             }
@@ -161,8 +165,8 @@ public class OrderServiceImp implements OrderService {
     }
 
     @Override
-    public CommonResponsePayload getOrderByCustomerId(int page, int size, int id) {
-        List<Order> result = orderRepository.findOrderByCustomerId(id);
+    public CommonResponsePayload getOrderByCustomerId(CustomUserDetail customUserDetail, int page, int size) {
+        List<Order> result = orderRepository.findOrderByCustomerId(customUserDetail.getAccountDetail().getOwnerId());
         if (result != null) {
             return new CommonResponsePayload().getCommonResponse(page, size, result);
         } else return null;
@@ -170,17 +174,23 @@ public class OrderServiceImp implements OrderService {
 
     @Override
     @Transactional
-    public boolean updateOrder(int id, OrderRequest orderRequest) throws ApplicationException {
-        Optional<Order> order = orderRepository.findById(id);
-        order.orElseThrow(() -> new ApplicationException(ORDER_NOT_FOUND));
-        if (order.isPresent()) {
-            Order update = order.get();
-            update.setEmployeeId(orderRequest.getEmployeeId());
-            update.setStatus(orderRequest.getStatus());
-            update.setAddress(orderRequest.getAddress());
-            orderRepository.save(update);
-            return true;
-        } else return false;
+    public OrderResponse updateOrderByEmp(int id, CustomUserDetail customUserDetail, OrderRequest orderRequest) throws ApplicationException {
+        Optional<Order> orderResult = orderRepository.findById(id);
+        Order update = orderResult.orElseThrow(() -> new ApplicationException(ORDER_NOT_FOUND));
+        update.setEmployeeId(customUserDetail.getAccountDetail().getOwnerId());
+        update.setStatus(orderRequest.getStatus());
+        update.setAddress(orderRequest.getAddress());
+        Order result = orderRepository.save(update);
+        return orderMapper.entityToResponse(result);
+    }
+
+    @Override
+    public OrderResponse updateOrderByUser(CustomUserDetail customUserDetail, UserOrderRequest userOrderRequest) throws ApplicationException {
+        Optional<Order> orderResult = orderRepository.findById(customUserDetail.getAccountDetail().getOwnerId());
+        Order update = orderResult.orElseThrow(() -> new ApplicationException(ORDER_NOT_FOUND));
+        update.setAddress(userOrderRequest.getAddress());
+        Order result = orderRepository.save(update);
+        return orderMapper.entityToResponse(result);
     }
 
     @Override

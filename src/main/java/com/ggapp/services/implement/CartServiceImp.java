@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static com.ggapp.common.enums.MessageResponse.CART_CREATED_ERROR;
 import static com.ggapp.common.enums.MessageResponse.CART_NOT_FOUND;
 import static com.ggapp.common.enums.MessageResponse.PRODUCT_IN_STORE_NOT_FOUND;
 import static com.ggapp.common.enums.MessageResponse.PRODUCT_IS_OUT_OF_STOCK;
@@ -70,17 +69,17 @@ public class CartServiceImp implements CartService {
     @Override
     public CartResponse createCartAndAddProductToCart(CustomUserDetail customUserDetail, int productId, int storeId, int productAmount)
             throws ApplicationException {
-        if (!isCartExists(customUserDetail.getAccountDetail().getOwnerId())) {
-            return createCart(customUserDetail.getAccountDetail().getOwnerId(), productId, storeId, productAmount);
+        if (cartRepository.findById(customUserDetail.getAccountDetail().getOwnerId()).isEmpty()) {
+            return createCart(customUserDetail, productId, storeId, productAmount);
         }else {
-            return addProductToCart(customUserDetail.getAccountDetail().getOwnerId(), productId, storeId, productAmount);
+            return addProductToCart(customUserDetail, productId, storeId, productAmount);
         }
     }
 
-    private CartResponse createCart(int customerId, int productId, int storeId, int productAmount) throws ApplicationException {
+    private CartResponse createCart(CustomUserDetail customUserDetail, int productId, int storeId, int productAmount) throws ApplicationException {
         Optional<Product> productResult = productRepository.findById(productId);
         Optional<Store> storeResult = storeRepository.findById(storeId);
-        Optional<User> userResult = userRepository.findById(customerId);
+        Optional<User> userResult = userRepository.findById(customUserDetail.getAccountDetail().getOwnerId());
 
         Product product = productResult.orElseThrow(() -> new ApplicationException(PRODUCT_NOT_FOUND));
         Store store = storeResult.orElseThrow(() -> new ApplicationException(STORE_NOT_FOUND));
@@ -88,6 +87,7 @@ public class CartServiceImp implements CartService {
 
         Optional<ProductStore> productStoreResult = productStoreRepository.findProductStoreByStoreIdAndProductId(store.getId(), product.getId());
         ProductStore productStore = productStoreResult.orElseThrow(() -> new ApplicationException(PRODUCT_IN_STORE_NOT_FOUND));
+        product = productStore.getProduct();
 
         if (productStoreResult.get().getUnitInStock() > 0) {
             Cart newCart = new Cart();
@@ -99,40 +99,38 @@ public class CartServiceImp implements CartService {
             productStoreRepository.save(productStore);
             newCart.setId(user.getId());
             newCart.setProductList(listProducts);
+            newCart.setAmountInCart(listProducts.size());
             newCart.setTotalPrice(commonUtils.calculatePrice(product, productAmount));
             Cart cart = cartRepository.save(newCart);
-            return getCartAfterUpdateOrCreate(cart);
+            return cartMapper.entityToResponse(cart);
         } else throw new ApplicationException(PRODUCT_IS_OUT_OF_STOCK);
     }
 
-    public CartResponse getCartAfterUpdateOrCreate(Cart cart) {
-        return cartMapper.entityToResponse(cart);
-    }
-
     @Override
-    public CartResponse getCartById(int id) throws ApplicationException {
-        Optional<Cart> cartResult = cartRepository.findById(id);
-        if (cartResult.isPresent()) {
-            long totalAmount = 0;
-            for (ListProduct listProduct : cartResult.get().getProductList()) {
-                totalAmount = totalAmount + listProduct.getProductAmount();
-            }
-            CartResponse cartResponse = new CartResponse();
-            cartResponse.setCustomerId(cartResult.get().getId());
-            cartResponse.setProductList(cartResult.get().getProductList());
-            cartResponse.setTotalAmount(totalAmount);
-            cartResponse.setTotalPrice(cartResult.get().getTotalPrice());
-            return cartResponse;
+    public CartResponse getCartOwner(CustomUserDetail customUserDetail) throws ApplicationException {
+        Optional<Cart> cartResult = cartRepository.findById(customUserDetail.getAccountDetail().getOwnerId());
+        Cart cart = cartResult.orElseThrow(() -> new ApplicationException(CART_NOT_FOUND));
+
+        long totalAmount = 0;
+        for (ListProduct listProduct : cart.getProductList()) {
+            totalAmount = totalAmount + listProduct.getProductAmount();
         }
-        return null;
+
+        CartResponse cartResponse = new CartResponse();
+        cartResponse.setCustomerId(cart.getId());
+        cartResponse.setProductList(cart.getProductList());
+        cartResponse.setProductTotalAmount(totalAmount);
+        cartResponse.setAmountInCart(cart.getProductList().size());
+        cartResponse.setTotalPrice(cart.getTotalPrice());
+        return cartResponse;
     }
 
     @Override
-    public CartResponse updateProductAmountInCart(int customerId, int productId, int storeId, int amount) throws ApplicationException {
-        Optional<Cart> cartResult = cartRepository.findById(customerId);
+    public CartResponse updateProductAmountInCart(CustomUserDetail customUserDetail, int productId, int storeId, int amount) throws ApplicationException {
+        Optional<Cart> cartResult = cartRepository.findById(customUserDetail.getAccountDetail().getOwnerId());
         Optional<Product> productResult = productRepository.findById(productId);
         Optional<Store> storeResult = storeRepository.findById(storeId);
-        Optional<User> userResult = userRepository.findById(customerId);
+        Optional<User> userResult = userRepository.findById(customUserDetail.getAccountDetail().getOwnerId());
 
         User user = userResult.orElseThrow(() -> new ApplicationException(USER_NOT_FOUND));
         Cart update = cartResult.orElseThrow(() -> new ApplicationException(CART_NOT_FOUND));
@@ -141,6 +139,7 @@ public class CartServiceImp implements CartService {
 
         Optional<ProductStore> productStoreResult = productStoreRepository.findProductStoreByStoreIdAndProductId(store.getId(), product.getId());
         ProductStore productStore = productStoreResult.orElseThrow(() -> new ApplicationException(PRODUCT_IN_STORE_NOT_FOUND));
+        product = productStore.getProduct();
 
         if (checkProductAmount(productStore, amount) > 0) {
             List<ListProduct> list = update.getProductList();
@@ -152,27 +151,28 @@ public class CartServiceImp implements CartService {
                         productStore.setUnitInStock(productStore.getUnitInStock() - (amount - items.getProductAmount()));
                     }
                     items.setProductAmount(amount);
-                    productRepository.save(product);
+                    productStoreRepository.save(productStore);
                     break;
                 }
             }
             update.setProductList(list);
             update.setUpdateDate(LocalDateTime.now());
             update.setUpdateBy(user.getFullName());
+            update.setAmountInCart(list.size());
             update.setTotalPrice(commonUtils.calculatePrice(list));
             Cart result = cartRepository.save(update);
             if (result.getProductList().isEmpty()) {
-                return deleteCart(user.getId(), store.getId());
+                return deleteCart(customUserDetail, store.getId());
             }
-            return getCartAfterUpdateOrCreate(result);
+            return cartMapper.entityToResponse(result);
         }
         return null;
     }
 
-    private CartResponse addProductToCart(int customerId, int productId, int storeId, int productAmount) throws ApplicationException {
-        Optional<Cart> cartResult = cartRepository.findById(customerId);
+    private CartResponse addProductToCart(CustomUserDetail customUserDetail, int productId, int storeId, int productAmount) throws ApplicationException {
+        Optional<Cart> cartResult = cartRepository.findById(customUserDetail.getAccountDetail().getOwnerId());
         Optional<Product> productResult = productRepository.findById(productId);
-        Optional<User> userResult = userRepository.findById(customerId);
+        Optional<User> userResult = userRepository.findById(customUserDetail.getAccountDetail().getOwnerId());
         Optional<Store> storeResult = storeRepository.findById(storeId);
 
         User user = userResult.orElseThrow(() -> new ApplicationException(USER_NOT_FOUND));
@@ -192,9 +192,10 @@ public class CartServiceImp implements CartService {
             productRepository.save(product);
             cart.setId(user.getId());
             cart.setProductList(productInCart);
+            cart.setAmountInCart(productInCart.size());
             cart.setTotalPrice(commonUtils.calculatePrice(productInCart));
             cartRepository.save(cart);
-            return getCartAfterUpdateOrCreate(cart);
+            return cartMapper.entityToResponse(cart);
         } else {
             int amount = 0;
             for (ListProduct items : productInCart) {
@@ -203,21 +204,19 @@ public class CartServiceImp implements CartService {
                     break;
                 }
             }
-            return updateProductAmountInCart(user.getId(), product.getId(), store.getId(), amount);
+            return updateProductAmountInCart(customUserDetail, product.getId(), store.getId(), amount);
         }
     }
 
     @Override
-    public CartResponse removeProductFromCart(int customerId, int productId, int storeId) throws ApplicationException {
-        Optional<Cart> cartResult = cartRepository.findById(customerId);
+    public CartResponse removeProductFromCart(CustomUserDetail customUserDetail, int productId, int storeId) throws ApplicationException {
+        Optional<Cart> cartResult = cartRepository.findById(customUserDetail.getAccountDetail().getOwnerId());
         Optional<Store> storeResult = storeRepository.findById(storeId);
         Optional<Product> productResult = productRepository.findById(productId);
-        Optional<User> userResult = userRepository.findById(customerId);
 
         Cart cart = cartResult.orElseThrow(() -> new ApplicationException(CART_NOT_FOUND));
         Store store = storeResult.orElseThrow(() -> new ApplicationException(STORE_NOT_FOUND));
         Product product = productResult.orElseThrow(() -> new ApplicationException(PRODUCT_NOT_FOUND));
-        User user = userResult.orElseThrow(() -> new ApplicationException(USER_NOT_FOUND));
 
         if (!cart.getProductList().isEmpty()) {
             Cart update = cartResult.get();
@@ -231,21 +230,46 @@ public class CartServiceImp implements CartService {
             }
             update.setTotalPrice(commonUtils.calculatePrice(list));
             update.setProductList(list);
+            update.setAmountInCart(list.size());
             cartRepository.save(update);
             if (cartResult.get().getProductList().isEmpty()) {
-                return deleteCart(user.getId(), store.getId());
+                return deleteCart(customUserDetail, store.getId());
             }
         }
         return null;
     }
 
-    private boolean isCartExists(int customerId) {
-        return cartRepository.findById(customerId).isPresent();
+    @Override
+    public CartResponse removeSingleProductFromCart(CustomUserDetail customUserDetail, int productId) throws ApplicationException {
+        Optional<Cart> cartResult = cartRepository.findById(customUserDetail.getAccountDetail().getOwnerId());
+        Optional<Product> productResult = productRepository.findById(productId);
+
+        Cart cart = cartResult.orElseThrow(() -> new ApplicationException(CART_NOT_FOUND));
+        Product product = productResult.orElseThrow(() -> new ApplicationException(PRODUCT_NOT_FOUND));
+
+        if (!cart.getProductList().isEmpty()) {
+            Cart update = cartResult.get();
+            List<ListProduct> list = update.getProductList();
+            for (ListProduct items : list) {
+                if (items.getId() == product.getId()) {
+                    list.remove(items);
+                    break;
+                }
+            }
+            update.setTotalPrice(commonUtils.calculatePrice(list));
+            update.setProductList(list);
+            update.setAmountInCart(list.size());
+            cartRepository.save(update);
+            if (cartResult.get().getProductList().isEmpty()) {
+                cartRepository.deleteById(customUserDetail.getAccountDetail().getOwnerId());
+            }
+        }
+        return null;
     }
 
     @Override
-    public CartResponse deleteCart(int id, int storeId) throws ApplicationException {
-        Optional<Cart> cartResult = cartRepository.findById(id);
+    public CartResponse deleteCart(CustomUserDetail customUserDetail, int storeId) throws ApplicationException {
+        Optional<Cart> cartResult = cartRepository.findById(customUserDetail.getAccountDetail().getOwnerId());
         Optional<Store> storeResult = storeRepository.findById(storeId);
 
         Store store = storeResult.orElseThrow(() -> new ApplicationException(STORE_NOT_FOUND));
@@ -255,11 +279,11 @@ public class CartServiceImp implements CartService {
             for (ListProduct item: cart.getProductList()) {
                 returnProductFromCart(item.getId(), store.getId(), item.getProductAmount());
             }
-            cartRepository.deleteById(id);
-            return getCartAfterUpdateOrCreate(cartResult.get());
+            cartRepository.deleteById(customUserDetail.getAccountDetail().getOwnerId());
+            return cartMapper.entityToResponse(cart);
         }
-        cartRepository.deleteById(id);
-        return getCartAfterUpdateOrCreate(cartResult.get());
+        cartRepository.deleteById(customUserDetail.getAccountDetail().getOwnerId());
+        return cartMapper.entityToResponse(cart);
     }
 
     private void returnProductFromCart(int productId, int storeId, int amount) throws ApplicationException {
