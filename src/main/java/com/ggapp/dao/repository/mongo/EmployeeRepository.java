@@ -3,6 +3,7 @@ package com.ggapp.dao.repository.mongo;
 import com.ggapp.dao.document.Employee;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -16,4 +17,5 @@ import java.util.Optional;
  */
 public interface EmployeeRepository extends MongoRepository<Employee, Integer> {
     Optional<Employee> findByEmailEqualsIgnoreCase(String email);
+    Optional<List<Employee>> findAllByFullNameContainingIgnoreCaseOrCitizenIdOrId(String fullName, String citizenId, int id);
 }

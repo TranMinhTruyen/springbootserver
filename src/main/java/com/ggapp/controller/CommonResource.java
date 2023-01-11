@@ -2,6 +2,7 @@ package com.ggapp.controller;
 
 import com.ggapp.common.enums.MessageResponse;
 import com.ggapp.common.dto.response.BaseResponse;
+import com.ggapp.common.exception.ApplicationException;
 import com.ggapp.common.jwt.CustomUserDetail;
 import lombok.NonNull;
 import org.springframework.http.HttpStatus;
@@ -9,6 +10,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.annotation.Nullable;
+
+import static com.ggapp.common.enums.MessageResponse.ACCESS_DENIED;
 
 /**
  * @author Tran Minh Truyen on 30/11/2022

@@ -55,7 +55,7 @@ public class CategoryResource extends CommonResource{
             @ApiResponse(responseCode = "403", description = "Forbidden")},
             security = {@SecurityRequirement(name = "Authorization")}
     )
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN') and hasAuthority('CREATED')")
     @PostMapping(value = "createCategory", consumes = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse createCategory(@RequestBody CategoryRequest categoryRequest) throws ApplicationException {
         this.getAuthentication();

@@ -17,6 +17,7 @@ public class EmployeeResponse {
     private String postCode;
     private String citizenID;
     private String imageFilePath;
+    private String imageData;
     private String role;
     private List<String> authorities;
     private String position;

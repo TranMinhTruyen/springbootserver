@@ -72,6 +72,7 @@ public enum MessageResponse {
     EMPLOYEE_NOT_FOUND("Not found employee", HttpStatus.NOT_FOUND),
     EMPLOYEE_CREATED_SUCCESS("Employee is added", HttpStatus.OK),
     EMPLOYEE_IS_EXIST("Employee account is exists", HttpStatus.FORBIDDEN),
+    GET_PROFILE_EMPLOYEE_SUCCESS("Get profile employee success", HttpStatus.OK),
     //endregion
 
     //region ComfirmKey message
