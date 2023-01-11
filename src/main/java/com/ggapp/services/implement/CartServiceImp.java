@@ -94,7 +94,7 @@ public class CartServiceImp implements CartService {
             List<ListProduct> listProducts = new ArrayList<>();
             listProducts.add(new ListProduct(product.getId(), product.getName(), product.getPrice(),
                     commonUtils.getProductImage(product.getId()), commonUtils.calculatePrice(product),
-                    product.getDiscount(), checkProductAmount(productStore, productAmount)));
+                    checkProductAmount(productStore, productAmount)));
             productStore.setUnitInStock(productAmount > 1 ? (productStore.getUnitInStock() - productAmount) : (productStore.getUnitInStock() - 1));
             productStoreRepository.save(productStore);
             newCart.setId(user.getId());
@@ -187,7 +187,7 @@ public class CartServiceImp implements CartService {
         if (productInCart.stream().noneMatch(a -> a.getId() == product.getId())) {
             productInCart.add(new ListProduct(product.getId(), product.getName(), product.getPrice(),
                     commonUtils.getProductImage(product.getId()), commonUtils.calculatePrice(product),
-                    product.getDiscount(), checkProductAmount(productStore, productAmount)));
+                    checkProductAmount(productStore, productAmount)));
             productStore.setUnitInStock(productStore.getUnitInStock() - 1);
             productRepository.save(product);
             cart.setId(user.getId());

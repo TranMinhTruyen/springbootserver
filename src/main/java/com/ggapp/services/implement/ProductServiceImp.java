@@ -200,14 +200,13 @@ public class ProductServiceImp implements ProductService {
         update.setUpdateBy(customUserDetail.getAccountDetail().getFullName());
         if (productRequest.getImage() != null && !productRequest.getImage().isEmpty())
             addOrUpdateProductImage(update, productRequest.getImage(), true);
-        update.setDiscount(productRequest.getDiscount());
         Product result = productRepository.save(update);
         updateProductFromCart(id, update);
         return getProductAfterUpdateOrCreate(result);
     }
 
     @Override
-    public boolean deleteLogicProduct(int[] id) throws ApplicationException {
+    public boolean logicalDeleteProduct(int[] id) throws ApplicationException {
         List<Product> product = productRepository.findAllByIdIn(id);
         if (!product.isEmpty()) {
             for (long i : id) {
@@ -224,7 +223,7 @@ public class ProductServiceImp implements ProductService {
     }
 
     @Override
-    public void deleteProduct(int[] id) throws ApplicationException {
+    public void physicalDeleteProduct(int[] id) throws ApplicationException {
         List<Product> product = productRepository.findAllByIdIn(id);
         if (!product.isEmpty()) {
             for (int i : id) {
@@ -242,7 +241,6 @@ public class ProductServiceImp implements ProductService {
                 if (listProduct.getId() == productId) {
                     listProduct.setProductName(product.getName());
                     listProduct.setPrice(product.getPrice());
-                    listProduct.setDiscount(product.getDiscount());
                     break;
                 }
             }

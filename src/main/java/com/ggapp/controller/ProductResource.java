@@ -191,6 +191,27 @@ public class ProductResource extends CommonResource{
 	/**
 	 *
 	 * @param id
+	 * @return
+	 * @throws ApplicationException
+	 */
+	@Operation(responses = {
+			@ApiResponse(responseCode = "200", description = "OK",
+					content = @Content(mediaType = "application/json", schema = @Schema(hidden = true))),
+			@ApiResponse(responseCode = "400", description = "Bad request"),
+			@ApiResponse(responseCode = "500", description = "Server error"),
+			@ApiResponse(responseCode = "403", description = "Forbidden")},
+			security = {@SecurityRequirement(name = "Authorization")}
+	)
+	@DeleteMapping(value = "logicalDeleteProduct")
+	public BaseResponse logicalDeleteProduct(@RequestParam int[] id) throws ApplicationException {
+		productService.logicalDeleteProduct(id);
+		return this.returnBaseReponse(null, DELETE_PRODUCT_SUCCESSFUL);
+	}
+
+
+	/**
+	 *
+	 * @param id
 	 * @return BaseResponse
 	 * @throws ApplicationException
 	 */
@@ -202,9 +223,9 @@ public class ProductResource extends CommonResource{
 			@ApiResponse(responseCode = "403", description = "Forbidden")},
 			security = {@SecurityRequirement(name = "Authorization")}
 	)
-	@DeleteMapping(value = "deleteProduct")
-	public BaseResponse deleteProduct(@RequestParam int[] id) throws ApplicationException {
-		productService.deleteProduct(id);
+	@DeleteMapping(value = "physicalDeleteProduct")
+	public BaseResponse physicalDeleteProduct(@RequestParam int[] id) throws ApplicationException {
+		productService.physicalDeleteProduct(id);
 		return this.returnBaseReponse(null, DELETE_PRODUCT_SUCCESSFUL);
 	}
 }

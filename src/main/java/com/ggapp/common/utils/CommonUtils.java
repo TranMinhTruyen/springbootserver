@@ -64,14 +64,12 @@ public class CommonUtils {
     }
 
     public BigDecimal calculatePrice(Product product, long amount) {
-        BigDecimal discountPrice = product.getPrice().multiply(BigDecimal.valueOf((product.getDiscount() / 100)));
-        BigDecimal productPrice = product.getPrice().subtract(discountPrice);
+        BigDecimal productPrice = product.getPrice();
         return productPrice.multiply(BigDecimal.valueOf(amount)).setScale(0, RoundingMode.HALF_EVEN);
     }
 
     public BigDecimal calculatePrice(Product product) {
-        BigDecimal discountPrice = product.getPrice().multiply(BigDecimal.valueOf((product.getDiscount() / 100)));
-        return product.getPrice().subtract(discountPrice).setScale(0, RoundingMode.HALF_EVEN);
+        return product.getPrice().setScale(0, RoundingMode.HALF_EVEN);
     }
 
     public BigDecimal calculatePrice(List<ListProduct> listProduct, List<Voucher> listVoucher) {

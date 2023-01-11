@@ -14,7 +14,6 @@ import com.ggapp.dao.document.ListProduct;
 import com.ggapp.dao.document.Order;
 import com.ggapp.dao.document.User;
 import com.ggapp.dao.entity.Product;
-import com.ggapp.dao.entity.Store;
 import com.ggapp.dao.repository.mongo.CartRepository;
 import com.ggapp.dao.repository.mongo.OrderRepository;
 import com.ggapp.dao.repository.mongo.UserRepository;
@@ -35,8 +34,6 @@ import java.util.Optional;
 import static com.ggapp.common.enums.MessageResponse.CART_NOT_FOUND;
 import static com.ggapp.common.enums.MessageResponse.ORDER_NOT_FOUND;
 import static com.ggapp.common.enums.MessageResponse.ORDER_NOT_FOUND_PRODUCT;
-import static com.ggapp.common.enums.MessageResponse.PRODUCT_NOT_FOUND;
-import static com.ggapp.common.enums.MessageResponse.STORE_NOT_FOUND;
 import static com.ggapp.common.enums.MessageResponse.USER_NOT_FOUND;
 
 /**
@@ -74,7 +71,19 @@ public class OrderServiceImp implements OrderService {
     private OrderMapper orderMapper;
 
     @Override
-    public OrderResponse createOrderByCart(CustomUserDetail customUserDetail) throws ApplicationException {
+    public OrderResponse createOrder(CustomUserDetail customUserDetail, UserOrderRequest userOrderRequest)
+            throws ApplicationException {
+        OrderResponse orderResponse = new OrderResponse();
+        if (userOrderRequest.getProductId() != null && userOrderRequest.getProductId().length > 0) {
+            orderResponse = createOrderByProductId(customUserDetail, userOrderRequest.getProductId(),
+                    userOrderRequest.getStoreId());
+        } else {
+            orderResponse = createOrderByCart(customUserDetail);
+        }
+        return orderResponse;
+    }
+
+    private OrderResponse createOrderByCart(CustomUserDetail customUserDetail) throws ApplicationException {
         List<Order> last = new AutoIncrement(orderRepository).getLastOfCollection();
         Optional<Cart> cartResult = cartRepository.findById(customUserDetail.getAccountDetail().getOwnerId());
         Optional<User> userResult = userRepository.findById(customUserDetail.getAccountDetail().getOwnerId());
@@ -102,8 +111,8 @@ public class OrderServiceImp implements OrderService {
         return getOrderAfterCreateOrUpdate(order);
     }
 
-    @Override
-    public OrderResponse createOrderByProductId(CustomUserDetail customUserDetail, int[] productId, int storeId) throws ApplicationException {
+    private OrderResponse createOrderByProductId(CustomUserDetail customUserDetail, int[] productId, int storeId)
+            throws ApplicationException {
 
         List<Order> last = new AutoIncrement(orderRepository).getLastOfCollection();
 
@@ -194,14 +203,13 @@ public class OrderServiceImp implements OrderService {
     }
 
     @Override
-    public boolean deleteOrder(int id, int customerId) throws ApplicationException {
-        Optional<Order> order = orderRepository.findOrderByIdAndCustomerId(id, customerId);
-        order.orElseThrow(() -> new ApplicationException(ORDER_NOT_FOUND));
-        for (ListProduct listProduct : order.get().getListProducts()) {
+    public void deleteOrder(CustomUserDetail customUserDetail, int id) throws ApplicationException {
+        Optional<Order> orderResult = orderRepository.findOrderByIdAndCustomerId(id, customUserDetail.getAccountDetail().getOwnerId());
+        Order order = orderResult.orElseThrow(() -> new ApplicationException(ORDER_NOT_FOUND));
+        for (ListProduct listProduct : order.getListProducts()) {
             returnProductFromOrder(listProduct.getId(), listProduct.getProductAmount());
         }
-        orderRepository.deleteById(order.get().getId());
-        return true;
+        orderRepository.deleteById(order.getId());
     }
 
     private void returnProductFromOrder(int productId, long amount) {

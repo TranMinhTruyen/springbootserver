@@ -33,9 +33,6 @@ public class ListProduct {
 	@Field(value = "productPriceAfterDiscount")
 	private BigDecimal priceAfterDiscount;
 
-	@Field(value = "Discount")
-	private float discount;
-
 	@Field(value = "productAmount")
 	private int productAmount;
 }

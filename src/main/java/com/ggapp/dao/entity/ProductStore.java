@@ -44,6 +44,9 @@ public class ProductStore {
     @Column(name = "unit_in_stock")
     private long unitInStock;
 
+    @Column(name = "discount")
+    private float discount;
+
     @Column(name = "is_new")
     private boolean isNew;
 

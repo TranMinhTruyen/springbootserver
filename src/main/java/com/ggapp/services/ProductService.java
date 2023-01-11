@@ -7,7 +7,6 @@ import com.ggapp.common.exception.ApplicationException;
 import com.ggapp.common.jwt.CustomUserDetail;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
 /**
  * @author Tran Minh Truyen
@@ -23,7 +22,7 @@ public interface ProductService {
                                               float fromPrice,
                                               float toPrice) throws ApplicationException;
 	ProductResponse updateProduct(int id, ProductRequest productRequest) throws ApplicationException;
-	void deleteProduct(int[] id) throws ApplicationException;
-	boolean deleteLogicProduct(int[] id) throws ApplicationException;
+	void physicalDeleteProduct(int[] id) throws ApplicationException;
+	boolean logicalDeleteProduct(int[] id) throws ApplicationException;
 	void deleteLogicImageOfProduct(int productId, int[] imageId) throws ApplicationException;
 }

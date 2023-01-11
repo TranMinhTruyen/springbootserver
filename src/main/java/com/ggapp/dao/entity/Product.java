@@ -43,9 +43,6 @@ public class Product implements Serializable {
 	@Column
 	private String type;
 
-	@Column
-	private float discount;
-
 	@ManyToOne
 	@JoinColumn(name = "id_brand")
 	private Brand brand;

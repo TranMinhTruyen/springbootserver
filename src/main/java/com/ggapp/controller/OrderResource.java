@@ -1,7 +1,6 @@
 package com.ggapp.controller;
 import com.ggapp.common.dto.response.BaseResponse;
 import com.ggapp.common.exception.ApplicationException;
-import com.ggapp.common.jwt.CustomUserDetail;
 import com.ggapp.common.dto.request.OrderRequest;
 import com.ggapp.common.dto.request.UserOrderRequest;
 import com.ggapp.common.dto.response.CommonResponsePayload;
@@ -14,12 +13,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -29,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import static com.ggapp.common.enums.MessageResponse.CREATED_ORDER_SUCCESSFUL;
+import static com.ggapp.common.enums.MessageResponse.DELETED_ORDER_SUCCESSFUL;
 import static com.ggapp.common.enums.MessageResponse.GET_ORDER_SUCCESSFUL;
 import static com.ggapp.common.enums.MessageResponse.UPDATED_ORDER_SUCCESSFUL;
 
@@ -47,7 +45,12 @@ public class OrderResource extends CommonResource{
 	private OrderService orderService;
 
 
-
+	/**
+	 *
+	 * @param userOrderRequest
+	 * @return
+	 * @throws Exception
+	 */
 	@Operation(responses = {
 			@ApiResponse(responseCode = "200", description = "OK",
 					content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))),
@@ -59,19 +62,17 @@ public class OrderResource extends CommonResource{
 	@PostMapping(value = "createOrder")
 	public BaseResponse createOrder(@RequestBody UserOrderRequest userOrderRequest) throws Exception {
 		this.getAuthentication();
-		OrderResponse orderResponse;
-		if (userOrderRequest.getProductId() != null && userOrderRequest.getProductId().length > 0) {
-			orderResponse = orderService.createOrderByProductId(this.customUserDetail, userOrderRequest.getProductId(),
-					userOrderRequest.getStoreId());
-		}
-		else {
-			orderResponse = orderService.createOrderByCart(this.customUserDetail);
-		}
+		OrderResponse orderResponse = orderService.createOrder(this.customUserDetail, userOrderRequest);
 		return this.returnBaseReponse(orderResponse, CREATED_ORDER_SUCCESSFUL);
 	}
 
 
-
+	/**
+	 *
+	 * @param page
+	 * @param size
+	 * @return
+	 */
 	@Operation(responses = {
 			@ApiResponse(responseCode = "200", description = "OK",
 					content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))),
@@ -82,18 +83,18 @@ public class OrderResource extends CommonResource{
 	)
 	@GetMapping(value="user/getOrder")
 	public BaseResponse getOrder(@RequestParam int page, @RequestParam int size){
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		CustomUserDetail customUserDetail = (CustomUserDetail) authentication.getPrincipal();
-		BaseResponse baseResponse = new BaseResponse();
+		this.getAuthentication();
 		CommonResponsePayload commonResponsePayload = orderService.getOrderByCustomerId(this.customUserDetail, page, size);
-		baseResponse.setStatus(HttpStatus.OK.value());
-		baseResponse.setStatusname(HttpStatus.OK.name());
-		baseResponse.setMessage("Get order success");
-		baseResponse.setPayload(commonResponsePayload);
-		return baseResponse;
+		return this.returnBaseReponse(commonResponsePayload, GET_ORDER_SUCCESSFUL);
 	}
 
 
+	/**
+	 *
+	 * @param page
+	 * @param size
+	 * @return
+	 */
 	@Operation(responses = {
 			@ApiResponse(responseCode = "200", description = "OK",
 					content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))),
@@ -111,6 +112,12 @@ public class OrderResource extends CommonResource{
 	}
 
 
+	/**
+	 *
+	 * @param userOrderRequest
+	 * @return
+	 * @throws ApplicationException
+	 */
 	@Operation(responses = {
 			@ApiResponse(responseCode = "200", description = "OK",
 					content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))),
@@ -127,6 +134,13 @@ public class OrderResource extends CommonResource{
 	}
 
 
+	/**
+	 *
+	 * @param id
+	 * @param orderRequest
+	 * @return
+	 * @throws ApplicationException
+	 */
 	@Operation(responses = {
 			@ApiResponse(responseCode = "200", description = "OK",
 					content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))),
@@ -143,7 +157,12 @@ public class OrderResource extends CommonResource{
 	}
 
 
-
+	/**
+	 *
+	 * @param id
+	 * @return
+	 * @throws ApplicationException
+	 */
 	@Operation(responses = {
 			@ApiResponse(responseCode = "200", description = "OK",
 					content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(hidden = true))),
@@ -152,12 +171,10 @@ public class OrderResource extends CommonResource{
 			@ApiResponse(responseCode = "403", description = "Forbidden")},
 			security = {@SecurityRequirement(name = "Authorization")}
 	)
-	public BaseResponse deleteOrder(@RequestParam long id) throws ApplicationException {
-		BaseResponse baseResponse = new BaseResponse();
-		baseResponse.setStatus(HttpStatus.OK.value());
-		baseResponse.setStatusname(HttpStatus.OK.name());
-		baseResponse.setMessage("Delete order success");
-		baseResponse.setPayload(null);
-		return baseResponse;
+	@DeleteMapping(value = "/deleteOrder", consumes = MediaType.APPLICATION_JSON_VALUE)
+	public BaseResponse deleteOrder(@RequestParam int id) throws ApplicationException {
+		this.getAuthentication();
+		orderService.deleteOrder(this.customUserDetail, id);
+		return this.returnBaseReponse(null, DELETED_ORDER_SUCCESSFUL);
 	}
 }
